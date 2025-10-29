@@ -32,7 +32,7 @@ const Footer = () => {
               style={{
                 fontWeight: 700,
                 marginBottom: '20px',
-                color: '#ff69b4',
+                color: '#e91e63',
               }}
             >
               Frost & Crinkle
@@ -52,7 +52,7 @@ const Footer = () => {
             <Box style={{ display: 'flex', gap: '12px' }}>
               <IconButton
                 size="small"
-                style={{ color: '#ff69b4', background: 'rgba(255, 105, 180, 0.1)' }}
+                style={{ color: '#e91e63', background: 'rgba(233, 30, 99, 0.1)' }}
                 href="https://facebook.com"
                 target="_blank"
               >
@@ -60,7 +60,7 @@ const Footer = () => {
               </IconButton>
               <IconButton
                 size="small"
-                style={{ color: '#ff69b4', background: 'rgba(255, 105, 180, 0.1)' }}
+                style={{ color: '#e91e63', background: 'rgba(233, 30, 99, 0.1)' }}
                 href="https://instagram.com"
                 target="_blank"
               >
@@ -68,7 +68,7 @@ const Footer = () => {
               </IconButton>
               <IconButton
                 size="small"
-                style={{ color: '#ff69b4', background: 'rgba(255, 105, 180, 0.1)' }}
+                style={{ color: '#e91e63', background: 'rgba(233, 30, 99, 0.1)' }}
                 href="https://twitter.com"
                 target="_blank"
               >
@@ -84,7 +84,7 @@ const Footer = () => {
               sx={{
                 fontWeight: 700,
                 marginBottom: { xs: '12px', sm: '20px' },
-                color: '#ff69b4',
+                color: '#e91e63',
                 fontSize: { xs: '1rem', sm: '1.25rem' },
               }}
             >
@@ -100,7 +100,7 @@ const Footer = () => {
                   fontSize: '14px',
                   transition: 'color 0.3s',
                 }}
-                onMouseEnter={(e) => (e.target.style.color = '#ff69b4')}
+                onMouseEnter={(e) => (e.target.style.color = '#e91e63')}
                 onMouseLeave={(e) => (e.target.style.color = '#b0b0b0')}
               >
                 Home
@@ -114,7 +114,7 @@ const Footer = () => {
                   fontSize: '14px',
                   transition: 'color 0.3s',
                 }}
-                onMouseEnter={(e) => (e.target.style.color = '#ff69b4')}
+                onMouseEnter={(e) => (e.target.style.color = '#e91e63')}
                 onMouseLeave={(e) => (e.target.style.color = '#b0b0b0')}
               >
                 Shop
@@ -128,7 +128,7 @@ const Footer = () => {
                   fontSize: '14px',
                   transition: 'color 0.3s',
                 }}
-                onMouseEnter={(e) => (e.target.style.color = '#ff69b4')}
+                onMouseEnter={(e) => (e.target.style.color = '#e91e63')}
                 onMouseLeave={(e) => (e.target.style.color = '#b0b0b0')}
               >
                 About Us
@@ -142,7 +142,7 @@ const Footer = () => {
                   fontSize: '14px',
                   transition: 'color 0.3s',
                 }}
-                onMouseEnter={(e) => (e.target.style.color = '#ff69b4')}
+                onMouseEnter={(e) => (e.target.style.color = '#e91e63')}
                 onMouseLeave={(e) => (e.target.style.color = '#b0b0b0')}
               >
                 Contact
@@ -159,7 +159,7 @@ const Footer = () => {
                 sx={{
                   fontWeight: 700,
                   marginBottom: '12px',
-                  color: '#ff69b4',
+                  color: '#e91e63',
                   fontSize: '1rem',
                 }}
               >
@@ -168,7 +168,7 @@ const Footer = () => {
               <Box sx={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 <IconButton
                   size="small"
-                  style={{ color: '#ff69b4', background: 'rgba(255, 105, 180, 0.1)' }}
+                  style={{ color: '#e91e63', background: 'rgba(233, 30, 99, 0.1)' }}
                   href="https://facebook.com"
                   target="_blank"
                 >
@@ -176,7 +176,7 @@ const Footer = () => {
                 </IconButton>
                 <IconButton
                   size="small"
-                  style={{ color: '#ff69b4', background: 'rgba(255, 105, 180, 0.1)' }}
+                  style={{ color: '#e91e63', background: 'rgba(233, 30, 99, 0.1)' }}
                   href="https://instagram.com"
                   target="_blank"
                 >
@@ -184,7 +184,7 @@ const Footer = () => {
                 </IconButton>
                 <IconButton
                   size="small"
-                  style={{ color: '#ff69b4', background: 'rgba(255, 105, 180, 0.1)' }}
+                  style={{ color: '#e91e63', background: 'rgba(233, 30, 99, 0.1)' }}
                   href="https://twitter.com"
                   target="_blank"
                 >
@@ -200,7 +200,7 @@ const Footer = () => {
                 sx={{
                   fontWeight: 700,
                   marginBottom: { xs: '12px', sm: '20px' },
-                  color: '#ff69b4',
+                  color: '#e91e63',
                   fontSize: { xs: '1rem', sm: '1.25rem' },
                 }}
               >
@@ -216,7 +216,7 @@ const Footer = () => {
                     fontSize: '14px',
                     transition: 'color 0.3s',
                   }}
-                  onMouseEnter={(e) => (e.target.style.color = '#ff69b4')}
+                  onMouseEnter={(e) => (e.target.style.color = '#e91e63')}
                   onMouseLeave={(e) => (e.target.style.color = '#b0b0b0')}
                 >
                   Terms of Service
@@ -230,7 +230,7 @@ const Footer = () => {
                     fontSize: '14px',
                     transition: 'color 0.3s',
                   }}
-                  onMouseEnter={(e) => (e.target.style.color = '#ff69b4')}
+                  onMouseEnter={(e) => (e.target.style.color = '#e91e63')}
                   onMouseLeave={(e) => (e.target.style.color = '#b0b0b0')}
                 >
                   Privacy Policy
@@ -244,7 +244,7 @@ const Footer = () => {
                     fontSize: '14px',
                     transition: 'color 0.3s',
                   }}
-                  onMouseEnter={(e) => (e.target.style.color = '#ff69b4')}
+                  onMouseEnter={(e) => (e.target.style.color = '#e91e63')}
                   onMouseLeave={(e) => (e.target.style.color = '#b0b0b0')}
                 >
                   Refund Policy
@@ -260,14 +260,14 @@ const Footer = () => {
               style={{
                 fontWeight: 700,
                 marginBottom: '20px',
-                color: '#ff69b4',
+                color: '#e91e63',
               }}
             >
               Contact Us
             </Typography>
             <Box style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <Box style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                <LocationOn style={{ color: '#ff69b4', fontSize: '20px' }} />
+                <LocationOn style={{ color: '#e91e63', fontSize: '20px' }} />
                 <Typography variant="body2" style={{ color: '#b0b0b0', fontSize: '14px' }}>
                   123 Bakery Street,
                   <br />
@@ -275,13 +275,13 @@ const Footer = () => {
                 </Typography>
               </Box>
               <Box style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <Phone style={{ color: '#ff69b4', fontSize: '20px' }} />
+                <Phone style={{ color: '#e91e63', fontSize: '20px' }} />
                 <Typography variant="body2" style={{ color: '#b0b0b0', fontSize: '14px' }}>
                   +91 1234567890
                 </Typography>
               </Box>
               <Box style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <Email style={{ color: '#ff69b4', fontSize: '20px' }} />
+                <Email style={{ color: '#e91e63', fontSize: '20px' }} />
                 <Typography variant="body2" style={{ color: '#b0b0b0', fontSize: '14px' }}>
                   hello@frostandcrinkle.com
                 </Typography>
@@ -317,7 +317,7 @@ const Footer = () => {
               gap: '4px',
             }}
           >
-            Made with <Favorite style={{ color: '#ff69b4', fontSize: '16px' }} /> for bakery lovers
+            Made with <Favorite style={{ color: '#e91e63', fontSize: '16px' }} /> for bakery lovers
           </Typography>
         </Box>
       </Container>

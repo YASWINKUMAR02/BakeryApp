@@ -49,8 +49,12 @@ public class EmailTemplateService {
             itemsHtml.append("<tr>");
             itemsHtml.append("<td style='padding: 12px; border-bottom: 1px solid #e9ecef;'>");
             itemsHtml.append("<strong>").append(item.getItem().getName()).append("</strong>");
-            if (item.getEggType() != null && "EGGLESS".equals(item.getEggType())) {
-                itemsHtml.append("<br><span style='color: #28a745; font-size: 12px;'>🥚 Eggless</span>");
+            if (item.getEggType() != null) {
+                if ("EGGLESS".equals(item.getEggType())) {
+                    itemsHtml.append("<br><span style='color: #28a745; font-size: 12px;'>🌱 Eggless</span>");
+                } else {
+                    itemsHtml.append("<br><span style='color: #ff9800; font-size: 12px;'>🥚 With Egg</span>");
+                }
             }
             itemsHtml.append("</td>");
             itemsHtml.append("<td style='padding: 12px; border-bottom: 1px solid #e9ecef; text-align: center;'>x").append(item.getQuantity()).append("</td>");
@@ -116,8 +120,12 @@ public class EmailTemplateService {
             itemsHtml.append("<tr>");
             itemsHtml.append("<td style='padding: 12px; border-bottom: 1px solid #e9ecef;'>");
             itemsHtml.append("<strong>").append(item.getItem().getName()).append("</strong>");
-            if (item.getEggType() != null && "EGGLESS".equals(item.getEggType())) {
-                itemsHtml.append("<br><span style='color: #28a745; font-size: 12px;'>🥚 Eggless</span>");
+            if (item.getEggType() != null) {
+                if ("EGGLESS".equals(item.getEggType())) {
+                    itemsHtml.append("<br><span style='color: #28a745; font-size: 12px;'>🌱 Eggless</span>");
+                } else {
+                    itemsHtml.append("<br><span style='color: #ff9800; font-size: 12px;'>🥚 With Egg</span>");
+                }
             }
             itemsHtml.append("</td>");
             itemsHtml.append("<td style='padding: 12px; border-bottom: 1px solid #e9ecef; text-align: center;'>x").append(item.getQuantity()).append("</td>");
@@ -188,8 +196,12 @@ public class EmailTemplateService {
             itemsHtml.append("<tr>");
             itemsHtml.append("<td style='padding: 12px; border-bottom: 1px solid #e9ecef;'>");
             itemsHtml.append("<strong>").append(item.getItem().getName()).append("</strong>");
-            if (item.getEggType() != null && "EGGLESS".equals(item.getEggType())) {
-                itemsHtml.append("<br><span style='color: #28a745; font-size: 12px;'>🥚 Eggless</span>");
+            if (item.getEggType() != null) {
+                if ("EGGLESS".equals(item.getEggType())) {
+                    itemsHtml.append("<br><span style='color: #28a745; font-size: 12px;'>🌱 Eggless</span>");
+                } else {
+                    itemsHtml.append("<br><span style='color: #ff9800; font-size: 12px;'>🥚 With Egg</span>");
+                }
             }
             itemsHtml.append("</td>");
             itemsHtml.append("<td style='padding: 12px; border-bottom: 1px solid #e9ecef; text-align: center;'>x").append(item.getQuantity()).append("</td>");
@@ -249,8 +261,12 @@ public class EmailTemplateService {
             itemsHtml.append("<tr>");
             itemsHtml.append("<td style='padding: 12px; border-bottom: 1px solid #e9ecef;'>");
             itemsHtml.append("<strong>").append(item.getItem().getName()).append("</strong>");
-            if (item.getEggType() != null && "EGGLESS".equals(item.getEggType())) {
-                itemsHtml.append("<br><span style='color: #28a745; font-size: 12px;'>🥚 Eggless</span>");
+            if (item.getEggType() != null) {
+                if ("EGGLESS".equals(item.getEggType())) {
+                    itemsHtml.append("<br><span style='color: #28a745; font-size: 12px;'>🌱 Eggless</span>");
+                } else {
+                    itemsHtml.append("<br><span style='color: #ff9800; font-size: 12px;'>🥚 With Egg</span>");
+                }
             }
             itemsHtml.append("</td>");
             itemsHtml.append("<td style='padding: 12px; border-bottom: 1px solid #e9ecef; text-align: center;'>x").append(item.getQuantity()).append("</td>");

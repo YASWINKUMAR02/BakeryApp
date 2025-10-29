@@ -209,7 +209,6 @@ const Cart = () => {
                         <CardContent>
                           <Box style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
                             <Box style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-                              <Cake style={{ color: '#ff69b4', fontSize: '24px' }} />
                               <Box>
                                 <Typography variant="body1" style={{ fontWeight: 600 }}>
                                   {cartItem.item.name}
@@ -310,7 +309,6 @@ const Cart = () => {
                           <TableRow key={cartItem.id} hover>
                             <TableCell>
                               <Box style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <Cake style={{ color: '#ff69b4' }} />
                                 <Box>
                                   <Typography>{cartItem.item.name}</Typography>
                                   <Box style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
