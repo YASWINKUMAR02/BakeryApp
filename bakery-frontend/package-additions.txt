@@ -1,0 +1,11 @@
+# Additional packages to install for enhanced functionality
+
+# Install these packages:
+npm install react-toastify
+npm install @mui/x-data-grid
+npm install formik yup
+npm install date-fns
+
+# Commands to run:
+# cd bakery-frontend
+# npm install react-toastify @mui/x-data-grid formik yup date-fns

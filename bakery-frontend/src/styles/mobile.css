@@ -1,0 +1,141 @@
+/* Mobile-First Responsive Styles */
+
+/* Prevent horizontal scroll on mobile */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+/* Touch-friendly spacing */
+@media (max-width: 600px) {
+  /* Reduce padding on mobile */
+  .container-mobile {
+    padding: 12px !important;
+  }
+  
+  /* Stack elements vertically */
+  .flex-mobile-column {
+    flex-direction: column !important;
+  }
+  
+  /* Full width on mobile */
+  .full-width-mobile {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  /* Smaller text on mobile */
+  .text-mobile-small {
+    font-size: 0.875rem !important;
+  }
+  
+  /* Hide on mobile */
+  .hide-mobile {
+    display: none !important;
+  }
+  
+  /* Show only on mobile */
+  .show-mobile {
+    display: block !important;
+  }
+  
+  /* Reduce margins on mobile */
+  .margin-mobile-reduce {
+    margin: 8px !important;
+  }
+  
+  /* Touch-friendly buttons */
+  button, .button {
+    min-height: 48px;
+    min-width: 48px;
+    padding: 12px 16px;
+  }
+  
+  /* Larger tap targets */
+  a, .clickable {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+  
+  /* Prevent text from being too small */
+  input, textarea, select {
+    font-size: 16px !important; /* Prevents zoom on iOS */
+  }
+  
+  /* Card spacing on mobile */
+  .card-mobile {
+    margin-bottom: 12px;
+    border-radius: 8px;
+  }
+  
+  /* Grid spacing on mobile */
+  .grid-mobile-spacing {
+    gap: 12px !important;
+  }
+}
+
+/* Tablet adjustments */
+@media (min-width: 601px) and (max-width: 960px) {
+  .container-tablet {
+    padding: 16px !important;
+  }
+  
+  .hide-tablet {
+    display: none !important;
+  }
+}
+
+/* Desktop */
+@media (min-width: 961px) {
+  .hide-desktop {
+    display: none !important;
+  }
+  
+  .show-mobile {
+    display: none !important;
+  }
+}
+
+/* Landscape mobile */
+@media (max-width: 900px) and (orientation: landscape) {
+  .landscape-adjust {
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+}
+
+/* Very small phones */
+@media (max-width: 400px) {
+  h1 { font-size: 1.75rem !important; }
+  h2 { font-size: 1.5rem !important; }
+  h3 { font-size: 1.25rem !important; }
+  h4 { font-size: 1.125rem !important; }
+  
+  /* Even more compact spacing */
+  .container-mobile {
+    padding: 8px !important;
+  }
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Better touch scrolling on iOS */
+* {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent text selection on buttons */
+button, .button {
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* Focus styles for accessibility */
+*:focus-visible {
+  outline: 3px solid #e91e63;
+  outline-offset: 2px;
+}

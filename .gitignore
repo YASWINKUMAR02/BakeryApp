@@ -1,0 +1,45 @@
+# Environment files with sensitive data
+.env
+.env.local
+.env.production
+*.env
+bakery-frontend/.env
+bakery-frontend/.env.local
+bakery-frontend/.env.production
+
+# Application properties with secrets
+application-local.properties
+application-prod.properties
+application.properties
+bakeryapp/src/main/resources/application.properties
+bakeryapp/src/main/resources/application-prod.properties
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# Build files
+target/
+build/
+dist/
+*.class
+
+# Node modules
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Database
+*.db
+*.sqlite
