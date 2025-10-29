@@ -47,10 +47,10 @@ public class CustomerService {
     
     public Customer loginCustomer(LoginRequest request) {
         Customer customer = customerRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+                .orElseThrow(() -> new RuntimeException("Email not exists. Please check your email or sign up."));
         
         if (!passwordEncoder.matches(request.getPassword(), customer.getPassword())) {
-            throw new RuntimeException("Invalid email or password");
+            throw new RuntimeException("Invalid password. Please try again.");
         }
         
         return customer;
