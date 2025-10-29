@@ -12,6 +12,8 @@ import {
   Divider,
   IconButton,
   Badge,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import {
   Dashboard,
@@ -35,6 +37,8 @@ const drawerWidth = 260;
 const AdminSidebar = ({ open, onToggle }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [expandedSections, setExpandedSections] = useState({
     'Categories': true,
     'Items': true,
@@ -180,12 +184,17 @@ const AdminSidebar = ({ open, onToggle }) => {
 
   return (
     <Drawer
-      variant="permanent"
+      variant={isMobile ? 'temporary' : 'permanent'}
+      open={isMobile ? open : true}
+      onClose={isMobile ? onToggle : undefined}
+      ModalProps={{
+        keepMounted: true, // Better mobile performance
+      }}
       sx={{
-        width: open ? drawerWidth : 70,
+        width: isMobile ? 0 : (open ? drawerWidth : 70),
         flexShrink: 0,
         '& .MuiDrawer-paper': {
-          width: open ? drawerWidth : 70,
+          width: isMobile ? drawerWidth : (open ? drawerWidth : 70),
           boxSizing: 'border-box',
           background: '#fff',
           color: '#333',
@@ -193,32 +202,39 @@ const AdminSidebar = ({ open, onToggle }) => {
           boxShadow: '2px 0 8px rgba(0, 0, 0, 0.1)',
           transition: 'width 0.3s ease',
           overflowX: 'hidden',
-          marginTop: '70px',
+          marginTop: { xs: 0, md: '70px' },
+          height: { xs: '100%', md: 'calc(100% - 70px)' },
         },
       }}
     >
       <Box sx={{ overflow: 'auto', height: '100%' }}>
-        {/* Toggle Button */}
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: open ? 'flex-end' : 'center',
-            padding: '12px',
-            borderBottom: '1px solid #e0e0e0',
-          }}
-        >
-          <IconButton
-            onClick={onToggle}
+        {/* Toggle Button - Only on Desktop */}
+        {!isMobile && (
+          <Box
             sx={{
-              color: '#333',
-              '&:hover': {
-                background: '#f5f5f5',
-              },
+              display: 'flex',
+              justifyContent: open ? 'flex-end' : 'center',
+              padding: '12px',
+              borderBottom: '1px solid #e0e0e0',
+              background: '#f8f9fa',
             }}
           >
-            {open ? <ChevronLeft /> : <ChevronRight />}
-          </IconButton>
-        </Box>
+            <IconButton
+              onClick={onToggle}
+              sx={{
+                color: '#333',
+                background: '#fff',
+                border: '1px solid #e0e0e0',
+                '&:hover': {
+                  background: '#e91e63',
+                  color: '#fff',
+                },
+              }}
+            >
+              {open ? <ChevronLeft /> : <ChevronRight />}
+            </IconButton>
+          </Box>
+        )}
 
         <List sx={{ padding: '12px 8px' }}>
           {menuItems.map((item, index) => (

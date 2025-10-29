@@ -172,9 +172,16 @@ const AnalyticsDashboard = () => {
   if (loading) {
     return (
       <>
-        <AdminHeader title="Analytics Dashboard" />
+        <AdminHeader title="Analytics Dashboard" onMenuClick={() => setSidebarOpen(!sidebarOpen)} sidebarOpen={sidebarOpen} />
         <AdminSidebar open={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
-        <Box style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: sidebarOpen ? '260px' : '70px' }}>
+        <Box sx={{ 
+          minHeight: '100vh', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          marginLeft: { xs: 0, md: sidebarOpen ? '260px' : '70px' },
+          transition: 'margin-left 0.3s ease'
+        }}>
           <CircularProgress />
         </Box>
       </>
@@ -184,9 +191,17 @@ const AnalyticsDashboard = () => {
   if (!analytics) {
     return (
       <>
-        <AdminHeader title="Analytics Dashboard" />
+        <AdminHeader title="Analytics Dashboard" onMenuClick={() => setSidebarOpen(!sidebarOpen)} sidebarOpen={sidebarOpen} />
         <AdminSidebar open={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
-        <Box style={{ minHeight: '100vh', padding: '100px 20px', marginLeft: sidebarOpen ? '260px' : '70px' }}>
+        <Box sx={{ 
+          minHeight: '100vh', 
+          paddingTop: { xs: '70px', sm: '100px' },
+          paddingBottom: { xs: '20px', sm: '40px' },
+          paddingLeft: { xs: '8px', sm: '20px' },
+          paddingRight: { xs: '8px', sm: '20px' },
+          marginLeft: { xs: 0, md: sidebarOpen ? '260px' : '70px' },
+          transition: 'margin-left 0.3s ease'
+        }}>
           <Alert severity="error">Failed to load analytics data</Alert>
         </Box>
       </>
@@ -197,15 +212,17 @@ const AnalyticsDashboard = () => {
 
   return (
     <>
-      <AdminHeader title="Analytics Dashboard" />
+      <AdminHeader title="Analytics Dashboard" onMenuClick={() => setSidebarOpen(!sidebarOpen)} sidebarOpen={sidebarOpen} />
       <AdminSidebar open={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
 
-      <Box style={{ 
+      <Box sx={{ 
         minHeight: '100vh', 
         background: '#f5f5f5', 
-        paddingTop: '80px', 
-        paddingBottom: '40px', 
-        marginLeft: sidebarOpen ? '260px' : '70px',
+        paddingTop: { xs: '70px', sm: '80px' }, 
+        paddingBottom: { xs: '20px', sm: '40px' },
+        paddingLeft: { xs: '8px', sm: '16px' },
+        paddingRight: { xs: '8px', sm: '16px' },
+        marginLeft: { xs: 0, md: sidebarOpen ? '260px' : '70px' },
         transition: 'margin-left 0.3s ease'
       }}>
         <Container maxWidth="xl">

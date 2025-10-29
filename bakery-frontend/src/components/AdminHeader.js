@@ -29,12 +29,14 @@ import {
   StickyNote2,
   Delete,
   Add,
+  Menu,
+  ArrowBack,
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import Notifications from './Notifications';
 import AdminOrderAlert from './AdminOrderAlert';
 
-const AdminHeader = ({ title = 'Admin Dashboard', showBack = false }) => {
+const AdminHeader = ({ title = 'Admin Dashboard', showBack = false, onMenuClick, sidebarOpen = false }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
@@ -96,23 +98,31 @@ const AdminHeader = ({ title = 'Admin Dashboard', showBack = false }) => {
       <AdminOrderAlert />
       
       <AppBar position="fixed" elevation={0} style={{ background: '#fff', borderBottom: '1px solid #e0e0e0', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-        <Toolbar style={{ padding: '8px 24px', minHeight: '70px' }}>
+        <Toolbar sx={{ padding: { xs: '8px 12px', sm: '8px 24px' }, minHeight: { xs: '60px', sm: '70px' } }}>
+          {onMenuClick && (
+            <IconButton
+              onClick={onMenuClick}
+              sx={{ marginRight: '8px', color: '#333', display: { xs: 'flex', md: 'none' } }}
+            >
+              {sidebarOpen ? <ArrowBack /> : <Menu />}
+            </IconButton>
+          )}
           <img 
             src="/LOGOO.png" 
             alt="Frost and Crinkle Logo" 
             style={{
-              height: '55px',
-              width: '160px',
+              height: window.innerWidth < 600 ? '40px' : '55px',
+              width: window.innerWidth < 600 ? '120px' : '160px',
               objectFit: 'contain',
               borderRadius: '8px',
-              marginRight: '16px',
+              marginRight: window.innerWidth < 600 ? '8px' : '16px',
               cursor: 'pointer',
             }}
             onClick={handleDashboardClick}
           />
           <Typography 
             variant="h6" 
-            style={{ flexGrow: 1, fontWeight: 700, color: '#333', cursor: 'pointer' }}
+            sx={{ flexGrow: 1, fontWeight: 700, color: '#333', cursor: 'pointer', fontSize: { xs: '0.95rem', sm: '1.25rem' }, display: { xs: 'none', sm: 'block' } }}
             onClick={handleDashboardClick}
           >
             Admin Panel
@@ -124,7 +134,7 @@ const AdminHeader = ({ title = 'Admin Dashboard', showBack = false }) => {
               color="inherit"
               onClick={handleDashboardClick}
               startIcon={<Dashboard />}
-              style={{ marginRight: '20px', color: '#333' }}
+              sx={{ marginRight: { xs: '8px', sm: '20px' }, color: '#333', display: { xs: 'none', md: 'flex' } }}
             >
               Dashboard
             </Button>
@@ -144,16 +154,22 @@ const AdminHeader = ({ title = 'Admin Dashboard', showBack = false }) => {
               </Badge>
             </IconButton>
             
-            <Typography variant="body2" style={{ marginRight: '20px', color: '#333', display: 'flex', alignItems: 'center' }}>
+            <Typography variant="body2" sx={{ marginRight: { xs: '8px', sm: '20px' }, color: '#333', display: { xs: 'none', sm: 'flex' }, alignItems: 'center' }}>
               <AdminPanelSettings style={{ fontSize: '18px', marginRight: '6px', color: '#ff6b9d' }} />
               {user?.name}
             </Typography>
             
+            <IconButton
+              onClick={handleLogout}
+              sx={{ color: '#333', display: { xs: 'flex', sm: 'none' } }}
+            >
+              <Logout />
+            </IconButton>
             <Button
               color="inherit"
               onClick={handleLogout}
               startIcon={<Logout />}
-              style={{ color: '#333' }}
+              sx={{ color: '#333', display: { xs: 'none', sm: 'flex' } }}
             >
               Logout
             </Button>

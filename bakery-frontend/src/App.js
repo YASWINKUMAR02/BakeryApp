@@ -31,6 +31,7 @@ import Analytics from './pages/admin/Analytics';
 import AnalyticsDashboard from './pages/admin/AnalyticsDashboard';
 import AdminHome from './pages/admin/AdminHome';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import ScrollToTop from './components/ScrollToTop';
 // New pages
 import About from './pages/About';
 import ContactPage from './pages/Contact';
@@ -384,6 +385,7 @@ const AppRoutes = () => {
 
   return (
     <Router>
+      <ScrollToTop />
       <AnimatedRoutes />
     </Router>
   );

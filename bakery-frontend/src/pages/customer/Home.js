@@ -328,7 +328,7 @@ const Home = () => {
         <Box 
           sx={{ 
             position: 'relative', 
-            height: { xs: '300px', sm: '400px', md: '500px' }, 
+            height: { xs: '300px', sm: '350px', md: '400px' }, 
             overflow: 'hidden', 
             background: '#1a1a1a',
           }}

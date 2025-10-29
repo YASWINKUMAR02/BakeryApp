@@ -235,20 +235,22 @@ const AdminHome = () => {
 
   return (
     <>
-      <AdminHeader title="Product Catalog" />
+      <AdminHeader title="Product Catalog" onMenuClick={() => setSidebarOpen(!sidebarOpen)} sidebarOpen={sidebarOpen} />
       <AdminSidebar open={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
 
-      <Box style={{ 
+      <Box sx={{ 
         minHeight: '100vh', 
         background: '#f5f5f5', 
-        paddingTop: '80px', 
-        paddingBottom: '40px',
-        marginLeft: sidebarOpen ? '260px' : '70px',
+        paddingTop: { xs: '70px', sm: '80px' }, 
+        paddingBottom: { xs: '20px', sm: '40px' },
+        paddingLeft: { xs: '8px', sm: '16px' },
+        paddingRight: { xs: '8px', sm: '16px' },
+        marginLeft: { xs: 0, md: sidebarOpen ? '260px' : '70px' },
         transition: 'margin-left 0.3s ease'
       }}>
         <Container maxWidth="xl">
           {/* Header Stats */}
-          <Grid container spacing={3} style={{ marginBottom: '24px' }}>
+          <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ marginBottom: { xs: '16px', sm: '24px' } }}>
             <Grid item xs={12} sm={6} md={3}>
               <Card style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: '#fff' }}>
                 <CardContent>
@@ -386,9 +388,9 @@ const AdminHome = () => {
             <Grid container spacing={3}>
               {/* Filter Sidebar */}
               <Grid item xs={12} md={3}>
-                <Paper style={{ padding: '20px', position: 'sticky', top: '90px' }}>
+                <Paper sx={{ padding: { xs: '12px', sm: '20px' }, position: { xs: 'relative', md: 'sticky' }, top: '90px', marginBottom: { xs: '16px', md: 0 } }}>
                   <Box style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                    <Typography variant="h6" style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                       <FilterList /> Filters
                     </Typography>
                     <Button 
@@ -510,7 +512,7 @@ const AdminHome = () => {
                   </Paper>
                 ) : (
                   <>
-                    <Grid container spacing={3}>
+                    <Grid container spacing={{ xs: 2, sm: 3 }}>
                       {paginatedItems.map((item) => {
                         const { averageRating, reviewCount } = getItemRatingData(item.id);
                         const totalStock = (item.stock || 0) + (item.egglessStock || 0);

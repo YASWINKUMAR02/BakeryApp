@@ -25,6 +25,10 @@ import {
   Divider,
   Grid,
   TextField,
+  Card,
+  CardContent,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import {
   ExpandMore,
@@ -47,6 +51,8 @@ import { showSuccess, showError } from '../../utils/toast';
 
 const Orders = () => {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { user, logout } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -157,17 +163,33 @@ const Orders = () => {
 
   return (
     <>
-      <AdminHeader title="Order Management" showBack={true} />
+      <AdminHeader title="Order Management" showBack={true} onMenuClick={() => setSidebarOpen(!sidebarOpen)} sidebarOpen={sidebarOpen} />
       <AdminSidebar open={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
 
-      <Box style={{ minHeight: '100vh', background: '#f5f5f5', paddingTop: '80px', paddingBottom: '40px', marginLeft: sidebarOpen ? '260px' : '70px', transition: 'margin-left 0.3s ease' }}>
+      <Box sx={{ 
+        minHeight: '100vh', 
+        background: '#f5f5f5', 
+        paddingTop: { xs: '70px', sm: '80px' }, 
+        paddingBottom: { xs: '20px', sm: '40px' },
+        paddingLeft: { xs: '8px', sm: '16px' },
+        paddingRight: { xs: '8px', sm: '16px' },
+        marginLeft: { xs: 0, md: sidebarOpen ? '260px' : '70px' },
+        transition: 'margin-left 0.3s ease'
+      }}>
         <Container maxWidth="lg">
           {success && <Alert severity="success" style={{ marginBottom: '20px' }}>{success}</Alert>}
           {error && <Alert severity="error" style={{ marginBottom: '20px' }}>{error}</Alert>}
 
-          <Paper style={{ padding: '20px', borderRadius: '12px', marginBottom: '20px' }}>
-            <Box style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="h5" style={{ fontWeight: 600 }}>
+          <Paper sx={{ padding: { xs: '12px', sm: '20px' }, borderRadius: '12px', marginBottom: '20px' }}>
+            <Box sx={{ 
+              marginBottom: '20px', 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: { xs: 'flex-start', sm: 'center' },
+              flexDirection: { xs: 'column', sm: 'row' },
+              gap: { xs: '12px', sm: '0' }
+            }}>
+              <Typography variant="h5" sx={{ fontWeight: 600, fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
                 All Orders
               </Typography>
               <Button
@@ -175,12 +197,14 @@ const Orders = () => {
                 startIcon={refreshing ? <CircularProgress size={16} style={{ color: '#fff' }} /> : <Refresh />}
                 onClick={handleRefresh}
                 disabled={refreshing}
-                style={{
+                sx={{
                   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                   color: '#fff',
                   textTransform: 'none',
                   fontWeight: 600,
                   boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+                  fontSize: { xs: '0.875rem', sm: '1rem' },
+                  width: { xs: '100%', sm: 'auto' }
                 }}
               >
                 {refreshing ? 'Refreshing...' : 'Refresh'}
@@ -206,7 +230,174 @@ const Orders = () => {
               <Box style={{ textAlign: 'center', padding: '40px' }}>
                 <CircularProgress />
               </Box>
+            ) : isMobile ? (
+              // Mobile Card View
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {orders.length === 0 ? (
+                  <Typography align="center" sx={{ padding: '40px', color: '#666' }}>
+                    No orders found.
+                  </Typography>
+                ) : (
+                  orders
+                    .filter(order => 
+                      order.id.toString().includes(searchQuery) ||
+                      order.customerName?.toLowerCase().includes(searchQuery.toLowerCase())
+                    )
+                    .map((order) => (
+                      <Card key={order.id} sx={{ borderRadius: '8px', boxShadow: 2 }}>
+                        <CardContent>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                            <Box>
+                              <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '1.1rem' }}>
+                                Order #{order.id}
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                {new Date(order.orderDate).toLocaleDateString()}
+                              </Typography>
+                            </Box>
+                            <Chip 
+                              label={order.status} 
+                              color={getStatusColor(order.status)} 
+                              size="small" 
+                            />
+                          </Box>
+
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: 2 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <Typography variant="body2" color="text.secondary">Customer:</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                {order.customerName}
+                              </Typography>
+                            </Box>
+
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <Typography variant="body2" color="text.secondary">Total Amount:</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#1976d2' }}>
+                                ₹{order.totalAmount?.toFixed(2)}
+                              </Typography>
+                            </Box>
+
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <Typography variant="body2" color="text.secondary">Payment:</Typography>
+                              <Chip 
+                                label="Online (Razorpay)" 
+                                size="small" 
+                                color="success"
+                                sx={{ fontSize: '0.75rem' }}
+                              />
+                            </Box>
+                          </Box>
+
+                          <Divider sx={{ my: 2 }} />
+
+                          <Box sx={{ mb: 2 }}>
+                            <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+                              Update Status:
+                            </Typography>
+                            <FormControl fullWidth size="small">
+                              <Select
+                                value={order.status}
+                                onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                                disabled={updatingOrderId === order.id}
+                              >
+                                <MenuItem value="Confirmed">Confirmed</MenuItem>
+                                <MenuItem value="Packed">Packed</MenuItem>
+                                <MenuItem value="Out for Delivery">Out for Delivery</MenuItem>
+                                <MenuItem value="Delivered">Delivered</MenuItem>
+                              </Select>
+                            </FormControl>
+                            {updatingOrderId === order.id && (
+                              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
+                                <CircularProgress size={20} />
+                              </Box>
+                            )}
+                          </Box>
+
+                          <Button
+                            fullWidth
+                            variant="outlined"
+                            onClick={() => toggleOrderDetails(order.id)}
+                            endIcon={expandedOrder === order.id ? <ExpandLess /> : <ExpandMore />}
+                            sx={{ textTransform: 'none' }}
+                          >
+                            {expandedOrder === order.id ? 'Hide Details' : 'View Details'}
+                          </Button>
+
+                          <Collapse in={expandedOrder === order.id} timeout="auto" unmountOnExit>
+                            <Box sx={{ mt: 2, p: 2, bgcolor: '#f5f7fa', borderRadius: '8px' }}>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, display: 'flex', alignItems: 'center' }}>
+                                <Home style={{ marginRight: '8px', fontSize: '18px' }} />
+                                Delivery Information
+                              </Typography>
+                              <Typography variant="body2" sx={{ mb: 0.5 }}>
+                                <strong>Address:</strong> {order.deliveryAddress && order.deliveryAddress.startsWith('location,') 
+                                  ? (order.latitude && order.longitude 
+                                      ? `📍 GPS Location: Lat ${order.latitude.toFixed(6)}, Long ${order.longitude.toFixed(6)}` 
+                                      : '📍 Location-based Delivery')
+                                  : (order.deliveryAddress || 'N/A')}
+                              </Typography>
+                              <Typography variant="body2" sx={{ mb: 0.5 }}>
+                                <strong>Phone:</strong> {order.deliveryPhone || order.phoneNumber || 'N/A'}
+                              </Typography>
+                              {order.deliveryNotes && (
+                                <Typography variant="body2" sx={{ mb: 0.5 }}>
+                                  <strong>Notes:</strong> {order.deliveryNotes}
+                                </Typography>
+                              )}
+                              <Typography variant="body2" sx={{ mb: 0.5 }}>
+                                <strong>Payment:</strong> 💳 Online Payment (Razorpay)
+                              </Typography>
+                              {order.paymentId && (
+                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', ml: 2 }}>
+                                  Payment ID: {order.paymentId}
+                                </Typography>
+                              )}
+                              {order.paymentVerified && (
+                                <Typography variant="caption" sx={{ display: 'block', ml: 2, color: '#28a745', fontWeight: 600 }}>
+                                  ✓ Payment Verified
+                                </Typography>
+                              )}
+
+                              <Divider sx={{ my: 2 }} />
+
+                              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, display: 'flex', alignItems: 'center' }}>
+                                <ShoppingBag style={{ marginRight: '8px', fontSize: '18px' }} />
+                                Order Items
+                              </Typography>
+                              {(order.orderItems || order.items)?.map((item, idx) => (
+                                <Box key={idx} sx={{ mb: 1, p: 1, bgcolor: 'white', borderRadius: '4px' }}>
+                                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                    {item.item?.name || item.itemName || 'Unknown Item'}
+                                  </Typography>
+                                  {item.selectedWeight && (
+                                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                                      Weight: {item.selectedWeight} Kg
+                                    </Typography>
+                                  )}
+                                  {item.eggless && (
+                                    <Typography variant="caption" sx={{ display: 'block', color: '#4caf50' }}>
+                                      🌱 Eggless
+                                    </Typography>
+                                  )}
+                                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 0.5 }}>
+                                    <Typography variant="caption" color="text.secondary">
+                                      Qty: {item.quantity} × ₹{item.price?.toFixed(2)}
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                                      ₹{(item.quantity * item.price)?.toFixed(2)}
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                              ))}
+                            </Box>
+                          </Collapse>
+                        </CardContent>
+                      </Card>
+                    ))
+                )}
+              </Box>
             ) : (
+              // Desktop Table View
               <TableContainer>
                 <Table>
                   <TableHead>

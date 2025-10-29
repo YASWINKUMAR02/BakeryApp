@@ -220,11 +220,21 @@ const AdminDashboard = () => {
   if (loading) {
     return (
       <>
-        <AdminHeader title="Admin Dashboard" />
-        <Box style={containerStyle}>
+        <AdminHeader title="Admin Dashboard" onMenuClick={() => setSidebarOpen(!sidebarOpen)} sidebarOpen={sidebarOpen} />
+        <AdminSidebar open={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
+        <Box sx={{
+          minHeight: '100vh',
+          background: '#f5f5f5',
+          paddingTop: { xs: '70px', sm: '80px' },
+          paddingBottom: { xs: '20px', sm: '40px' },
+          paddingLeft: { xs: '8px', sm: '16px' },
+          paddingRight: { xs: '8px', sm: '16px' },
+          marginLeft: { xs: 0, md: sidebarOpen ? '260px' : '70px' },
+          transition: 'margin-left 0.3s ease',
+        }}>
           <Container maxWidth="xl">
             <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
-              <CircularProgress size={60} style={{ color: '#fff' }} />
+              <CircularProgress size={60} />
             </Box>
           </Container>
         </Box>
@@ -234,12 +244,17 @@ const AdminDashboard = () => {
 
   return (
     <>
-      <AdminHeader title="Admin Dashboard" />
+      <AdminHeader title="Admin Dashboard" onMenuClick={() => setSidebarOpen(!sidebarOpen)} sidebarOpen={sidebarOpen} />
       <AdminSidebar open={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
 
-      <Box style={{
-        ...containerStyle,
-        marginLeft: sidebarOpen ? '260px' : '70px',
+      <Box sx={{
+        minHeight: '100vh',
+        background: '#f5f5f5',
+        paddingTop: { xs: '70px', sm: '80px' },
+        paddingBottom: { xs: '20px', sm: '40px' },
+        paddingLeft: { xs: '8px', sm: '16px' },
+        paddingRight: { xs: '8px', sm: '16px' },
+        marginLeft: { xs: 0, md: sidebarOpen ? '260px' : '70px' },
         transition: 'margin-left 0.3s ease',
       }}>
         <Container maxWidth="xl">

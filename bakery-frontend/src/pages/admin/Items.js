@@ -25,6 +25,10 @@ import {
   FormControl,
   InputLabel,
   Chip,
+  Card,
+  CardContent,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import {
   Add,
@@ -40,6 +44,8 @@ import { showSuccess, showError } from '../../utils/toast';
 
 const Items = () => {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [items, setItems] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -293,21 +299,47 @@ const Items = () => {
 
   return (
     <>
-      <AdminHeader title="Item Management" showBack={true} />
+      <AdminHeader title="Item Management" showBack={true} onMenuClick={() => setSidebarOpen(!sidebarOpen)} sidebarOpen={sidebarOpen} />
       <AdminSidebar open={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
 
-      <Box style={{ minHeight: '100vh', background: '#f5f5f5', paddingTop: '80px', paddingBottom: '40px', marginLeft: sidebarOpen ? '260px' : '70px', transition: 'margin-left 0.3s ease' }}>
+      <Box sx={{ 
+        minHeight: '100vh', 
+        background: '#f5f5f5', 
+        paddingTop: { xs: '70px', sm: '80px' }, 
+        paddingBottom: { xs: '20px', sm: '40px' },
+        paddingLeft: { xs: '8px', sm: '16px' },
+        paddingRight: { xs: '8px', sm: '16px' },
+        marginLeft: { xs: 0, md: sidebarOpen ? '260px' : '70px' },
+        transition: 'margin-left 0.3s ease'
+      }}>
         <Container maxWidth="lg">
-          <Paper style={{ padding: '20px', marginBottom: '20px' }}>
-            <Box style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <Typography variant="h5" style={{ fontWeight: 600 }}>
+          <Paper sx={{ padding: { xs: '12px', sm: '20px' }, marginBottom: '20px' }}>
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: { xs: 'flex-start', sm: 'center' },
+              flexDirection: { xs: 'column', sm: 'row' },
+              gap: { xs: '12px', sm: '0' },
+              marginBottom: '20px' 
+            }}>
+              <Typography variant="h5" sx={{ fontWeight: 600, fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
                 Items
               </Typography>
-              <Box style={{ display: 'flex', gap: '10px' }}>
+              <Box sx={{ 
+                display: 'flex', 
+                gap: '10px',
+                flexDirection: { xs: 'column', sm: 'row' },
+                width: { xs: '100%', sm: 'auto' }
+              }}>
                 <Button
                   variant="outlined"
                   onClick={() => navigate('/admin/categories')}
-                  style={{ borderColor: '#ff6b35', color: '#ff6b35', textTransform: 'none' }}
+                  sx={{ 
+                    borderColor: '#ff6b35', 
+                    color: '#ff6b35', 
+                    textTransform: 'none',
+                    fontSize: { xs: '0.875rem', sm: '1rem' }
+                  }}
                 >
                   Manage Categories
                 </Button>
@@ -315,7 +347,12 @@ const Items = () => {
                   variant="contained"
                   startIcon={<Add />}
                   onClick={() => handleOpenDialog()}
-                  style={{ background: '#ff6b35', color: '#fff', textTransform: 'none' }}
+                  sx={{ 
+                    background: '#ff6b35', 
+                    color: '#fff', 
+                    textTransform: 'none',
+                    fontSize: { xs: '0.875rem', sm: '1rem' }
+                  }}
                 >
                   Add Item
                 </Button>
@@ -339,7 +376,108 @@ const Items = () => {
               <Box style={{ textAlign: 'center', padding: '40px' }}>
                 <CircularProgress />
               </Box>
+            ) : isMobile ? (
+              // Mobile Card View
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {items.length === 0 ? (
+                  <Typography align="center" sx={{ padding: '40px', color: '#666' }}>
+                    No items found. Create one to get started!
+                  </Typography>
+                ) : (
+                  items
+                    .filter(item => 
+                      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      item.description?.toLowerCase().includes(searchQuery.toLowerCase())
+                    )
+                    .map((item) => (
+                      <Card key={item.id} sx={{ borderRadius: '8px', boxShadow: 2 }}>
+                        <CardContent>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                            <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '1.1rem' }}>
+                              {item.name}
+                            </Typography>
+                            <Chip label={`#${item.id}`} size="small" color="default" />
+                          </Box>
+                          
+                          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                            {item.description?.substring(0, 80)}...
+                          </Typography>
+
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <Typography variant="body2" color="text.secondary">Price:</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                {item.category?.name?.toLowerCase().includes('cake') && item.pricePerKg ? (
+                                  <Box component="span" sx={{ color: '#ff6b35' }}>
+                                    Weight-based
+                                  </Box>
+                                ) : (
+                                  `₹${item.price?.toFixed(2)}`
+                                )}
+                              </Typography>
+                            </Box>
+
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <Typography variant="body2" color="text.secondary">Weight:</Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                {item.category?.name?.toLowerCase().includes('cake') ? 'Variable' : `${item.grams}g`}
+                              </Typography>
+                            </Box>
+
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <Typography variant="body2" color="text.secondary">Stock:</Typography>
+                              <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                                <Chip 
+                                  label={`Regular: ${item.stock || 0}`}
+                                  size="small" 
+                                  color={item.stock === 0 ? 'error' : item.stock <= 10 ? 'warning' : 'success'}
+                                  sx={{ fontSize: '0.7rem' }}
+                                />
+                                {item.egglessStock > 0 && (
+                                  <Chip 
+                                    label={`🌱 ${item.egglessStock || 0}`}
+                                    size="small" 
+                                    color={item.egglessStock === 0 ? 'error' : item.egglessStock <= 10 ? 'warning' : 'success'}
+                                    sx={{ fontSize: '0.7rem' }}
+                                  />
+                                )}
+                              </Box>
+                            </Box>
+
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <Typography variant="body2" color="text.secondary">Category:</Typography>
+                              <Chip label={item.category?.name} size="small" color="primary" />
+                            </Box>
+                          </Box>
+
+                          <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+                            <Button 
+                              size="small" 
+                              variant="outlined" 
+                              startIcon={<Edit />}
+                              onClick={() => handleOpenDialog(item)}
+                              sx={{ textTransform: 'none' }}
+                            >
+                              Edit
+                            </Button>
+                            <Button 
+                              size="small" 
+                              variant="outlined" 
+                              color="error"
+                              startIcon={<Delete />}
+                              onClick={() => handleDeleteClick(item)}
+                              sx={{ textTransform: 'none' }}
+                            >
+                              Delete
+                            </Button>
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    ))
+                )}
+              </Box>
             ) : (
+              // Desktop Table View
               <TableContainer>
                 <Table>
                   <TableHead>
@@ -357,7 +495,7 @@ const Items = () => {
                   <TableBody>
                     {items.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={7} align="center" style={{ padding: '40px' }}>
+                        <TableCell colSpan={8} align="center" style={{ padding: '40px' }}>
                           No items found. Create one to get started!
                         </TableCell>
                       </TableRow>
