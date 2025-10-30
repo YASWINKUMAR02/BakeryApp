@@ -360,29 +360,31 @@ const Orders = () => {
     <Box style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <CustomerHeader />
 
-      <Box style={{ flex: 1, background: '#f5f5f5', paddingTop: '70px', paddingBottom: '16px', paddingLeft: '8px', paddingRight: '8px' }}>
+      <Box sx={{ flex: 1, background: '#f5f5f5', paddingTop: { xs: '80px', md: '80px' }, paddingBottom: { xs: '12px', md: '16px' }, paddingLeft: { xs: '4px', md: '8px' }, paddingRight: { xs: '4px', md: '8px' } }}>
         <Container maxWidth="lg">
           {error && <Alert severity="error" style={{ marginBottom: '20px' }}>{error}</Alert>}
 
-          <Paper style={{ padding: '12px', borderRadius: '0', marginBottom: '12px' }}>
-            <Typography variant="h6" style={{ fontWeight: 600, marginBottom: '8px', fontSize: '1rem' }}>
+          <Paper sx={{ padding: { xs: '8px', md: '12px' }, borderRadius: '0', marginBottom: { xs: '8px', md: '12px' } }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, marginBottom: { xs: '6px', md: '8px' }, fontSize: { xs: '0.9rem', md: '1rem' } }}>
               My Orders
             </Typography>
 
             <Tabs 
               value={tabValue} 
               onChange={(e, newValue) => setTabValue(newValue)}
-              style={{ marginBottom: '8px', borderBottom: '1px solid #e0e0e0', minHeight: '36px' }}
-              TabIndicatorProps={{
-                style: { backgroundColor: '#ff69b4' }
-              }}
-              sx={{
+              sx={{ 
+                marginBottom: { xs: '6px', md: '8px' }, 
+                borderBottom: '1px solid #e0e0e0', 
+                minHeight: { xs: '32px', md: '36px' },
                 '& .MuiTab-root': {
                   color: '#666',
                 },
                 '& .Mui-selected': {
                   color: '#ff69b4 !important',
                 },
+              }}
+              TabIndicatorProps={{
+                style: { backgroundColor: '#ff69b4' }
               }}
             >
               <Tab 
@@ -409,9 +411,9 @@ const Orders = () => {
                     ))}
                   </>
                 ) : orders.length === 0 ? (
-                  <Box style={{ textAlign: 'center', padding: '30px 16px' }}>
-                    <Receipt style={{ fontSize: 50, color: '#ccc', marginBottom: '8px' }} />
-                    <Typography variant="body1" color="textSecondary" gutterBottom>
+                  <Box sx={{ textAlign: 'center', padding: { xs: '20px 12px', md: '30px 16px' } }}>
+                    <Receipt sx={{ fontSize: { xs: 40, md: 50 }, color: '#ccc', marginBottom: { xs: '6px', md: '8px' } }} />
+                    <Typography variant="body1" color="textSecondary" gutterBottom sx={{ fontSize: { xs: '0.85rem', md: '1rem' } }}>
                       No current orders
                     </Typography>
                     <Typography variant="body2" color="textSecondary" paragraph>
@@ -431,46 +433,46 @@ const Orders = () => {
                 <Table>
                   <TableHead>
                     <TableRow style={{ background: '#fef6ee' }}>
-                      <TableCell style={{ fontWeight: 600 }}>Order ID</TableCell>
-                      <TableCell style={{ fontWeight: 600 }}>Date</TableCell>
-                      <TableCell style={{ fontWeight: 600 }}>Total Amount</TableCell>
-                      <TableCell style={{ fontWeight: 600 }}>Status</TableCell>
+                      <TableCell sx={{ fontWeight: 600, fontSize: { xs: '0.7rem', md: '0.875rem' }, padding: { xs: '6px 4px', md: '16px' } }}>Order ID</TableCell>
+                      <TableCell sx={{ fontWeight: 600, fontSize: { xs: '0.7rem', md: '0.875rem' }, padding: { xs: '6px 4px', md: '16px' } }}>Date</TableCell>
+                      <TableCell sx={{ fontWeight: 600, fontSize: { xs: '0.7rem', md: '0.875rem' }, padding: { xs: '6px 4px', md: '16px' } }}>Total</TableCell>
+                      <TableCell sx={{ fontWeight: 600, fontSize: { xs: '0.7rem', md: '0.875rem' }, padding: { xs: '6px 4px', md: '16px' } }}>Status</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {currentOrders.map((order) => (
                       <React.Fragment key={order.id}>
                         <TableRow hover>
-                          <TableCell style={{ fontWeight: 600 }}>#{order.id}</TableCell>
-                          <TableCell>
+                          <TableCell sx={{ fontWeight: 600, fontSize: { xs: '0.7rem', md: '0.875rem' }, padding: { xs: '6px 4px', md: '16px' } }}>#{order.id}</TableCell>
+                          <TableCell sx={{ fontSize: { xs: '0.65rem', md: '0.875rem' }, padding: { xs: '6px 4px', md: '16px' } }}>
                             {new Date(order.orderDate).toLocaleDateString('en-US', {
                               year: 'numeric',
-                              month: 'long',
+                              month: 'short',
                               day: 'numeric',
                             })}
                           </TableCell>
-                          <TableCell style={{ fontWeight: 600, color: '#000000' }}>
+                          <TableCell sx={{ fontWeight: 600, color: '#000000', fontSize: { xs: '0.7rem', md: '0.875rem' }, padding: { xs: '6px 4px', md: '16px' } }}>
                             ₹{order.totalAmount?.toFixed(2)}
                           </TableCell>
-                          <TableCell>
+                          <TableCell sx={{ padding: { xs: '6px 4px', md: '16px' } }}>
                             <Chip 
                               label={order.status} 
                               color={getStatusColor(order.status)} 
                               size="small"
-                              style={{ fontWeight: 600 }}
+                              sx={{ fontWeight: 600, fontSize: { xs: '0.6rem', md: '0.75rem' }, height: { xs: '20px', md: '24px' } }}
                             />
                           </TableCell>
                         </TableRow>
                         <TableRow>
-                          <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={4}>
-                              <Box style={{ margin: '12px 0' }}>
-                                <Grid container spacing={2}>
+                          <TableCell sx={{ paddingBottom: 0, paddingTop: 0, padding: { xs: '0 4px', md: '0 16px' } }} colSpan={4}>
+                              <Box sx={{ margin: { xs: '8px 0', md: '12px 0' } }}>
+                                <Grid container spacing={{ xs: 1, md: 2 }}>
                                   {/* Delivery Details */}
                                   <Grid item xs={12} md={6}>
-                                    <Paper style={{ padding: '10px', background: '#fef6ee', borderRadius: '0' }}>
-                                      <Box style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                        <Typography variant="subtitle2" style={{ fontWeight: 600, display: 'flex', alignItems: 'center', fontSize: '0.95rem' }}>
-                                          <Home style={{ marginRight: '8px', color: '#ff69b4' }} />
+                                    <Paper sx={{ padding: { xs: '6px', md: '10px' }, background: '#fef6ee', borderRadius: '0' }}>
+                                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: { xs: '6px', md: '8px' } }}>
+                                        <Typography variant="subtitle2" sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', fontSize: { xs: '0.75rem', md: '0.95rem' } }}>
+                                          <Home sx={{ marginRight: { xs: '4px', md: '8px' }, color: '#ff69b4', fontSize: { xs: '16px', md: '20px' } }} />
                                           Delivery Information
                                         </Typography>
                                         {order.status !== 'Delivered' && editingOrderId !== order.id && (
@@ -488,18 +490,18 @@ const Orders = () => {
                                       {editingOrderId === order.id ? (
                                         // Edit Mode
                                         <Box>
-                                          <Alert severity="info" style={{ marginBottom: '12px', fontSize: '13px' }}>
+                                          <Alert severity="info" sx={{ marginBottom: { xs: '8px', md: '12px' }, fontSize: { xs: '0.7rem', md: '13px' }, padding: { xs: '4px 8px', md: '6px 16px' } }}>
                                             <strong>Note:</strong> Delivery is only available for Coimbatore (Pincode: 641xxx)
                                           </Alert>
 
                                           {!editAddressMethod ? (
                                             // Show choice buttons
                                             <Box>
-                                              <Typography variant="body2" style={{ marginBottom: '12px', textAlign: 'center', fontWeight: 600 }}>
+                                              <Typography variant="body2" sx={{ marginBottom: { xs: '8px', md: '12px' }, textAlign: 'center', fontWeight: 600, fontSize: { xs: '0.7rem', md: '0.875rem' } }}>
                                                 How would you like to update your address?
                                               </Typography>
                                               
-                                              <Grid container spacing={2}>
+                                              <Grid container spacing={{ xs: 1, md: 2 }}>
                                                 <Grid item xs={6}>
                                                   <Button
                                                     fullWidth
@@ -507,12 +509,13 @@ const Orders = () => {
                                                     size="small"
                                                     startIcon={<LocationOn />}
                                                     onClick={() => setShowLocationPicker(true)}
-                                                    style={{
+                                                    sx={{
                                                       background: '#ff69b4',
                                                       color: '#fff',
-                                                      padding: '12px',
+                                                      padding: { xs: '8px', md: '12px' },
                                                       textTransform: 'none',
                                                       fontWeight: 600,
+                                                      fontSize: { xs: '0.7rem', md: '0.875rem' },
                                                     }}
                                                   >
                                                     Use Location
@@ -526,12 +529,13 @@ const Orders = () => {
                                                     size="small"
                                                     startIcon={<Edit />}
                                                     onClick={() => setEditAddressMethod('manual')}
-                                                    style={{
+                                                    sx={{
                                                       borderColor: '#ff69b4',
                                                       color: '#ff69b4',
-                                                      padding: '12px',
+                                                      padding: { xs: '8px', md: '12px' },
                                                       textTransform: 'none',
                                                       fontWeight: 600,
+                                                      fontSize: { xs: '0.7rem', md: '0.875rem' },
                                                     }}
                                                   >
                                                     Manual Entry
@@ -723,30 +727,30 @@ const Orders = () => {
                                       ) : (
                                         // View Mode
                                         <>
-                                          <Box style={{ marginBottom: '12px' }}>
-                                            <Typography variant="body2" color="textSecondary" style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-                                              <Person style={{ fontSize: 18, marginRight: '6px', color: '#ff69b4' }} />
+                                          <Box sx={{ marginBottom: { xs: '8px', md: '12px' } }}>
+                                            <Typography variant="body2" color="textSecondary" sx={{ display: 'flex', alignItems: 'center', marginBottom: { xs: '2px', md: '4px' }, fontSize: { xs: '0.7rem', md: '0.875rem' } }}>
+                                              <Person sx={{ fontSize: { xs: 14, md: 18 }, marginRight: { xs: '4px', md: '6px' }, color: '#ff69b4' }} />
                                               Customer Name
                                             </Typography>
-                                            <Typography variant="body1" style={{ fontWeight: 500, marginLeft: '24px' }}>
+                                            <Typography variant="body1" sx={{ fontWeight: 500, marginLeft: { xs: '18px', md: '24px' }, fontSize: { xs: '0.75rem', md: '1rem' } }}>
                                               {order.customerName || 'N/A'}
                                             </Typography>
                                           </Box>
-                                          <Box style={{ marginBottom: '12px' }}>
-                                            <Typography variant="body2" color="textSecondary" style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-                                              <Phone style={{ fontSize: 18, marginRight: '6px', color: '#ff69b4' }} />
+                                          <Box sx={{ marginBottom: { xs: '8px', md: '12px' } }}>
+                                            <Typography variant="body2" color="textSecondary" sx={{ display: 'flex', alignItems: 'center', marginBottom: { xs: '2px', md: '4px' }, fontSize: { xs: '0.7rem', md: '0.875rem' } }}>
+                                              <Phone sx={{ fontSize: { xs: 14, md: 18 }, marginRight: { xs: '4px', md: '6px' }, color: '#ff69b4' }} />
                                               Phone Number
                                             </Typography>
-                                            <Typography variant="body1" style={{ fontWeight: 500, marginLeft: '24px' }}>
+                                            <Typography variant="body1" sx={{ fontWeight: 500, marginLeft: { xs: '18px', md: '24px' }, fontSize: { xs: '0.75rem', md: '1rem' } }}>
                                               {order.deliveryPhone || 'N/A'}
                                             </Typography>
                                           </Box>
-                                          <Box style={{ marginBottom: '12px' }}>
-                                            <Typography variant="body2" color="textSecondary" style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-                                              <Home style={{ fontSize: 18, marginRight: '6px', color: '#ff69b4' }} />
+                                          <Box sx={{ marginBottom: { xs: '8px', md: '12px' } }}>
+                                            <Typography variant="body2" color="textSecondary" sx={{ display: 'flex', alignItems: 'center', marginBottom: { xs: '2px', md: '4px' }, fontSize: { xs: '0.7rem', md: '0.875rem' } }}>
+                                              <Home sx={{ fontSize: { xs: 14, md: 18 }, marginRight: { xs: '4px', md: '6px' }, color: '#ff69b4' }} />
                                               Delivery Address
                                             </Typography>
-                                            <Typography variant="body1" style={{ fontWeight: 500, marginLeft: '24px' }}>
+                                            <Typography variant="body1" sx={{ fontWeight: 500, marginLeft: { xs: '18px', md: '24px' }, fontSize: { xs: '0.7rem', md: '1rem' }, lineHeight: { xs: 1.3, md: 1.5 } }}>
                                               {order.deliveryAddress && order.deliveryAddress.startsWith('location,') 
                                                 ? (order.latitude && order.longitude 
                                                     ? `📍 Lat: ${order.latitude.toFixed(6)}, Long: ${order.longitude.toFixed(6)}` 
@@ -756,11 +760,11 @@ const Orders = () => {
                                           </Box>
                                           {order.deliveryNotes && (
                                             <Box>
-                                              <Typography variant="body2" color="textSecondary" style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-                                                <Notes style={{ fontSize: 18, marginRight: '6px', color: '#ff69b4' }} />
+                                              <Typography variant="body2" color="textSecondary" sx={{ display: 'flex', alignItems: 'center', marginBottom: { xs: '2px', md: '4px' }, fontSize: { xs: '0.7rem', md: '0.875rem' } }}>
+                                                <Notes sx={{ fontSize: { xs: 14, md: 18 }, marginRight: { xs: '4px', md: '6px' }, color: '#ff69b4' }} />
                                                 Delivery Notes
                                               </Typography>
-                                              <Typography variant="body1" style={{ fontWeight: 500, marginLeft: '24px', fontStyle: 'italic' }}>
+                                              <Typography variant="body1" sx={{ fontWeight: 500, marginLeft: { xs: '18px', md: '24px' }, fontStyle: 'italic', fontSize: { xs: '0.7rem', md: '1rem' } }}>
                                                 {order.deliveryNotes}
                                               </Typography>
                                             </Box>
@@ -772,24 +776,24 @@ const Orders = () => {
 
                                   {/* Order Items */}
                                   <Grid item xs={12} md={6}>
-                                    <Paper style={{ padding: '10px', background: '#fff', borderRadius: '0', border: '1px solid #e0e0e0' }}>
-                                      <Typography variant="subtitle2" style={{ fontWeight: 600, marginBottom: '8px', display: 'flex', alignItems: 'center', fontSize: '0.95rem' }}>
-                                        <ShoppingBag style={{ marginRight: '8px', color: '#ff69b4' }} />
+                                    <Paper sx={{ padding: { xs: '6px', md: '10px' }, background: '#fff', borderRadius: '0', border: '1px solid #e0e0e0' }}>
+                                      <Typography variant="subtitle2" sx={{ fontWeight: 600, marginBottom: { xs: '6px', md: '8px' }, display: 'flex', alignItems: 'center', fontSize: { xs: '0.75rem', md: '0.95rem' } }}>
+                                        <ShoppingBag sx={{ marginRight: { xs: '4px', md: '8px' }, color: '#ff69b4', fontSize: { xs: 16, md: 20 } }} />
                                         Order Items
                                       </Typography>
                                       {order.orderItems && order.orderItems.length > 0 ? (
                                         <>
                                           {order.orderItems.map((item, index) => (
-                                            <Box key={index} style={{ marginBottom: '6px', padding: '8px', background: '#f9f9f9', borderRadius: '0' }}>
-                                              <Box style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
+                                            <Box key={index} sx={{ marginBottom: { xs: '4px', md: '6px' }, padding: { xs: '6px', md: '8px' }, background: '#f9f9f9', borderRadius: '0' }}>
+                                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: { xs: '6px', md: '8px' } }}>
                                                 <Box style={{ flex: 1 }}>
-                                                  <Typography variant="body1" style={{ fontWeight: 600, color: '#333' }}>
+                                                  <Typography variant="body1" sx={{ fontWeight: 600, color: '#333', fontSize: { xs: '0.75rem', md: '1rem' } }}>
                                                     {item.item?.name || item.itemName || 'Unknown Item'}
                                                     {!item.item && item.itemName && (
                                                       <Chip 
                                                         label="Discontinued" 
                                                         size="small" 
-                                                        style={{ marginLeft: '8px', height: '20px', fontSize: '11px' }}
+                                                        sx={{ marginLeft: { xs: '4px', md: '8px' }, height: { xs: '16px', md: '20px' }, fontSize: { xs: '0.6rem', md: '11px' } }}
                                                       />
                                                     )}
                                                   </Typography>
@@ -798,11 +802,11 @@ const Orders = () => {
                                                       <Chip 
                                                         label={`${item.selectedWeight} Kg`}
                                                         size="small"
-                                                        style={{ 
+                                                        sx={{ 
                                                           background: '#fff3e0',
                                                           color: '#e65100',
-                                                          fontSize: '10px',
-                                                          height: '20px'
+                                                          fontSize: { xs: '0.6rem', md: '10px' },
+                                                          height: { xs: '16px', md: '20px' }
                                                         }}
                                                       />
                                                     )}
@@ -810,11 +814,11 @@ const Orders = () => {
                                                       <Chip 
                                                         label="🌱 Eggless"
                                                         size="small"
-                                                        style={{ 
+                                                        sx={{ 
                                                           background: '#e8f5e9',
                                                           color: '#2e7d32',
-                                                          fontSize: '10px',
-                                                          height: '20px'
+                                                          fontSize: { xs: '0.6rem', md: '10px' },
+                                                          height: { xs: '16px', md: '20px' }
                                                         }}
                                                       />
                                                     )}
@@ -822,37 +826,37 @@ const Orders = () => {
                                                       <Chip 
                                                         label="🥚 Egg"
                                                         size="small"
-                                                        style={{ 
+                                                        sx={{ 
                                                           background: '#fff9c4',
                                                           color: '#f57f17',
-                                                          fontSize: '10px',
-                                                          height: '20px'
+                                                          fontSize: { xs: '0.6rem', md: '10px' },
+                                                          height: { xs: '16px', md: '20px' }
                                                         }}
                                                       />
                                                     )}
                                                   </Box>
-                                                  <Typography variant="caption" color="textSecondary" style={{ display: 'block', marginTop: '4px' }}>
+                                                  <Typography variant="caption" color="textSecondary" sx={{ display: 'block', marginTop: { xs: '3px', md: '4px' }, fontSize: { xs: '0.65rem', md: '0.75rem' } }}>
                                                     Quantity: {item.quantity} × ₹{item.price?.toFixed(2)}
                                                   </Typography>
                                                 </Box>
-                                                <Typography variant="h6" style={{ fontWeight: 700, color: '#000000', marginLeft: '16px' }}>
+                                                <Typography variant="h6" sx={{ fontWeight: 700, color: '#000000', marginLeft: { xs: '8px', md: '16px' }, fontSize: { xs: '0.8rem', md: '1.25rem' } }}>
                                                   ₹{(item.price * item.quantity).toFixed(2)}
                                                 </Typography>
                                               </Box>
                                             </Box>
                                           ))}
-                                          <Divider style={{ margin: '12px 0' }} />
-                                          <Box style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', background: '#fff3e0', borderRadius: '0' }}>
-                                            <Typography variant="h6" style={{ fontWeight: 700 }}>
+                                          <Divider sx={{ margin: { xs: '8px 0', md: '12px 0' } }} />
+                                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: { xs: '6px', md: '8px' }, background: '#fff3e0', borderRadius: '0' }}>
+                                            <Typography variant="h6" sx={{ fontWeight: 700, fontSize: { xs: '0.8rem', md: '1.25rem' } }}>
                                               Order Total
                                             </Typography>
-                                            <Typography variant="h5" style={{ fontWeight: 700, color: '#000000' }}>
+                                            <Typography variant="h5" sx={{ fontWeight: 700, color: '#000000', fontSize: { xs: '0.9rem', md: '1.5rem' } }}>
                                               ₹{order.totalAmount?.toFixed(2)}
                                             </Typography>
                                           </Box>
                                         </>
                                       ) : (
-                                        <Typography variant="body2" color="textSecondary">
+                                        <Typography variant="body2" color="textSecondary" sx={{ fontSize: { xs: '0.75rem', md: '0.875rem' } }}>
                                           No items found
                                         </Typography>
                                       )}
@@ -868,16 +872,19 @@ const Orders = () => {
                 </Table>
               </TableContainer>
               {totalOrderPages > 1 && (
-                <Box style={{ display: 'flex', justifyContent: 'center', marginTop: '24px' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: { xs: '16px', md: '24px' } }}>
                   <Pagination 
                     count={totalOrderPages} 
                     page={currentPage} 
                     onChange={handleCurrentPageChange}
                     color="primary"
-                    size="large"
+                    size="medium"
                     sx={{
                       '& .MuiPaginationItem-root': {
                         color: '#4a5568',
+                        fontSize: { xs: '0.75rem', md: '0.875rem' },
+                        minWidth: { xs: '28px', md: '32px' },
+                        height: { xs: '28px', md: '32px' },
                       },
                       '& .Mui-selected': {
                         backgroundColor: '#ff69b4 !important',
@@ -905,9 +912,9 @@ const Orders = () => {
                     ))}
                   </>
                 ) : orderHistory.length === 0 ? (
-                  <Box style={{ textAlign: 'center', padding: '60px' }}>
-                    <History style={{ fontSize: 80, color: '#ccc', marginBottom: '20px' }} />
-                    <Typography variant="h6" color="textSecondary" gutterBottom>
+                  <Box sx={{ textAlign: 'center', padding: { xs: '40px 20px', md: '60px' } }}>
+                    <History sx={{ fontSize: { xs: 60, md: 80 }, color: '#ccc', marginBottom: { xs: '12px', md: '20px' } }} />
+                    <Typography variant="h6" color="textSecondary" gutterBottom sx={{ fontSize: { xs: '0.95rem', md: '1.25rem' } }}>
                       No order history
                     </Typography>
                     <Typography variant="body2" color="textSecondary" paragraph>
@@ -920,37 +927,38 @@ const Orders = () => {
                     <Table>
                       <TableHead>
                         <TableRow style={{ background: '#f5f5f5' }}>
-                          <TableCell style={{ fontWeight: 600 }}>Order ID</TableCell>
-                          <TableCell style={{ fontWeight: 600 }}>Date</TableCell>
-                          <TableCell style={{ fontWeight: 600 }}>Total Amount</TableCell>
-                          <TableCell style={{ fontWeight: 600 }}>Status</TableCell>
-                          <TableCell style={{ fontWeight: 600 }}>Details</TableCell>
+                          <TableCell sx={{ fontWeight: 600, fontSize: { xs: '0.7rem', md: '0.875rem' }, padding: { xs: '6px 4px', md: '16px' } }}>Order ID</TableCell>
+                          <TableCell sx={{ fontWeight: 600, fontSize: { xs: '0.7rem', md: '0.875rem' }, padding: { xs: '6px 4px', md: '16px' } }}>Date</TableCell>
+                          <TableCell sx={{ fontWeight: 600, fontSize: { xs: '0.7rem', md: '0.875rem' }, padding: { xs: '6px 4px', md: '16px' } }}>Total</TableCell>
+                          <TableCell sx={{ fontWeight: 600, fontSize: { xs: '0.7rem', md: '0.875rem' }, padding: { xs: '6px 4px', md: '16px' } }}>Status</TableCell>
+                          <TableCell sx={{ fontWeight: 600, fontSize: { xs: '0.7rem', md: '0.875rem' }, padding: { xs: '6px 4px', md: '16px' } }}>Details</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
                         {currentHistory.map((order) => (
                           <React.Fragment key={order.id}>
                             <TableRow hover>
-                              <TableCell style={{ fontWeight: 600 }}>#{order.id}</TableCell>
-                              <TableCell>
+                              <TableCell sx={{ fontWeight: 600, fontSize: { xs: '0.7rem', md: '0.875rem' }, padding: { xs: '6px 4px', md: '16px' } }}>#{order.id}</TableCell>
+                              <TableCell sx={{ fontSize: { xs: '0.65rem', md: '0.875rem' }, padding: { xs: '6px 4px', md: '16px' } }}>
                                 {new Date(order.orderDate).toLocaleDateString('en-US', {
                                   year: 'numeric',
-                                  month: 'long',
+                                  month: 'short',
                                   day: 'numeric',
                                 })}
                               </TableCell>
-                              <TableCell style={{ fontWeight: 600, color: '#000000' }}>
+                              <TableCell sx={{ fontWeight: 600, color: '#000000', fontSize: { xs: '0.7rem', md: '0.875rem' }, padding: { xs: '6px 4px', md: '16px' } }}>
                                 ₹{order.totalAmount?.toFixed(2)}
                               </TableCell>
-                              <TableCell>
+                              <TableCell sx={{ padding: { xs: '6px 4px', md: '16px' } }}>
                                 <Chip 
                                   icon={order.status === 'Delivered' ? <CheckCircle /> : null}
                                   label={order.status} 
                                   color={order.status === 'Delivered' ? 'success' : 'default'}
                                   size="small"
+                                  sx={{ fontSize: { xs: '0.6rem', md: '0.75rem' }, height: { xs: '20px', md: '24px' } }}
                                 />
                               </TableCell>
-                              <TableCell>
+                              <TableCell sx={{ padding: { xs: '6px 4px', md: '16px' } }}>
                                 <IconButton
                                   size="small"
                                   onClick={() => toggleHistoryOrderDetails(order.id)}
@@ -961,7 +969,7 @@ const Orders = () => {
                               </TableCell>
                             </TableRow>
                             <TableRow>
-                              <TableCell colSpan={5} style={{ padding: 0 }}>
+                              <TableCell colSpan={5} sx={{ padding: 0 }}>
                                 <Collapse in={expandedHistoryOrder === order.id} timeout="auto" unmountOnExit>
                                   <Box style={{ padding: '20px', background: '#fafafa' }}>
                                     <Grid container spacing={2}>

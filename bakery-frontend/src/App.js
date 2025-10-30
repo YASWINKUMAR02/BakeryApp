@@ -30,6 +30,7 @@ import Customers from './pages/admin/Customers';
 import Analytics from './pages/admin/Analytics';
 import AnalyticsDashboard from './pages/admin/AnalyticsDashboard';
 import AdminHome from './pages/admin/AdminHome';
+import CarouselManagement from './pages/admin/CarouselManagement';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ScrollToTop from './components/ScrollToTop';
 // New pages
@@ -333,6 +334,14 @@ const AnimatedRoutes = () => {
           element={
             <AdminProtectedRoute>
               <Customers />
+            </AdminProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/admin/carousel-management" 
+          element={
+            <AdminProtectedRoute>
+              <CarouselManagement />
             </AdminProtectedRoute>
           } 
         />

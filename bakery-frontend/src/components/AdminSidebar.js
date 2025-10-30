@@ -30,6 +30,7 @@ import {
   RateReview,
   TrendingUp,
   Storefront,
+  ViewCarousel,
 } from '@mui/icons-material';
 
 const drawerWidth = 260;
@@ -40,11 +41,22 @@ const AdminSidebar = ({ open, onToggle }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [expandedSections, setExpandedSections] = useState({
-    'Categories': true,
-    'Items': true,
-    'Orders': true,
+    'Categories': false,
+    'Items': false,
+    'Orders': false,
   });
   const [newOrdersCount, setNewOrdersCount] = useState(0);
+
+  // Collapse all sections when sidebar is collapsed
+  useEffect(() => {
+    if (!open) {
+      setExpandedSections({
+        'Categories': false,
+        'Items': false,
+        'Orders': false,
+      });
+    }
+  }, [open]);
 
   useEffect(() => {
     const checkNewOrders = () => {
@@ -144,6 +156,12 @@ const AdminSidebar = ({ open, onToggle }) => {
       icon: <People />,
       path: '/admin/customers',
       color: '#00bcd4',
+    },
+    {
+      title: 'Manage Carousel',
+      icon: <ViewCarousel />,
+      path: '/admin/carousel-management',
+      color: '#e91e63',
     },
   ];
 

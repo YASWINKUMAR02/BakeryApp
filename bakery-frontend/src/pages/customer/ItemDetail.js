@@ -224,7 +224,7 @@ const ItemDetail = () => {
     return (
       <>
         <CustomerHeader />
-        <Box style={{ minHeight: '100vh', background: '#f5f5f5', paddingTop: '100px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <Box sx={{ minHeight: '100vh', background: '#f5f5f5', paddingTop: { xs: '70px', md: '100px' }, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <CircularProgress style={{ color: '#ff69b4' }} />
         </Box>
       </>
@@ -235,7 +235,7 @@ const ItemDetail = () => {
     return (
       <>
         <CustomerHeader />
-        <Box style={{ minHeight: '100vh', background: '#f5f5f5', paddingTop: '100px', paddingBottom: '40px' }}>
+        <Box sx={{ minHeight: '100vh', background: '#f5f5f5', paddingTop: { xs: '60px', md: '100px' }, paddingBottom: { xs: '20px', md: '40px' } }}>
           <Container maxWidth="lg">
             <Paper style={{ padding: '60px', textAlign: 'center', borderRadius: '12px' }}>
               <Typography variant="h6" color="textSecondary">
@@ -259,20 +259,23 @@ const ItemDetail = () => {
     <>
       <CustomerHeader />
 
-      <Box style={{ minHeight: '100vh', background: '#f5f5f5', paddingTop: '70px', paddingBottom: '20px' }}>
-        <Container maxWidth="lg">
+      <Box sx={{ minHeight: '100vh', background: '#f5f5f5', paddingTop: { xs: '60px', sm: '70px' }, paddingBottom: { xs: '3px', md: '12px' } }}>
+        <Container maxWidth="lg" sx={{ paddingLeft: { xs: '1.5px', sm: '16px', md: '12px' }, paddingRight: { xs: '1.5px', sm: '16px', md: '12px' } }}>
           {/* Back Button */}
-          <Box style={{ marginBottom: '16px' }}>
+          <Box sx={{ marginBottom: { xs: '2.5px', md: '10px' } }}>
             <Button
               startIcon={<ArrowBack />}
               onClick={() => navigate(-1)}
               sx={{ 
                 color: '#666', 
                 textTransform: 'none',
-                padding: '6px 12px',
-                fontSize: '0.875rem',
+                padding: { xs: '1px 2.5px', md: '3px 6px' },
+                fontSize: { xs: '0.58rem', md: '0.75rem' },
                 '&:hover': {
                   background: 'rgba(0,0,0,0.04)',
+                },
+                '& .MuiButton-startIcon': {
+                  marginRight: { xs: '4px', md: '8px' },
                 }
               }}
             >
@@ -281,17 +284,18 @@ const ItemDetail = () => {
           </Box>
 
           {/* Item Details Section */}
-          <Paper style={{ padding: '16px', borderRadius: '0', marginBottom: '16px' }}>
-            <Grid container spacing={2}>
+          <Paper sx={{ padding: { xs: '3.5px', md: '10px' }, borderRadius: '0', marginBottom: { xs: '3.5px', md: '10px' } }}>
+            <Grid container spacing={{ xs: 0.35, md: 1.2 }}>
               {/* Item Image */}
               <Grid item xs={12} md={5}>
                 {item.imageUrl ? (
-                  <img
+                  <Box
+                    component="img"
                     src={item.imageUrl}
                     alt={item.name}
-                    style={{
+                    sx={{
                       width: '100%',
-                      height: '250px',
+                      height: { xs: '140px', sm: '250px', md: '350px' },
                       objectFit: 'cover',
                       borderRadius: '0',
                     }}
@@ -302,9 +306,9 @@ const ItemDetail = () => {
                   />
                 ) : null}
                 <Box
-                  style={{
+                  sx={{
                     width: '100%',
-                    height: '250px',
+                    height: { xs: '140px', sm: '250px', md: '350px' },
                     background: 'linear-gradient(135deg, #fef6ee 0%, #fdecd7 100%)',
                     display: item.imageUrl ? 'none' : 'flex',
                     alignItems: 'center',
@@ -312,67 +316,67 @@ const ItemDetail = () => {
                     borderRadius: '0',
                   }}
                 >
-                  <Cake style={{ fontSize: 60, color: '#ff69b4', opacity: 0.8 }} />
+                  <Cake sx={{ fontSize: { xs: 35, sm: 80, md: 100 }, color: '#ff69b4', opacity: 0.8 }} />
                 </Box>
               </Grid>
 
               {/* Item Info */}
               <Grid item xs={12} md={7}>
                 <Box>
-                  <Typography variant="h5" style={{ fontWeight: 700, marginBottom: '8px', fontSize: '1.5rem' }}>
+                  <Typography variant="h5" sx={{ fontWeight: 700, marginBottom: { xs: '1.2px', md: '5px' }, fontSize: { xs: '0.82rem', sm: '1.3rem', md: '1.2rem' }, lineHeight: 1.1 }}>
                     {item.name}
                   </Typography>
 
                   {/* Rating */}
-                  <Box style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
-                    <Rating value={parseFloat(getAverageRating())} precision={0.1} readOnly />
-                    <Typography variant="body1" color="textSecondary">
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: '0.8px', md: '3px' }, marginBottom: { xs: '2.5px', md: '6px' } }}>
+                    <Rating value={parseFloat(getAverageRating())} precision={0.1} readOnly size="small" sx={{ fontSize: { xs: '0.72rem', md: '1.2rem' } }} />
+                    <Typography variant="body1" color="textSecondary" sx={{ fontSize: { xs: '0.58rem', md: '0.85rem' } }}>
                       {getAverageRating()} ({reviews.length} review{reviews.length !== 1 ? 's' : ''})
                     </Typography>
                   </Box>
 
                   {/* Category and Status */}
-                  <Box style={{ display: 'flex', gap: '6px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                  <Box sx={{ display: 'flex', gap: { xs: '0.8px', md: '3px' }, marginBottom: { xs: '2.5px', md: '8px' }, flexWrap: 'wrap' }}>
                     <Chip 
                       label={item.category?.name} 
-                      style={{ background: '#e91e63', color: '#fff', fontWeight: 600, borderRadius: '0' }}
+                      sx={{ background: '#e91e63', color: '#fff', fontWeight: 600, borderRadius: '0', fontSize: { xs: '0.53rem', md: '0.7rem' }, height: { xs: '15px', md: '26px' }, padding: { xs: '0 2px', md: '0 8px' } }}
                     />
                     {item.stock === 0 ? (
                       <Chip 
                         label="Out of Stock" 
-                        style={{ background: '#f44336', color: '#fff', fontWeight: 600, borderRadius: '0' }}
+                        sx={{ background: '#f44336', color: '#fff', fontWeight: 600, borderRadius: '0', fontSize: { xs: '0.53rem', md: '0.7rem' }, height: { xs: '15px', md: '26px' }, padding: { xs: '0 2px', md: '0 8px' } }}
                       />
                     ) : item.stock <= 10 ? (
                       <Chip 
                         label={`Only ${item.stock} left`} 
-                        style={{ background: '#ff9800', color: '#fff', fontWeight: 600, borderRadius: '0' }}
+                        sx={{ background: '#ff9800', color: '#fff', fontWeight: 600, borderRadius: '0', fontSize: { xs: '0.53rem', md: '0.7rem' }, height: { xs: '15px', md: '26px' }, padding: { xs: '0 2px', md: '0 8px' } }}
                       />
                     ) : (
                       <Chip 
                         label="In Stock" 
-                        style={{ background: '#4caf50', color: '#fff', fontWeight: 600, borderRadius: '0' }}
+                        sx={{ background: '#4caf50', color: '#fff', fontWeight: 600, borderRadius: '0', fontSize: { xs: '0.53rem', md: '0.7rem' }, height: { xs: '15px', md: '26px' }, padding: { xs: '0 2px', md: '0 8px' } }}
                       />
                     )}
                     {item.featured && (
                       <Chip 
                         label="Featured" 
                         icon={<Star />}
-                        style={{ background: '#ffc107', color: '#fff', fontWeight: 600, borderRadius: '0' }}
+                        sx={{ background: '#ffc107', color: '#fff', fontWeight: 600, borderRadius: '0', fontSize: { xs: '0.53rem', md: '0.7rem' }, height: { xs: '15px', md: '26px' }, padding: { xs: '0 2px', md: '0 8px' } }}
                       />
                     )}
                   </Box>
 
                   {/* Price */}
-                  <Typography variant="h5" style={{ color: '#000000', fontWeight: 700, marginBottom: '10px', fontSize: '1.5rem' }}>
+                  <Typography variant="h5" sx={{ color: '#000000', fontWeight: 700, marginBottom: { xs: '2.5px', md: '6px' }, fontSize: { xs: '0.92rem', sm: '1.35rem', md: '1.2rem' } }}>
                     ₹{getCurrentPrice()?.toFixed(2)}
                   </Typography>
 
                   {/* Egg or Eggless Option - For All Products */}
-                  <Box style={{ marginBottom: '12px' }}>
-                    <Typography variant="body2" style={{ fontWeight: 600, marginBottom: '6px', fontSize: '0.9rem' }}>
+                  <Box sx={{ marginBottom: { xs: '3.5px', md: '8px' } }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600, marginBottom: { xs: '0.8px', md: '4px' }, fontSize: { xs: '0.63rem', md: '0.8rem' } }}>
                       Egg or Eggless
                     </Typography>
-                    <Box style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <Box sx={{ display: 'flex', gap: { xs: '2.2px', md: '5px' }, flexWrap: 'wrap' }}>
                       <Button
                         variant={!isEggless ? 'contained' : 'outlined'}
                         onClick={() => setIsEggless(false)}
@@ -382,8 +386,8 @@ const ItemDetail = () => {
                           border: '2px solid',
                           borderColor: !isEggless ? '#ffd700' : '#ddd',
                           borderRadius: '0',
-                          padding: '6px 16px',
-                          fontSize: '0.875rem',
+                          padding: { xs: '4px 12px', md: '6px 16px' },
+                          fontSize: { xs: '0.75rem', md: '0.875rem' },
                           textTransform: 'none',
                           fontWeight: 600,
                           '&:hover': {
@@ -404,8 +408,8 @@ const ItemDetail = () => {
                           border: '2px solid',
                           borderColor: isEggless ? '#ffd700' : '#ddd',
                           borderRadius: '0',
-                          padding: '6px 16px',
-                          fontSize: '0.875rem',
+                          padding: { xs: '4px 12px', md: '6px 16px' },
+                          fontSize: { xs: '0.75rem', md: '0.875rem' },
                           textTransform: 'none',
                           fontWeight: 600,
                           '&:hover': {
@@ -424,11 +428,11 @@ const ItemDetail = () => {
                     const catName = item.category?.name?.toLowerCase() || '';
                     return catName.includes('occasional') || catName.includes('premium') || catName.includes('party');
                   })() && (
-                    <Box style={{ marginBottom: '12px' }}>
-                      <Typography variant="body2" style={{ fontWeight: 600, marginBottom: '6px', fontSize: '0.9rem' }}>
+                    <Box sx={{ marginBottom: { xs: '3.5px', md: '8px' } }}>
+                      <Typography variant="body2" sx={{ fontWeight: 600, marginBottom: { xs: '0.8px', md: '4px' }, fontSize: { xs: '0.63rem', md: '0.8rem' } }}>
                         Weight
                       </Typography>
-                      <Box style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      <Box sx={{ display: 'flex', gap: { xs: '1.8px', md: '5px' }, flexWrap: 'wrap' }}>
                         {['1 Kg', '1.5 Kg', '2 Kg', '2.5 Kg', '3 Kg'].map((qty) => (
                           <Button
                             key={qty}
@@ -440,8 +444,8 @@ const ItemDetail = () => {
                               border: '2px solid',
                               borderColor: quantity === parseFloat(qty) ? '#ffd700' : '#ddd',
                               borderRadius: '0',
-                              padding: '6px 14px',
-                              fontSize: '0.875rem',
+                              padding: { xs: '0.5px 1px', md: '4px 10px' },
+                              fontSize: { xs: '0.4rem', md: '0.75rem' },
                               textTransform: 'none',
                               fontWeight: 600,
                               '&:hover': {
@@ -458,60 +462,123 @@ const ItemDetail = () => {
                   )}
 
                   {/* Description */}
-                  <Typography variant="body2" color="textSecondary" paragraph style={{ marginBottom: '12px', fontSize: '0.875rem', lineHeight: '1.4' }}>
+                  <Typography variant="body2" color="textSecondary" paragraph sx={{ marginBottom: { xs: '3.5px', md: '8px' }, fontSize: { xs: '0.63rem', md: '0.75rem' }, lineHeight: '1.22' }}>
                     {item.description || 'Delicious baked item made with the finest ingredients.'}
                   </Typography>
 
                   {/* Product Details */}
-                  <Box style={{ marginBottom: '12px' }}>
-                    <Typography variant="body2" style={{ marginBottom: '6px', fontSize: '0.875rem' }}>
+                  <Box sx={{ marginBottom: { xs: '3.5px', md: '8px' } }}>
+                    <Typography variant="body2" sx={{ marginBottom: { xs: '0.8px', md: '4px' }, fontSize: { xs: '0.63rem', md: '0.75rem' } }}>
                       <strong>Weight:</strong> {item.grams}g
                     </Typography>
-                    <Typography variant="body2" style={{ marginBottom: '6px', fontSize: '0.875rem' }}>
+                    <Typography variant="body2" sx={{ marginBottom: { xs: '2px', md: '6px' }, fontSize: { xs: '0.7rem', md: '0.875rem' } }}>
                       <strong>Pieces:</strong> {item.pieces || 1} piece{(item.pieces || 1) > 1 ? 's' : ''}
                     </Typography>
-                    <Typography variant="body2" style={{ fontSize: '0.875rem' }}>
+                    <Typography variant="body2" sx={{ fontSize: { xs: '0.63rem', md: '0.75rem' } }}>
                       <strong>Availability:</strong> {item.available ? 'Available' : 'Not Available'}
                     </Typography>
                   </Box>
 
                   {/* Quantity Selector - Only for non-weight-based items */}
                   {!isWeightBased() && (
-                    <Box style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-                      <Typography variant="body1" style={{ fontWeight: 600 }}>
+                    <Box sx={{ marginBottom: { xs: '3.5px', md: '8px' } }}>
+                      <Typography variant="body1" sx={{ fontWeight: 600, fontSize: { xs: '0.63rem', md: '0.85rem' }, marginBottom: { xs: '4px', md: '6px' } }}>
                         Quantity:
                       </Typography>
-                      <TextField
-                        type="number"
-                        value={quantity}
-                        onChange={(e) => setQuantity(Math.max(1, Math.min(getCurrentStock() || 1, parseInt(e.target.value) || 1)))}
-                        InputProps={{ inputProps: { min: 1, max: getCurrentStock() || 1 } }}
-                        size="small"
-                        style={{ width: '100px' }}
-                      />
-                      <Typography variant="body2" color="textSecondary">
-                        Max: {getCurrentStock()}
-                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: '4px', md: '8px' } }}>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                          disabled={quantity <= 1}
+                          sx={{
+                            minWidth: { xs: '26px', md: '40px' },
+                            height: { xs: '26px', md: '36px' },
+                            padding: { xs: '2px', md: '6px' },
+                            borderColor: '#e91e63',
+                            color: '#e91e63',
+                            fontSize: { xs: '0.875rem', md: '1rem' },
+                            '&:hover': { borderColor: '#e91e63', background: 'rgba(233, 30, 99, 0.04)' },
+                            '&.Mui-disabled': { borderColor: '#ddd', color: '#ddd' },
+                          }}
+                        >
+                          -
+                        </Button>
+                        <TextField
+                          type="number"
+                          value={quantity}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value);
+                            if (!isNaN(value) && value >= 1) {
+                              setQuantity(Math.min(getCurrentStock() || 1, value));
+                            }
+                          }}
+                          InputProps={{ 
+                            inputProps: { min: 1, max: getCurrentStock() || 1 },
+                          }}
+                          size="small"
+                          sx={{ 
+                            width: { xs: '45px', md: '70px' },
+                            '& input': {
+                              fontSize: { xs: '0.7rem', md: '0.875rem' },
+                              padding: { xs: '4px 2px', md: '8.5px 14px' },
+                              textAlign: 'center',
+                            },
+                            '& input[type=number]': {
+                              MozAppearance: 'textfield',
+                            },
+                            '& input[type=number]::-webkit-outer-spin-button': {
+                              WebkitAppearance: 'none',
+                              margin: 0,
+                            },
+                            '& input[type=number]::-webkit-inner-spin-button': {
+                              WebkitAppearance: 'none',
+                              margin: 0,
+                            },
+                          }}
+                        />
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={() => setQuantity(Math.min(getCurrentStock() || 1, quantity + 1))}
+                          disabled={quantity >= (getCurrentStock() || 1)}
+                          sx={{
+                            minWidth: { xs: '26px', md: '40px' },
+                            height: { xs: '26px', md: '36px' },
+                            padding: { xs: '2px', md: '6px' },
+                            borderColor: '#e91e63',
+                            color: '#e91e63',
+                            fontSize: { xs: '0.875rem', md: '1rem' },
+                            '&:hover': { borderColor: '#e91e63', background: 'rgba(233, 30, 99, 0.04)' },
+                            '&.Mui-disabled': { borderColor: '#ddd', color: '#ddd' },
+                          }}
+                        >
+                          +
+                        </Button>
+                      </Box>
                     </Box>
                   )}
 
                   {/* Action Buttons */}
-                  <Box style={{ display: 'flex', gap: '12px' }}>
+                  <Box sx={{ display: 'flex', gap: { xs: '2.2px', md: '8px' } }}>
                     <Button
                       variant="contained"
                       size="large"
                       startIcon={<ShoppingCart />}
                       onClick={handleAddToCart}
                       disabled={getCurrentStock() === 0 || !item.available}
-                      style={{
+                      sx={{
                         background: getCurrentStock() === 0 || !item.available ? '#ccc' : '#e91e63',
                         color: '#fff',
-                        padding: '8px 24px',
-                        fontSize: '14px',
+                        padding: { xs: '2.2px 5.5px', md: '5px 16px' },
+                        fontSize: { xs: '0.63rem', md: '0.75rem' },
                         borderRadius: '0',
                         fontWeight: 600,
                         textTransform: 'none',
                         flex: 1,
+                        '& .MuiButton-startIcon': {
+                          marginRight: { xs: '4px', md: '8px' },
+                        }
                       }}
                     >
                       {!user ? 'Login to Purchase' : getCurrentStock() === 0 || !item.available ? 'Out of Stock' : 'Add to Cart'}
@@ -519,16 +586,16 @@ const ItemDetail = () => {
                   </Box>
                   
                   {!user && (
-                    <Box style={{ marginTop: '10px', padding: '10px', background: '#fff3e0', borderRadius: '0', textAlign: 'center' }}>
-                      <Typography variant="body2" color="textSecondary">
+                    <Box sx={{ marginTop: { xs: '2.5px', md: '6px' }, padding: { xs: '2.5px', md: '6px' }, background: '#fff3e0', borderRadius: '0', textAlign: 'center' }}>
+                      <Typography variant="body2" color="textSecondary" sx={{ fontSize: { xs: '0.58rem', md: '0.75rem' } }}>
                         Please login to add items to cart and make purchases
                       </Typography>
                     </Box>
                   )}
 
                   {/* Total Price */}
-                  <Box style={{ marginTop: '12px', padding: '10px', background: '#fef6ee', borderRadius: '0' }}>
-                    <Typography variant="h6" style={{ fontWeight: 600 }}>
+                  <Box sx={{ marginTop: { xs: '3.5px', md: '8px' }, padding: { xs: '2.5px', md: '6px' }, background: '#fef6ee', borderRadius: '0' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600, fontSize: { xs: '0.76rem', md: '1.1rem' } }}>
                       Total: ₹{
                         isWeightBased() 
                           ? getCurrentPrice().toFixed(2)  // For cakes, price already includes weight
@@ -542,19 +609,21 @@ const ItemDetail = () => {
           </Paper>
 
           {/* Reviews Section */}
-          <Paper style={{ padding: '16px', borderRadius: '0' }}>
-            <Box style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
-              <Typography variant="h5" style={{ fontWeight: 700 }}>
+          <Paper sx={{ padding: { xs: '3.5px', md: '10px' }, borderRadius: '0' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: { xs: '3.5px', md: '8px' }, flexWrap: 'wrap', gap: { xs: '1.8px', md: '5px' } }}>
+              <Typography variant="h5" sx={{ fontWeight: 700, fontSize: { xs: '0.82rem', sm: '1.3rem', md: '1.2rem' } }}>
                 Customer Reviews ({reviews.length})
               </Typography>
               <Button
                 variant="contained"
                 onClick={handleOpenReviewDialog}
-                style={{
+                sx={{
                   background: '#e91e63',
                   color: '#fff',
                   textTransform: 'none',
                   fontWeight: 600,
+                  fontSize: { xs: '0.58rem', md: '0.75rem' },
+                  padding: { xs: '2.2px 4.5px', md: '4px 10px' },
                 }}
               >
                 {user ? 'Write a Review' : 'Login to Review'}
@@ -562,43 +631,43 @@ const ItemDetail = () => {
             </Box>
             
             {!user && (
-              <Box style={{ padding: '10px', background: '#fff3e0', borderRadius: '0', marginBottom: '16px' }}>
-                <Typography variant="body2" color="textSecondary" style={{ textAlign: 'center' }}>
+              <Box sx={{ padding: { xs: '2.5px', md: '6px' }, background: '#fff3e0', borderRadius: '0', marginBottom: { xs: '3.5px', md: '10px' } }}>
+                <Typography variant="body2" color="textSecondary" sx={{ textAlign: 'center', fontSize: { xs: '0.58rem', md: '0.75rem' } }}>
                   Please login to write a review for this product
                 </Typography>
               </Box>
             )}
 
-            <Divider style={{ marginBottom: '12px' }} />
+            <Divider sx={{ marginBottom: { xs: '3.5px', md: '8px' } }} />
 
             {/* Reviews List */}
             {reviews.length === 0 ? (
-              <Box style={{ textAlign: 'center', padding: '40px' }}>
-                <Typography variant="body1" color="textSecondary">
+              <Box sx={{ textAlign: 'center', padding: { xs: '7px', md: '28px' } }}>
+                <Typography variant="body1" color="textSecondary" sx={{ fontSize: { xs: '0.66rem', md: '0.85rem' } }}>
                   No reviews yet. Be the first to review this item!
                 </Typography>
               </Box>
             ) : (
-              <Grid container spacing={3}>
+              <Grid container spacing={{ xs: 0.5, md: 1.5 }}>
                 {reviews.map((review) => (
                   <Grid item xs={12} key={review.id}>
-                    <Card style={{ borderRadius: '8px' }} elevation={1}>
-                      <CardContent>
-                        <Box style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
-                          <Avatar style={{ background: '#e91e63', width: 48, height: 48, fontSize: '20px', fontWeight: 600 }}>
+                    <Card sx={{ borderRadius: { xs: '0', md: '5px' } }} elevation={1}>
+                      <CardContent sx={{ padding: { xs: '3.5px', md: '10px' } }}>
+                        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: { xs: '3.5px', md: '10px' } }}>
+                          <Avatar sx={{ background: '#e91e63', width: { xs: 22, md: 38 }, height: { xs: 22, md: 38 }, fontSize: { xs: '9.5px', md: '16px' }, fontWeight: 600 }}>
                             {review.customerName ? review.customerName.charAt(0).toUpperCase() : 'C'}
                           </Avatar>
                           <Box style={{ flex: 1 }}>
-                            <Box style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                              <Typography variant="subtitle1" style={{ fontWeight: 600 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: { xs: '1.8px', md: '5px' } }}>
+                              <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: { xs: '0.66rem', md: '0.85rem' } }}>
                                 {review.customerName || 'Customer'}
                               </Typography>
-                              <Typography variant="caption" color="textSecondary">
+                              <Typography variant="caption" color="textSecondary" sx={{ fontSize: { xs: '0.53rem', md: '0.65rem' } }}>
                                 {formatDate(review.reviewDate)}
                               </Typography>
                             </Box>
-                            <Rating value={review.rating} readOnly size="small" style={{ marginBottom: '8px' }} />
-                            <Typography variant="body2" color="textSecondary">
+                            <Rating value={review.rating} readOnly size="small" sx={{ marginBottom: { xs: '1.8px', md: '5px' }, fontSize: { xs: '0.68rem', md: '1rem' } }} />
+                            <Typography variant="body2" color="textSecondary" sx={{ fontSize: { xs: '0.63rem', md: '0.75rem' } }}>
                               {review.comment}
                             </Typography>
                           </Box>

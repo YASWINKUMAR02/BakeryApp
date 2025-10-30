@@ -1,7 +1,11 @@
 import axios from 'axios';
 
-// Use environment variable for production, localhost for development
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+// Use environment variable or fallback to localhost
+// For LAN access, set REACT_APP_API_URL in .env file to your computer's IP
+
+const API_BASE_URL ='http://localhost:8080/api';
+
+
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -165,6 +169,16 @@ export const paymentAPI = {
   createOrder: (amount, customerId) => api.post('/payments/create-order', { amount, customerId }),
   verifyPayment: (data) => api.post('/payments/verify', data),
   getPaymentDetails: (orderId) => api.get(`/payments/${orderId}`),
+};
+
+// Carousel APIs
+export const carouselAPI = {
+  getAll: () => api.get('/carousel/all'),
+  getActive: () => api.get('/carousel/active'),
+  getById: (id) => api.get(`/carousel/${id}`),
+  create: (data) => api.post('/carousel', data),
+  update: (id, data) => api.put(`/carousel/${id}`, data),
+  delete: (id) => api.delete(`/carousel/${id}`),
 };
 
 export default api;

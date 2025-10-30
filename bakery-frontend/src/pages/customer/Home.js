@@ -47,7 +47,7 @@ import {
   ExpandMore,
   ExpandLess,
 } from '@mui/icons-material';
-import { itemAPI, cartAPI, categoryAPI, reviewAPI } from '../../services/api';
+import { itemAPI, cartAPI, categoryAPI, reviewAPI, carouselAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import CustomerHeader from '../../components/CustomerHeader';
 import Footer from '../../components/Footer';
@@ -62,6 +62,8 @@ const Home = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
   const [itemReviews, setItemReviews] = useState({});
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -80,47 +82,28 @@ const Home = () => {
   const [page, setPage] = useState(1);
   const itemsPerPage = 9;
 
-  // Carousel images/content
-  const carouselSlides = [
-    {
-      title: 'Sweet Treats,',
-      subtitle: 'Perfect Eats',
-      description: 'Delicious Cafe',
-      background: 'linear-gradient(135deg, rgba(0,0,0,0.7), rgba(0,0,0,0.5))',
-      image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1920&h=600&fit=crop',
-      icon: BakeryDining,
-    },
-    {
-      title: 'Artisan Breads',
-      subtitle: 'Baked Fresh Daily',
-      description: 'Handcrafted with Love',
-      background: 'linear-gradient(135deg, rgba(0,0,0,0.7), rgba(0,0,0,0.5))',
-      image: 'https://images.unsplash.com/photo-1549931319-a545dcf3bc73?w=1920&h=600&fit=crop',
-      icon: Cake,
-    },
-    {
-      title: 'Premium Pastries',
-      subtitle: 'Indulge Today',
-      description: 'Exquisite Flavors',
-      background: 'linear-gradient(135deg, rgba(0,0,0,0.7), rgba(0,0,0,0.5))',
-      image: 'https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=1920&h=600&fit=crop',
-      icon: LocalOffer,
-    },
-  ];
+  // Carousel slides from API
+  const [carouselSlides, setCarouselSlides] = useState([]);
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % carouselSlides.length);
-    }, 5000);
-    return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (carouselSlides.length > 0) {
+      const interval = setInterval(() => {
+        setCurrentSlide((prev) => (prev + 1) % carouselSlides.length);
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [carouselSlides.length]);
 
   const fetchData = async () => {
     try {
-      const [itemsResponse, categoriesResponse] = await Promise.all([
+      const [itemsResponse, categoriesResponse, carouselResponse] = await Promise.all([
         itemAPI.getAll(),
         categoryAPI.getAll(),
+        carouselAPI.getActive(),
       ]);
       
       if (itemsResponse.data.success) {
@@ -145,6 +128,27 @@ const Home = () => {
       }
       if (categoriesResponse.data.success) {
         setCategories(categoriesResponse.data.data);
+      }
+      if (carouselResponse.data.success) {
+        // Transform API data to match carousel format
+        const slides = carouselResponse.data.data.map(slide => ({
+          title: slide.title,
+          subtitle: slide.subtitle,
+          description: slide.description,
+          image: slide.imageUrl,
+          icon: Cake,
+          buttonText: slide.buttonText,
+          buttonAction: () => {
+            if (slide.linkType === 'CATEGORY') {
+              navigate(`/shop?categoryId=${slide.linkValue}`);
+            } else if (slide.linkType === 'ITEM') {
+              navigate(`/item/${slide.linkValue}`);
+            } else {
+              navigate(slide.linkValue);
+            }
+          },
+        }));
+        setCarouselSlides(slides);
       }
     } catch (err) {
       showError('Failed to fetch data');
@@ -323,14 +327,27 @@ const Home = () => {
     <Box style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <CustomerHeader />
 
-      <Box style={{ background: '#f5f5f5', paddingTop: '70px', paddingLeft: '8px', paddingRight: '8px' }}>
+      <Box style={{ background: '#f5f5f5', paddingTop: '70px' }}>
         {/* Hero Carousel Section */}
         <Box 
           sx={{ 
             position: 'relative', 
-            height: { xs: '300px', sm: '350px', md: '400px' }, 
+            height: { xs: '300px', sm: '400px', md: '500px' }, 
+            width: '100%',
             overflow: 'hidden', 
             background: '#1a1a1a',
+          }}
+          onTouchStart={(e) => setTouchStart(e.targetTouches[0].clientX)}
+          onTouchMove={(e) => setTouchEnd(e.targetTouches[0].clientX)}
+          onTouchEnd={() => {
+            if (touchStart - touchEnd > 75) {
+              // Swipe left - next slide
+              nextSlide();
+            }
+            if (touchStart - touchEnd < -75) {
+              // Swipe right - previous slide
+              prevSlide();
+            }
           }}
         >
           {carouselSlides.map((slide, index) => (
@@ -396,7 +413,7 @@ const Home = () => {
                     <Button
                       variant="contained"
                       size="large"
-                      onClick={() => navigate('/shop')}
+                      onClick={slide.buttonAction}
                       sx={{
                         background: '#e91e63',
                         color: '#fff',
@@ -408,59 +425,13 @@ const Home = () => {
                         boxShadow: '0 4px 20px rgba(255, 105, 180, 0.4)',
                       }}
                     >
-                      Shop Now
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      size="large"
-                      onClick={() => navigate('/about')}
-                      sx={{
-                        borderColor: '#fff',
-                        color: '#fff',
-                        padding: { xs: '10px 20px', sm: '14px 36px' },
-                        fontSize: { xs: '14px', sm: '16px' },
-                        fontWeight: 600,
-                        textTransform: 'none',
-                        borderRadius: '8px',
-                      }}
-                    >
-                      Learn More
+                      {slide.buttonText}
                     </Button>
                   </Box>
                 </Box>
               </Container>
             </Box>
           ))}
-
-          {/* Carousel Controls */}
-          <IconButton
-            onClick={prevSlide}
-            style={{
-              position: 'absolute',
-              left: '20px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              background: 'rgba(255,255,255,0.3)',
-              color: '#fff',
-              zIndex: 2,
-            }}
-          >
-            <ChevronLeft fontSize="large" />
-          </IconButton>
-          <IconButton
-            onClick={nextSlide}
-            style={{
-              position: 'absolute',
-              right: '20px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              background: 'rgba(255,255,255,0.3)',
-              color: '#fff',
-              zIndex: 2,
-            }}
-          >
-            <ChevronRight fontSize="large" />
-          </IconButton>
 
           {/* Carousel Indicators */}
           <Box
