@@ -146,10 +146,10 @@ export const analyticsAPI = {
 
 // Notification APIs
 export const notificationAPI = {
-  getAll: (userId) => api.get(`/notifications/${userId}`),
-  getUnread: (userId) => api.get(`/notifications/${userId}/unread`),
+  getAll: (userId, userRole) => api.get(`/notifications/${userId}?userRole=${userRole}`),
+  getUnread: (userId, userRole) => api.get(`/notifications/${userId}/unread?userRole=${userRole}`),
   markAsRead: (notificationId) => api.put(`/notifications/${notificationId}/read`),
-  markAllAsRead: (userId) => api.put(`/notifications/${userId}/read-all`),
+  markAllAsRead: (userId, userRole) => api.put(`/notifications/${userId}/read-all?userRole=${userRole}`),
   delete: (notificationId) => api.delete(`/notifications/${notificationId}`),
   create: (data) => api.post('/notifications', data),
 };

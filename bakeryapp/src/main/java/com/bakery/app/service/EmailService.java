@@ -38,6 +38,28 @@ public class EmailService {
     private static final DecimalFormat df = new DecimalFormat("#,##0.00");
     private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a");
     
+    public void sendWelcomeEmail(String toEmail, String customerName) {
+        try {
+            logger.info("Attempting to send welcome email to: {}", toEmail);
+            
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("🎉 Welcome to Frost & Crinkle Bakery!");
+            
+            String htmlContent = emailTemplateService.buildWelcomeEmail(customerName, frontendUrl);
+            helper.setText(htmlContent, true);
+            
+            mailSender.send(mimeMessage);
+            logger.info("Welcome email sent successfully to: {}", toEmail);
+        } catch (Exception e) {
+            logger.error("Failed to send welcome email to: {}", toEmail, e);
+            // Don't throw exception - registration should succeed even if email fails
+        }
+    }
+    
     public void sendPasswordResetEmail(String toEmail, String customerName, String resetToken) {
         try {
             String resetLink = frontendUrl + "/reset-password?token=" + resetToken;

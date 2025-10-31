@@ -50,6 +50,7 @@ import Footer from '../../components/Footer';
 import { showSuccess, showError } from '../../utils/toast';
 import LocationPicker from '../../components/LocationPicker';
 import { OrderCardSkeleton } from '../../components/LoadingSkeleton';
+import OrderStatusStepper from '../../components/OrderStatusStepper';
 
 const Orders = () => {
   const navigate = useNavigate();
@@ -81,6 +82,18 @@ const Orders = () => {
   useEffect(() => {
     fetchOrders();
     fetchOrderHistory();
+    
+    // Listen for new notifications to refresh orders
+    const handleNotificationAdded = (event) => {
+      const notification = event.detail;
+      // Refresh orders when order status notification is received
+      if (notification?.type?.includes('ORDER_')) {
+        fetchOrders();
+      }
+    };
+    
+    window.addEventListener('notificationAdded', handleNotificationAdded);
+    return () => window.removeEventListener('notificationAdded', handleNotificationAdded);
   }, []);
 
   const fetchOrders = async () => {
@@ -466,6 +479,11 @@ const Orders = () => {
                         <TableRow>
                           <TableCell sx={{ paddingBottom: 0, paddingTop: 0, padding: { xs: '0 4px', md: '0 16px' } }} colSpan={4}>
                               <Box sx={{ margin: { xs: '8px 0', md: '12px 0' } }}>
+                                {/* Order Status Stepper */}
+                                <Box sx={{ marginBottom: { xs: '12px', md: '16px' } }}>
+                                  <OrderStatusStepper currentStatus={order.status} />
+                                </Box>
+                                
                                 <Grid container spacing={{ xs: 1, md: 2 }}>
                                   {/* Delivery Details */}
                                   <Grid item xs={12} md={6}>
@@ -972,6 +990,11 @@ const Orders = () => {
                               <TableCell colSpan={5} sx={{ padding: 0 }}>
                                 <Collapse in={expandedHistoryOrder === order.id} timeout="auto" unmountOnExit>
                                   <Box style={{ padding: '20px', background: '#fafafa' }}>
+                                    {/* Order Status Stepper */}
+                                    <Box sx={{ marginBottom: '16px' }}>
+                                      <OrderStatusStepper currentStatus={order.status} />
+                                    </Box>
+                                    
                                     <Grid container spacing={2}>
                                       <Grid item xs={12} md={6}>
                                         <Paper style={{ padding: '16px' }}>

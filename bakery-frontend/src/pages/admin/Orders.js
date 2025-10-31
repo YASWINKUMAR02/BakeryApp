@@ -100,6 +100,12 @@ const Orders = () => {
   const handleStatusChange = async (orderId, newStatus) => {
     setUpdatingOrderId(orderId);
     
+    // Find the order BEFORE updating to get customer ID
+    const order = orders.find(o => o.id === orderId);
+    const customerId = order?.customer?.id;
+    
+    console.log('🔍 Order details:', { orderId, customerId, customerName: order?.customer?.name, newStatus });
+    
     // Optimistic update - immediately update UI
     setOrders(prevOrders => 
       prevOrders.map(order => 
@@ -110,24 +116,29 @@ const Orders = () => {
     try {
       await orderAPI.updateStatus(orderId, { status: newStatus });
       
-      // Find the order to get customer ID
-      const order = orders.find(o => o.id === orderId);
-      const customerId = order?.customer?.id;
-      
       // Send notification to customer based on status
       if (customerId) {
-        if (newStatus === 'Confirmed') {
-          notifyCustomerOrderConfirmed(customerId, orderId);
-        } else if (newStatus === 'Packed') {
-          // Notify customer that order is packed and ready
-          notifyCustomerOrderPacked(customerId, orderId);
-        } else if (newStatus === 'Out for Delivery') {
-          notifyCustomerOrderOutForDelivery(customerId, orderId);
-        } else if (newStatus === 'Delivered') {
-          notifyCustomerOrderDelivered(customerId, orderId);
-          // Also notify admin that order was delivered
-          notifyAdminOrderDelivered(user.id, orderId);
+        console.log('📤 Sending notification to customer:', customerId, 'for order:', orderId, 'status:', newStatus);
+        try {
+          if (newStatus === 'Confirmed') {
+            await notifyCustomerOrderConfirmed(customerId, orderId);
+          } else if (newStatus === 'Packed') {
+            // Notify customer that order is packed and ready
+            await notifyCustomerOrderPacked(customerId, orderId);
+          } else if (newStatus === 'Out for Delivery') {
+            await notifyCustomerOrderOutForDelivery(customerId, orderId);
+          } else if (newStatus === 'Delivered') {
+            await notifyCustomerOrderDelivered(customerId, orderId);
+            // Also notify admin that order was delivered
+            await notifyAdminOrderDelivered(user.id, orderId);
+          }
+          console.log('✅ Notification sent successfully');
+        } catch (notifError) {
+          console.error('❌ Failed to send notification:', notifError);
+          // Don't fail the status update if notification fails
         }
+      } else {
+        console.warn('⚠️ No customer ID found for order:', orderId);
       }
       
       showSuccess(`Order #${orderId} status updated to ${newStatus}`);

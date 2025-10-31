@@ -39,6 +39,7 @@ import ContactPage from './pages/Contact';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import NotFound from './pages/NotFound';
+import SimpleHome from './pages/SimpleHome';
 
 const theme = createTheme({
   palette: {
@@ -182,11 +183,12 @@ const RootRedirect = () => {
     if (user.role === 'ADMIN') {
       return <Navigate to="/admin/dashboard" />;
     }
-    // Customer stays on home page
+    // Customer goes to home
+    return <Navigate to="/home" />;
   }
   
-  // Show home page for everyone (logged in customers and guests)
-  return <Home />;
+  // Guests go to home page
+  return <Navigate to="/home" />;
 };
 
 const AuthRedirect = ({ children }) => {
@@ -205,6 +207,7 @@ const AuthRedirect = ({ children }) => {
     if (user.role === 'ADMIN') {
       return <Navigate to="/admin/dashboard" />;
     }
+    // Customer already logged in, redirect to home
     return <Navigate to="/" />;
   }
   return children;
@@ -213,11 +216,15 @@ const AuthRedirect = ({ children }) => {
 const AnimatedRoutes = () => {
   const location = useLocation();
   
+  // Debug log to see what route is being accessed
+  console.log('🔀 Route changed to:', location.pathname);
+  
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        {/* Public Landing Page - Redirect based on auth */}
-        <Route path="/" element={<RootRedirect />} />
+        {/* Home Page - Landing page for everyone (guests, customers) */}
+        <Route path="/" element={<Home />} />
+        <Route path="/home" element={<Home />} />
         
         {/* Customer Routes */}
         <Route 

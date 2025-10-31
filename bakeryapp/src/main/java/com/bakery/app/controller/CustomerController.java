@@ -6,8 +6,11 @@ import com.bakery.app.dto.CustomerRegistrationRequest;
 import com.bakery.app.dto.CustomerUpdateRequest;
 import com.bakery.app.dto.LoginRequest;
 import com.bakery.app.dto.PasswordUpdateRequest;
+import com.bakery.app.dto.NotificationDTO;
 import com.bakery.app.entity.Customer;
 import com.bakery.app.service.CustomerService;
+import com.bakery.app.service.EmailService;
+import com.bakery.app.service.NotificationService;
 import com.bakery.app.service.PasswordResetService;
 import com.bakery.app.util.JwtUtil;
 import jakarta.validation.Valid;
@@ -28,6 +31,8 @@ public class CustomerController {
     private final CustomerService customerService;
     private final JwtUtil jwtUtil;
     private final PasswordResetService passwordResetService;
+    private final NotificationService notificationService;
+    private final EmailService emailService;
     
     @PostMapping("/register")
     public ResponseEntity<ApiResponse> registerCustomer(@Valid @RequestBody CustomerRegistrationRequest request) {
@@ -36,6 +41,28 @@ public class CustomerController {
             String token = jwtUtil.generateToken(customer.getEmail(), "CUSTOMER", customer.getId());
             AuthResponse authResponse = new AuthResponse(token, customer.getId(), customer.getName(), 
                                                          customer.getEmail(), customer.getPhone(), "CUSTOMER");
+            
+            // Send welcome notification to new customer
+            try {
+                NotificationDTO welcomeNotification = new NotificationDTO();
+                welcomeNotification.setUserId(customer.getId().longValue());
+                welcomeNotification.setUserRole("CUSTOMER");
+                welcomeNotification.setMessage("Welcome to Frost & Crinkle Bakery! 🎉 Thank you for joining us. Explore our delicious treats and enjoy your shopping experience!");
+                welcomeNotification.setType("WELCOME");
+                notificationService.createNotification(welcomeNotification);
+            } catch (Exception notifError) {
+                // Don't fail registration if notification fails
+                System.err.println("Failed to send welcome notification: " + notifError.getMessage());
+            }
+            
+            // Send welcome email to new customer
+            try {
+                emailService.sendWelcomeEmail(customer.getEmail(), customer.getName());
+            } catch (Exception emailError) {
+                // Don't fail registration if email fails
+                System.err.println("Failed to send welcome email: " + emailError.getMessage());
+            }
+            
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(new ApiResponse(true, "Customer registered successfully", authResponse));
         } catch (Exception e) {

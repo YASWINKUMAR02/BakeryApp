@@ -24,6 +24,7 @@ import {
   LocalShipping,
   Cancel,
   Delete,
+  Celebration,
 } from '@mui/icons-material';
 import { notificationAPI } from '../services/api';
 import { showError } from '../utils/toast';
@@ -103,31 +104,44 @@ const Notifications = ({ iconColor = '#4a5568', hoverColor = '#1a1a1a' }) => {
   const fetchNotifications = async () => {
     if (!user) return;
     
-    // First, always load from localStorage
     const storageKey = `notifications_${user.role}_${user.id}`;
+    
+    // Try to fetch from backend API first
+    try {
+      const response = await notificationAPI.getAll(user.id, user.role);
+      console.log('📡 Notification API response for', user.role, ':', response.data);
+      
+      if (response.data && response.data.success) {
+        const apiNotifs = response.data.data || [];
+        
+        // Always use API data if request was successful (even if empty)
+        localStorage.setItem(storageKey, JSON.stringify(apiNotifs));
+        setNotifications(apiNotifs);
+        setUnreadCount(apiNotifs.filter(n => !n.read).length);
+        console.log('✅ Loaded', apiNotifs.length, 'notifications from backend');
+        return;
+      }
+    } catch (error) {
+      console.error('❌ Error fetching notifications from API:', error);
+      console.error('Error details:', error.response?.data || error.message);
+      // Fall back to localStorage only on error
+    }
+    
+    // Fallback: Load from localStorage only if API failed
     const stored = localStorage.getItem(storageKey);
     if (stored) {
       try {
         const localNotifs = JSON.parse(stored);
         setNotifications(localNotifs);
         setUnreadCount(localNotifs.filter(n => !n.read).length);
+        console.log('📦 Loaded', localNotifs.length, 'notifications from localStorage (API failed)');
       } catch (e) {
         console.error('Error parsing localStorage notifications:', e);
       }
-    }
-    
-    // Then try to fetch from API (optional, for future server-side notifications)
-    try {
-      const response = await notificationAPI.getAll(user.id);
-      const notifs = response.data || [];
-      // Only update if we got real data from API
-      if (notifs.length > 0) {
-        setNotifications(notifs);
-        setUnreadCount(notifs.filter(n => !n.read).length);
-      }
-    } catch (error) {
-      console.error('Error fetching notifications from API:', error);
-      // Already loaded from localStorage above
+    } else {
+      console.log('ℹ️ No notifications found (API failed and no localStorage)');
+      setNotifications([]);
+      setUnreadCount(0);
     }
   };
 
@@ -172,7 +186,7 @@ const Notifications = ({ iconColor = '#4a5568', hoverColor = '#1a1a1a' }) => {
     localStorage.setItem(storageKey, JSON.stringify(updatedNotifications));
     
     try {
-      await notificationAPI.markAllAsRead(user.id);
+      await notificationAPI.markAllAsRead(user.id, user.role);
     } catch (error) {
       // Already updated local state
     } finally {
@@ -202,10 +216,16 @@ const Notifications = ({ iconColor = '#4a5568', hoverColor = '#1a1a1a' }) => {
 
   const getNotificationIcon = (type) => {
     switch (type) {
+      case 'WELCOME':
+        return <Celebration style={{ color: '#e91e63' }} />;
       case 'ORDER_PLACED':
         return <ShoppingCart style={{ color: '#4caf50' }} />;
       case 'ORDER_CONFIRMED':
         return <CheckCircle style={{ color: '#2196f3' }} />;
+      case 'ORDER_PACKED':
+        return <CheckCircle style={{ color: '#ff9800' }} />;
+      case 'ORDER_OUT_FOR_DELIVERY':
+        return <LocalShipping style={{ color: '#ff6b35' }} />;
       case 'ORDER_SHIPPED':
         return <LocalShipping style={{ color: '#ff9800' }} />;
       case 'ORDER_DELIVERED':

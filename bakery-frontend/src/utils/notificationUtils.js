@@ -1,6 +1,27 @@
-// Utility functions to manage notifications locally
+// Utility functions to manage notifications locally and via backend
+import { notificationAPI } from '../services/api';
 
-export const addNotification = (userId, userRole, notification) => {
+export const addNotification = async (userId, userRole, notification) => {
+  // Create notification object
+  const newNotification = {
+    userId: userId,
+    userRole: userRole,
+    message: notification.message,
+    type: notification.type,
+    read: false,
+    createdAt: new Date().toISOString(),
+  };
+  
+  try {
+    // Send to backend API
+    await notificationAPI.create(newNotification);
+    console.log('✅ Notification sent to backend for user:', userId);
+  } catch (error) {
+    console.error('❌ Failed to send notification to backend:', error);
+    // Fall back to localStorage if backend fails
+  }
+  
+  // Also store in localStorage for immediate local updates
   const storageKey = `notifications_${userRole}_${userId}`;
   const stored = localStorage.getItem(storageKey);
   
@@ -13,16 +34,13 @@ export const addNotification = (userId, userRole, notification) => {
     }
   }
   
-  // Add new notification at the beginning
-  const newNotification = {
-    id: Date.now(), // Use timestamp as unique ID
-    message: notification.message,
-    type: notification.type,
-    read: false,
-    createdAt: new Date().toISOString(),
+  // Add ID for local storage
+  const localNotification = {
+    ...newNotification,
+    id: Date.now(),
   };
   
-  notifications.unshift(newNotification);
+  notifications.unshift(localNotification);
   
   // Keep only last 20 notifications
   if (notifications.length > 20) {
@@ -32,9 +50,9 @@ export const addNotification = (userId, userRole, notification) => {
   localStorage.setItem(storageKey, JSON.stringify(notifications));
   
   // Dispatch custom event to update notification component
-  window.dispatchEvent(new CustomEvent('notificationAdded', { detail: newNotification }));
+  window.dispatchEvent(new CustomEvent('notificationAdded', { detail: localNotification }));
   
-  return newNotification;
+  return localNotification;
 };
 
 // Add notification for customer when they place an order

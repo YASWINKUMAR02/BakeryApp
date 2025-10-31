@@ -21,6 +21,58 @@ public class EmailTemplateService {
         ".message { color: #666; font-size: 16px; line-height: 1.8; margin-bottom: 25px; }" +
         ".footer { background: #f8f9fa; padding: 25px 30px; text-align: center; color: #6c757d; font-size: 14px; border-top: 1px solid #e9ecef; }";
     
+    public String buildWelcomeEmail(String customerName, String frontendUrl) {
+        return "<!DOCTYPE html><html><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'><style>" +
+            BASE_STYLES +
+            ".header { background: linear-gradient(135deg, #e91e63 0%, #ff6b35 100%); color: white; padding: 50px 20px; text-align: center; }" +
+            ".header h1 { margin: 0 0 10px 0; font-size: 32px; font-weight: 700; }" +
+            ".header p { margin: 0; font-size: 16px; opacity: 0.95; }" +
+            ".welcome-box { background: linear-gradient(135deg, #fff5f8 0%, #fff8f0 100%); border-radius: 12px; padding: 30px; margin: 25px 0; text-align: center; border: 2px solid #ffe0e9; }" +
+            ".welcome-box h2 { color: #e91e63; margin: 0 0 15px 0; font-size: 24px; }" +
+            ".feature-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin: 30px 0; }" +
+            ".feature-item { background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center; }" +
+            ".feature-item .icon { font-size: 32px; margin-bottom: 10px; }" +
+            ".feature-item .title { font-weight: 600; color: #333; margin-bottom: 5px; }" +
+            ".feature-item .desc { font-size: 13px; color: #666; }" +
+            ".button-container { text-align: center; margin: 35px 0; }" +
+            ".shop-button { display: inline-block; padding: 16px 45px; background: linear-gradient(135deg, #e91e63 0%, #ff6b35 100%); color: white !important; text-decoration: none; border-radius: 50px; font-weight: 600; font-size: 17px; box-shadow: 0 4px 20px rgba(233, 30, 99, 0.4); transition: transform 0.2s; }" +
+            ".shop-button:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(233, 30, 99, 0.5); }" +
+            ".offer-box { background: #fff3e0; border-left: 4px solid #ff9800; padding: 20px; margin: 25px 0; border-radius: 4px; }" +
+            ".offer-box h3 { color: #e65100; margin: 0 0 10px 0; font-size: 18px; }" +
+            "</style></head><body>" +
+            "<div class='container'>" +
+            "<div class='header'>" +
+            "<h1>🍰 Welcome to Frost & Crinkle!</h1>" +
+            "<p>Your journey to delicious treats begins here</p>" +
+            "</div>" +
+            "<div class='content'>" +
+            "<div class='greeting'>Hello " + customerName + ",</div>" +
+            "<div class='welcome-box'>" +
+            "<h2>🎉 Thank You for Joining Us!</h2>" +
+            "<p style='color: #666; font-size: 15px; margin: 0;'>We're thrilled to have you as part of our Frost & Crinkle family. Get ready to explore our delicious collection of freshly baked treats!</p>" +
+            "</div>" +
+            "<div class='message'>At Frost & Crinkle Bakery, we believe in creating moments of joy with every bite. From classic cakes to custom creations, we're here to make your celebrations sweeter!</div>" +
+            "<div class='feature-grid'>" +
+            "<div class='feature-item'><div class='icon'>🎂</div><div class='title'>Fresh Daily</div><div class='desc'>Baked with love every morning</div></div>" +
+            "<div class='feature-item'><div class='icon'>🚚</div><div class='title'>Fast Delivery</div><div class='desc'>Quick delivery to your doorstep</div></div>" +
+            "<div class='feature-item'><div class='icon'>🌟</div><div class='title'>Premium Quality</div><div class='desc'>Only the finest ingredients</div></div>" +
+            "<div class='feature-item'><div class='icon'>💝</div><div class='title'>Custom Orders</div><div class='desc'>Personalized cakes & treats</div></div>" +
+            "</div>" +
+            "<div class='offer-box'>" +
+            "<h3>🎁 Special Welcome Offer!</h3>" +
+            "<p style='margin: 0; color: #666;'>Enjoy browsing our collection and placing your first order. We can't wait to serve you!</p>" +
+            "</div>" +
+            "<div class='button-container'><a href='" + frontendUrl + "/shop' class='shop-button'>Start Shopping 🛍️</a></div>" +
+            "<div class='message' style='text-align: center; color: #666; font-size: 14px;'>Need help? Feel free to reach out to us anytime. We're here to make your experience delightful!</div>" +
+            "</div>" +
+            "<div class='footer'>" +
+            "<p><strong>Frost & Crinkle Bakery</strong></p>" +
+            "<p>Freshly Baked with Love ❤️</p>" +
+            "<p style='font-size: 12px; color: #999; margin-top: 15px;'>You're receiving this email because you created an account with us.</p>" +
+            "</div>" +
+            "</div></body></html>";
+    }
+    
     public String buildPasswordResetEmail(String customerName, String resetLink) {
         return "<!DOCTYPE html><html><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'><style>" +
             BASE_STYLES +

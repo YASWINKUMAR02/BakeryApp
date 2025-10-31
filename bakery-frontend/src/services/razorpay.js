@@ -39,6 +39,14 @@ export const initializeRazorpay = (options) => {
     description: `Order #${orderId}`,
     image: '/LOGOO.png', // Your logo
     order_id: orderId, // This should be the Razorpay order ID from backend
+    method: {
+      card: true,
+      upi: true,
+      netbanking: false,
+      wallet: false,
+      emi: false,
+      paylater: false,
+    },
     handler: function (response) {
       // CRITICAL: This handler ONLY fires when payment is SUCCESSFUL
       // Razorpay has verified the payment on their end

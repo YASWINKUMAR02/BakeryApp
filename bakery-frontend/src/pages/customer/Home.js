@@ -58,6 +58,11 @@ import { optimizeImageUrl } from '../../utils/imageOptimization';
 const Home = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  
+  // Debug log to verify Home component is loading
+  console.log('🏠 Home component loaded - User:', user ? `${user.name} (${user.role})` : 'Guest');
+  console.log('📍 Current path:', window.location.pathname);
+  
   const [items, setItems] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -86,6 +91,31 @@ const Home = () => {
   const [carouselSlides, setCarouselSlides] = useState([]);
 
   useEffect(() => {
+    // Prevent any automatic redirects
+    const preventRedirect = (e) => {
+      if (window.location.pathname === '/' || window.location.pathname === '/home') {
+        console.log('🛑 Preventing redirect from Home page');
+        // Don't allow navigation away from home unless user clicks something
+      }
+    };
+    
+    // Check for corrupted localStorage that might cause redirect issues
+    try {
+      const storedUser = localStorage.getItem('user');
+      const storedToken = localStorage.getItem('token');
+      
+      // If there's a token but no valid user, clear everything
+      if (storedToken && (!storedUser || storedUser === 'undefined' || storedUser === 'null')) {
+        console.warn('⚠️ Clearing corrupted localStorage data');
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        window.location.reload(); // Reload to reset state
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking localStorage:', error);
+    }
+    
     fetchData();
   }, []);
 
