@@ -135,8 +135,8 @@ const AdminDashboard = () => {
       bgColor: '#4facfe',
     },
     {
-      title: 'Confirmed Orders',
-      value: stats?.confirmedOrders || 0,
+      title: 'Current Orders',
+      value: stats?.currentOrders || 0,
       icon: <Schedule style={{ fontSize: '40px', color: '#fff' }} />,
       color: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
       bgColor: '#fa709a',

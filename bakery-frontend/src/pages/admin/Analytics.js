@@ -103,8 +103,8 @@ const Analytics = () => {
 
     } catch (err) {
       console.error('Error fetching analytics:', err);
-      setError('Failed to fetch analytics data');
-      showError('Failed to fetch analytics data');
+      setError('Something went wrong');
+      showError('Something went wrong');
     } finally {
       setLoading(false);
     }

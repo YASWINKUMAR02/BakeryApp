@@ -1,0 +1,23 @@
+# Backend
+bakeryapp/target/
+bakeryapp/.mvn/
+bakeryapp/mvnw
+bakeryapp/mvnw.cmd
+bakeryapp/.idea/
+bakeryapp/*.iml
+
+# Frontend
+bakery-frontend/node_modules/
+bakery-frontend/build/
+bakery-frontend/.env
+bakery-frontend/.env.local
+bakery-frontend/.env.production
+
+# General
+.git/
+.gitignore
+*.md
+.DS_Store
+.vscode/
+.idea/
+*.log

@@ -16,26 +16,10 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class AdminController {
     
     private final AdminService adminService;
     private final JwtUtil jwtUtil;
-    
-    @PostMapping("/register")
-    public ResponseEntity<ApiResponse> registerAdmin(@Valid @RequestBody CustomerRegistrationRequest request) {
-        try {
-            Admin admin = adminService.registerAdmin(request);
-            String token = jwtUtil.generateToken(admin.getEmail(), "ADMIN", admin.getId());
-            AuthResponse authResponse = new AuthResponse(token, admin.getId(), admin.getName(), 
-                                                         admin.getEmail(), null, "ADMIN");
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(new ApiResponse(true, "Admin registered successfully", authResponse));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ApiResponse(false, e.getMessage()));
-        }
-    }
     
     @PostMapping("/login")
     public ResponseEntity<ApiResponse> loginAdmin(@Valid @RequestBody LoginRequest request) {

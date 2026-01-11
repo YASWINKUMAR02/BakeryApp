@@ -41,7 +41,7 @@ const Contact = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validation
     if (!formData.name || !formData.email || !formData.message) {
       showError('Please fill in all required fields');
@@ -59,10 +59,10 @@ const Contact = () => {
     try {
       // Send form data to backend
       const response = await contactAPI.send(formData);
-      
+
       if (response.data.success) {
         showSuccess(response.data.message || 'Thank you for contacting us! We will get back to you soon.');
-        
+
         // Reset form
         setFormData({
           name: '',
@@ -107,9 +107,8 @@ const Contact = () => {
 
   return (
     <>
-      <CustomerHeader />
-      
-      <Box style={{ minHeight: '100vh', background: '#f5f5f5', paddingTop: '70px' }}>
+
+      <Box style={{ minHeight: '100vh', background: '#f5f5f5', paddingTop: '100px' }}>
         {/* Hero Section */}
         <Box
           style={{

@@ -3,25 +3,26 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import {
   AppBar,
   Toolbar,
-  Typography,
   Button,
   IconButton,
-  Badge,
   Box,
-  Avatar,
   Menu,
   MenuItem,
+  Avatar,
+  Badge,
   Divider,
+  Typography,
 } from '@mui/material';
 import {
-  Logout,
+  Storefront,
+  Menu as MenuIcon,
   ShoppingCart,
   Receipt,
-  Storefront,
-  Home,
   AccountCircle,
-  KeyboardArrowDown,
-  Menu as MenuIcon,
+  Logout,
+  Help,
+  Info,
+  Phone,
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import Notifications from './Notifications';
@@ -30,82 +31,40 @@ const CustomerHeader = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
-  const [anchorEl, setAnchorEl] = useState(null);
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
-
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-    handleMenuClose();
-  };
-
-  const handleMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
+  const [userMenuAnchorEl, setUserMenuAnchorEl] = useState(null);
+  const [extraMenuAnchorEl, setExtraMenuAnchorEl] = useState(null);
 
   const handleHomeClick = () => {
     if (location.pathname === '/') {
-      // If already on home page, refresh it
       window.location.reload();
     } else {
-      // Navigate to home page
       navigate('/');
     }
   };
 
   const handleShopClick = () => {
-    if (location.pathname === '/shop') {
-      window.location.reload();
-    } else {
+    navigate('/shop');
+  };
+
+  const handleLinkClick = (path) => {
+    if (path === '/shop') {
       navigate('/shop');
-    }
-  };
-
-  const handleOrdersClick = () => {
-    if (location.pathname === '/orders') {
+    } else if (location.pathname === path) {
       window.location.reload();
     } else {
-      navigate('/orders');
-    }
-  };
-
-  const handleCartClick = () => {
-    if (location.pathname === '/cart') {
-      window.location.reload();
-    } else {
-      navigate('/cart');
-    }
-  };
-
-  const handleProfileClick = () => {
-    if (location.pathname === '/profile') {
-      window.location.reload();
-    } else {
-      navigate('/profile');
-      handleMenuClose();
-    }
-  };
-
-  const handleAboutClick = () => {
-    if (location.pathname === '/about') {
-      window.location.reload();
-    } else {
-      navigate('/about');
+      navigate(path);
     }
     handleHamburgerMenuClose();
+    handleExtraMenuClose();
   };
 
-  const handleContactClick = () => {
-    if (location.pathname === '/contact') {
-      window.location.reload();
-    } else {
-      navigate('/contact');
-    }
-    handleHamburgerMenuClose();
+  const handleExtraMenuOpen = (event) => {
+    setExtraMenuAnchorEl(event.currentTarget);
+  };
+
+  const handleExtraMenuClose = () => {
+    setExtraMenuAnchorEl(null);
   };
 
   const handleHamburgerMenuOpen = (event) => {
@@ -114,6 +73,20 @@ const CustomerHeader = () => {
 
   const handleHamburgerMenuClose = () => {
     setMenuAnchorEl(null);
+  };
+
+  const handleUserMenuOpen = (event) => {
+    setUserMenuAnchorEl(event.currentTarget);
+  };
+
+  const handleUserMenuClose = () => {
+    setUserMenuAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+    handleUserMenuClose();
   };
 
   const navButtonStyle = {
@@ -132,25 +105,28 @@ const CustomerHeader = () => {
   };
 
   return (
-    <AppBar 
-      position="fixed" 
+    <AppBar
+      position="fixed"
       elevation={0}
-      style={{ 
+      style={{
         background: '#ffffff',
         backdropFilter: 'blur(10px)',
         borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
       }}
     >
-      <Toolbar 
-        style={{ 
-          padding: '8px 12px', 
-          minHeight: '60px', 
-          maxWidth: '1400px', 
-          width: '100%', 
+      <Toolbar
+        style={{
+          padding: '8px 12px',
+          minHeight: '60px',
+          maxWidth: '1400px',
+          width: '100%',
           margin: '0 auto',
         }}
         sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          overflow: 'visible',
           '@media (min-width: 600px)': {
             padding: '8px 20px',
           },
@@ -160,18 +136,19 @@ const CustomerHeader = () => {
           },
         }}
       >
-        {/* Hamburger Menu (Left Corner) */}
+        {/* More Menu (Left Corner) - Dropdown for About, Contact, FAQ */}
         <IconButton
           edge="start"
           color="inherit"
           aria-label="menu"
-          onClick={handleHamburgerMenuOpen}
+          onClick={handleExtraMenuOpen}
           sx={{
             color: '#4a5568',
             marginRight: { xs: '4px', sm: '12px' },
             padding: { xs: '8px', sm: '12px' },
             '&:hover': {
               background: 'rgba(0, 0, 0, 0.04)',
+              color: '#e91e63',
             },
           }}
         >
@@ -179,21 +156,23 @@ const CustomerHeader = () => {
         </IconButton>
 
         {/* Logo Section */}
-        <Box 
-          onClick={handleHomeClick} 
-          style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
+        <Box
+          onClick={handleHomeClick}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
             cursor: 'pointer',
-            marginRight: '4px',
             transition: 'opacity 0.2s ease',
+            flexGrow: { xs: 1, md: 0 },
+            justifyContent: { xs: 'center', md: 'flex-start' },
+            marginRight: { xs: '40px', md: '4px' },
           }}
           onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
           onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
         >
-          <img 
-            src="/LOGOO.png" 
-            alt="Frost and Crinkle Logo" 
+          <img
+            src="/LOGOO.png"
+            alt="Frost and Crinkle Logo"
             style={{
               height: window.innerWidth >= 960 ? '55px' : (window.innerWidth >= 600 ? '55px' : '45px'),
               width: 'auto',
@@ -203,163 +182,90 @@ const CustomerHeader = () => {
             }}
           />
         </Box>
-        
-        {/* Navigation Links */}
-        <Box 
-          sx={{ 
-            flexGrow: 1, 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: { xs: '4px', sm: '8px' }, 
-            marginLeft: { xs: 'auto', sm: '24px' },
+
+        {/* Navigation Links - Hidden on mobile */}
+        <Box
+          sx={{
+            flexGrow: 1,
+            display: { xs: 'none', md: 'flex' },
+            alignItems: 'center',
+            gap: '8px',
+            marginLeft: '24px',
           }}
         >
-          {user && (
+          <Button
+            onClick={handleShopClick}
+            sx={{
+              ...navButtonStyle,
+              marginLeft: 'auto',
+              background: 'rgba(233, 30, 99, 0.08)',
+              color: '#e91e63',
+              fontWeight: 600,
+              px: 2.5,
+              py: 1,
+              borderRadius: '50px',
+              '&:hover': {
+                background: 'rgba(233, 30, 99, 0.15)',
+                transform: 'translateY(-1px)',
+              },
+            }}
+          >
+            <Storefront sx={{ fontSize: '18px', marginRight: '6px' }} />
+            Shop Now
+          </Button>
+        </Box>
+
+        {/* Right Side Icons (Desktop & Mobile) */}
+        <Box
+          sx={{
+            display: 'flex',
+            gap: { xs: 0.5, sm: 1 },
+            alignItems: 'center',
+            flexShrink: 0,
+          }}
+        >
+          {/* Desktop Only Icons */}
+          {/* Desktop Only Icons - Removed redundant Search */}
+          <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 0 }}>
+          </Box>
+
+          {/* Cart - Always Visible */}
+          <IconButton
+            onClick={() => handleLinkClick('/cart')}
+            sx={{
+              color: '#4a5568',
+              padding: '8px',
+              '&:hover': { color: '#e91e63', backgroundColor: 'rgba(233, 30, 99, 0.08)' },
+            }}
+          >
+            <Badge badgeContent={user ? 0 : 0} color="error" variant="dot">
+              {/* Badge count should ideally come from Context, kept 0/dot for now */}
+              <ShoppingCart sx={{ fontSize: '24px' }} />
+            </Badge>
+          </IconButton>
+
+          {/* Auth Section */}
+          {user ? (
             <>
-              <Button
-                onClick={handleOrdersClick}
-                sx={{
-                  ...navButtonStyle,
-                  marginLeft: 'auto',
-                  background: 'rgba(233, 30, 99, 0.08)',
-                  color: '#e91e63',
-                  fontWeight: 600,
-                  padding: { xs: '6px 8px', sm: '6px 12px' },
-                  fontSize: { xs: '12px', sm: '14px' },
-                  '&:hover': {
-                    background: 'rgba(233, 30, 99, 0.15)',
-                  },
-                }}
+              <Notifications />
+              <IconButton
+                onClick={handleUserMenuOpen}
+                sx={{ padding: { xs: '4px', sm: '8px' } }}
               >
-                My Orders
-              </Button>
-              
-              {/* Cart Button */}
-              <IconButton 
-                onClick={handleCartClick}
-                sx={{ 
-                  marginLeft: { xs: '4px', sm: '8px' },
-                  padding: { xs: '8px', sm: '12px' },
-                }}
-              >
-                <Badge badgeContent={0} color="error">
-                  <ShoppingCart sx={{ color: '#4a5568', fontSize: { xs: '20px', sm: '24px' } }} />
-                </Badge>
+                <Avatar
+                  sx={{
+                    width: { xs: 28, sm: 32 },
+                    height: { xs: 28, sm: 32 },
+                    background: '#e91e63',
+                    fontSize: { xs: '12px', sm: '14px' },
+                    fontWeight: 600,
+                  }}
+                >
+                  {user.name.charAt(0).toUpperCase()}
+                </Avatar>
               </IconButton>
             </>
-          )}
-        </Box>
-        
-        {/* Right Side Actions */}
-        {user ? (
-          <Box 
-            sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: { xs: '4px', sm: '16px' },
-              marginLeft: { xs: '4px', sm: '8px' },
-            }}
-          >
-            {/* Notifications */}
-            <Notifications />
-            
-            {/* User Menu */}
-            <IconButton 
-              onClick={handleMenuOpen}
-              sx={{ padding: { xs: '4px', sm: '8px' } }}
-            >
-              <Avatar 
-                sx={{ 
-                  width: { xs: 28, sm: 32 }, 
-                  height: { xs: 28, sm: 32 }, 
-                  background: '#e91e63',
-                  fontSize: { xs: '12px', sm: '14px' },
-                  fontWeight: 600,
-                }}
-              >
-                {user.name.charAt(0).toUpperCase()}
-              </Avatar>
-            </IconButton>
-
-            {/* Old button code - remove */}
-            <Button
-              onClick={handleMenuOpen}
-              endIcon={<KeyboardArrowDown />}
-              sx={{
-                display: 'none', // Hide this, using avatar instead
-                color: '#4a5568',
-                textTransform: 'none',
-                padding: '6px 12px',
-                borderRadius: '8px',
-                background: 'transparent',
-                border: '1px solid rgba(0, 0, 0, 0.1)',
-                transition: 'all 0.2s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(0, 0, 0, 0.04)';
-                e.currentTarget.style.borderColor = 'rgba(0, 0, 0, 0.15)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.borderColor = 'rgba(0, 0, 0, 0.1)';
-              }}
-            >
-              <Avatar 
-                style={{ 
-                  width: 28, 
-                  height: 28, 
-                  marginRight: '8px',
-                  background: '#e2e8f0',
-                  color: '#4a5568',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                }}
-              >
-                {user?.name?.charAt(0).toUpperCase()}
-              </Avatar>
-              <Typography variant="body2" style={{ fontWeight: 500, fontSize: '14px' }}>
-                {user?.name}
-              </Typography>
-            </Button>
-            
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={handleMenuClose}
-              PaperProps={{
-                style: {
-                  marginTop: '8px',
-                  minWidth: '200px',
-                  borderRadius: '12px',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
-                },
-              }}
-            >
-              <MenuItem 
-                onClick={handleProfileClick}
-                style={{ padding: '12px 20px' }}
-              >
-                <AccountCircle style={{ marginRight: '12px', color: '#ff69b4' }} />
-                My Profile
-              </MenuItem>
-              <Divider />
-              <MenuItem 
-                onClick={handleLogout}
-                style={{ padding: '12px 20px', color: '#d32f2f' }}
-              >
-                <Logout style={{ marginRight: '12px' }} />
-                Logout
-              </MenuItem>
-            </Menu>
-          </Box>
-        ) : (
-          <Box 
-            sx={{ 
-              display: 'flex', 
-              gap: { xs: '6px', sm: '12px' }, 
-              marginLeft: 'auto',
-            }}
-          >
+          ) : (
             <Button
               onClick={() => navigate('/login')}
               variant="outlined"
@@ -367,11 +273,11 @@ const CustomerHeader = () => {
                 borderColor: '#e91e63',
                 color: '#e91e63',
                 textTransform: 'none',
-                fontSize: { xs: '13px', sm: '15px' },
+                fontSize: { xs: '13px', sm: '14px' },
                 fontWeight: 600,
-                padding: { xs: '6px 12px', sm: '8px 24px' },
+                padding: { xs: '4px 10px', sm: '6px 16px' },
                 borderRadius: '6px',
-                transition: 'all 0.2s ease',
+                ml: 1,
                 '&:hover': {
                   background: 'rgba(233, 30, 99, 0.08)',
                 },
@@ -379,74 +285,124 @@ const CustomerHeader = () => {
             >
               Login
             </Button>
-            
-            <Button
-              onClick={() => navigate('/register')}
-              variant="contained"
-              sx={{
-                background: '#0066ff',
-                color: '#fff',
-                textTransform: 'none',
-                fontSize: { xs: '13px', sm: '15px' },
-                fontWeight: 600,
-                padding: { xs: '6px 12px', sm: '8px 24px' },
-                borderRadius: '6px',
-                boxShadow: 'none',
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  background: '#0052cc',
-                },
-              }}
-            >
-              Register
-            </Button>
-          </Box>
-        )}
+          )}
+        </Box>
       </Toolbar>
 
-      {/* Hamburger Menu Dropdown */}
+      {/* Extra Links Menu (Drop-in from Left) */}
       <Menu
-        anchorEl={menuAnchorEl}
-        open={Boolean(menuAnchorEl)}
-        onClose={handleHamburgerMenuClose}
+        anchorEl={extraMenuAnchorEl}
+        open={Boolean(extraMenuAnchorEl)}
+        onClose={handleExtraMenuClose}
         PaperProps={{
           style: {
             marginTop: '8px',
             borderRadius: '12px',
             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+            minWidth: '220px',
+          },
+        }}
+      >
+        <MenuItem
+          onClick={() => handleLinkClick('/about')}
+          sx={{
+            padding: '12px 20px',
+            fontSize: '14px',
+            fontWeight: 500,
+            color: '#4a5568',
+            '&:hover': {
+              background: 'rgba(233, 30, 99, 0.08)',
+              color: '#e91e63',
+            },
+          }}
+        >
+          <Info sx={{ mr: 2, color: '#e91e63' }} /> About Us
+        </MenuItem>
+        <MenuItem
+          onClick={() => handleLinkClick('/contact')}
+          sx={{
+            padding: '12px 20px',
+            fontSize: '14px',
+            fontWeight: 500,
+            color: '#4a5568',
+            '&:hover': {
+              background: 'rgba(233, 30, 99, 0.08)',
+              color: '#e91e63',
+            },
+          }}
+        >
+          <Phone sx={{ mr: 2, color: '#e91e63' }} /> Contact Us
+        </MenuItem>
+        <MenuItem
+          onClick={() => handleLinkClick('/faq')}
+          sx={{
+            padding: '12px 20px',
+            fontSize: '14px',
+            fontWeight: 500,
+            color: '#4a5568',
+            '&:hover': {
+              background: 'rgba(233, 30, 99, 0.08)',
+              color: '#e91e63',
+            },
+          }}
+        >
+          <Help sx={{ mr: 2, color: '#e91e63' }} /> FAQ
+        </MenuItem>
+        <Divider sx={{ my: 1 }} />
+        <MenuItem
+          onClick={handleShopClick}
+          sx={{
+            padding: '12px 20px',
+            fontSize: '14px',
+            fontWeight: 600,
+            color: '#e91e63',
+          }}
+        >
+          <Storefront sx={{ mr: 2 }} /> Shop Now
+        </MenuItem>
+      </Menu>
+
+      {/* User Menu Dropdown */}
+      <Menu
+        anchorEl={userMenuAnchorEl}
+        open={Boolean(userMenuAnchorEl)}
+        onClose={handleUserMenuClose}
+        PaperProps={{
+          style: {
+            marginTop: '8px',
+            borderRadius: '12px',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
             minWidth: '200px',
           },
         }}
       >
-        <MenuItem 
-          onClick={handleAboutClick}
-          sx={{
-            padding: '12px 20px',
-            fontSize: '14px',
-            fontWeight: 500,
-            color: '#4a5568',
-            '&:hover': {
-              background: 'rgba(233, 30, 99, 0.08)',
-              color: '#e91e63',
-            },
+        <MenuItem
+          onClick={() => {
+            handleLinkClick('/orders');
+            handleUserMenuClose();
           }}
+          style={{ padding: '12px 20px' }}
         >
-          About Us
+          <Receipt style={{ marginRight: '12px', color: '#e91e63' }} />
+          My Orders
         </MenuItem>
-        <MenuItem 
-          onClick={handleContactClick}
-          sx={{
-            padding: '12px 20px',
-            fontSize: '14px',
-            fontWeight: 500,
-            color: '#4a5568',
-            '&:hover': {
-              background: 'rgba(233, 30, 99, 0.08)',
-              color: '#e91e63',
-            },
+        <MenuItem
+          onClick={() => {
+            handleLinkClick('/profile');
+            handleUserMenuClose();
           }}
+          style={{ padding: '12px 20px' }}
         >
-          Contact
+          <AccountCircle style={{ marginRight: '12px', color: '#ff69b4' }} />
+          My Profile
+        </MenuItem>
+        <Divider />
+        <MenuItem
+          onClick={handleLogout}
+          style={{ padding: '12px 20px', color: '#d32f2f' }}
+        >
+          <Logout style={{ marginRight: '12px' }} />
+          Logout
         </MenuItem>
       </Menu>
     </AppBar>

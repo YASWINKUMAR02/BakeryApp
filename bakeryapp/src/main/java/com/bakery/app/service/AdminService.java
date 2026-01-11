@@ -45,19 +45,6 @@ public class AdminService {
                 .orElseThrow(() -> new RuntimeException("Admin not found with id: " + id));
     }
     
-    public Admin registerAdmin(CustomerRegistrationRequest request) {
-        if (adminRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("Admin email already exists");
-        }
-        
-        Admin admin = new Admin();
-        admin.setName(request.getName());
-        admin.setEmail(request.getEmail());
-        admin.setPassword(passwordEncoder.encode(request.getPassword()));
-        
-        return adminRepository.save(admin);
-    }
-    
     public DashboardStats getDashboardStats() {
         DashboardStats stats = new DashboardStats();
         
@@ -67,9 +54,7 @@ public class AdminService {
         
         // Calculate order statistics
         stats.setTotalOrders((long) (allOrders.size() + allOrderHistory.size()));
-        stats.setPendingOrders(allOrders.stream()
-                .filter(order -> "CONFIRMED".equals(order.getStatus()))
-                .count());
+        stats.setCurrentOrders((long) allOrders.size()); // All orders in Order table
         stats.setDeliveredOrders((long) allOrderHistory.size());
         
         // Get customer, item, and category counts

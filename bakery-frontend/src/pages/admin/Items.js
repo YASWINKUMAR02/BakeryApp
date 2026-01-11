@@ -90,7 +90,7 @@ const Items = () => {
         setItems(response.data.data);
       }
     } catch (err) {
-      showError('Failed to fetch items');
+      showError('Something went wrong');
     } finally {
       setLoading(false);
     }

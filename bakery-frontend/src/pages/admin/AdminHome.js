@@ -96,7 +96,7 @@ const AdminHome = () => {
         setCategories(categoriesResponse.data.data);
       }
     } catch (err) {
-      showError('Failed to fetch data');
+      showError('Something went wrong');
     } finally {
       setLoading(false);
     }

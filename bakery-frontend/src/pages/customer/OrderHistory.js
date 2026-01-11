@@ -59,7 +59,7 @@ const OrderHistory = () => {
       if (err.response?.status === 404) {
         setOrderHistory([]);
       } else {
-        setError('Failed to fetch order history');
+        setError('Something went wrong');
       }
     } finally {
       setLoading(false);

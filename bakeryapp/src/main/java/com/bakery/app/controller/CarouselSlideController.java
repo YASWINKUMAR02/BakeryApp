@@ -12,7 +12,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/carousel")
-@CrossOrigin(origins = "*")
 public class CarouselSlideController {
     
     @Autowired

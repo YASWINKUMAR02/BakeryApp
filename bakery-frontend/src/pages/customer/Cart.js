@@ -36,9 +36,9 @@ import {
   Cake,
   ArrowBack,
 } from '@mui/icons-material';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cartAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import CustomerHeader from '../../components/CustomerHeader';
 import Footer from '../../components/Footer';
 import { showSuccess, showError } from '../../utils/toast';
 
@@ -63,7 +63,7 @@ const Cart = () => {
       }
     } catch (err) {
       console.error('Failed to fetch cart:', err);
-      showError('Failed to fetch cart');
+      showError('Something went wrong');
     } finally {
       setLoading(false);
     }
@@ -75,7 +75,7 @@ const Cart = () => {
 
   const handleUpdateQuantity = async (cartItemId, newQuantity) => {
     if (newQuantity < 1) return;
-    
+
     try {
       await cartAPI.updateItem(cartItemId, newQuantity);
       fetchCart();
@@ -97,22 +97,22 @@ const Cart = () => {
 
   const handleRemoveItem = async () => {
     if (!itemToDelete) return;
-    
+
     console.log('Attempting to remove cart item with ID:', itemToDelete);
-    
+
     try {
       const response = await cartAPI.removeItem(itemToDelete);
       console.log('Remove item response:', response);
-      
+
       if (response.data.success) {
         // Immediately update the cart state by filtering out the removed item
         setCart(prevCart => ({
           ...prevCart,
           items: prevCart.items.filter(item => item.id !== itemToDelete)
         }));
-        
+
         showSuccess('Item removed from cart!');
-        
+
         // Fetch fresh cart data from server
         await fetchCart();
       } else {
@@ -141,7 +141,7 @@ const Cart = () => {
     if (cartItem.priceAtAddition && cartItem.priceAtAddition > 0) {
       return cartItem.priceAtAddition;
     }
-    
+
     // For regular items, calculate price
     if (cartItem.eggType === 'EGGLESS') {
       return cartItem.item.price + 30; // Add ₹30 for eggless
@@ -156,7 +156,6 @@ const Cart = () => {
 
   return (
     <Box style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <CustomerHeader />
 
       <Box sx={{ flex: 1, background: '#f5f5f5', paddingTop: { xs: '80px', md: '100px' }, paddingBottom: { xs: '20px', md: '40px' }, paddingLeft: { xs: '4px', md: '8px' }, paddingRight: { xs: '4px', md: '8px' } }}>
         <Container maxWidth="lg">
@@ -168,18 +167,19 @@ const Cart = () => {
               <Button
                 variant="outlined"
                 startIcon={<ArrowBack />}
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/shop')}
                 sx={{
                   borderColor: '#e91e63',
                   color: '#e91e63',
                   textTransform: 'none',
                   fontWeight: 600,
-                  borderRadius: '0',
+                  borderRadius: '12px',
                   fontSize: { xs: '0.75rem', md: '0.875rem' },
-                  padding: { xs: '4px 8px', md: '6px 16px' },
+                  padding: { xs: '4px 12px', md: '6px 20px' },
+                  '&:hover': { borderColor: '#d81b60', background: 'rgba(233, 30, 99, 0.04)' }
                 }}
               >
-                Back to Home
+                Continue Shopping
               </Button>
             </Box>
 
@@ -206,151 +206,153 @@ const Cart = () => {
                 {/* Mobile Card Layout */}
                 {isMobile ? (
                   <Box>
-                    {cart.items.map((cartItem) => (
-                      <Card key={cartItem.id} sx={{ marginBottom: { xs: '12px', md: '16px' }, borderRadius: '0', border: '1px solid #e0e0e0' }}>
-                        <CardContent sx={{ padding: { xs: '12px', md: '16px' } }}>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: { xs: '8px', md: '12px' } }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: '6px', md: '8px' }, flex: 1 }}>
-                              <Box>
-                                <Typography variant="body1" sx={{ fontWeight: 600, fontSize: { xs: '0.85rem', md: '1rem' } }}>
-                                  {cartItem.item.name}
+                    <AnimatePresence>
+                      {cart.items.map((cartItem, index) => (
+                        <motion.div
+                          key={cartItem.id || `cart-item-${index}`}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, x: -20 }}
+                          layout
+                          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                        >
+                          <Card sx={{ marginBottom: { xs: '12px', md: '16px' }, borderRadius: '16px', border: '1px solid #eee', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+                            <CardContent sx={{ padding: { xs: '12px', md: '16px' } }}>
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: { xs: '8px', md: '12px' } }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: '6px', md: '8px' }, flex: 1 }}>
+                                  <Box>
+                                    <Typography variant="body1" sx={{ fontWeight: 600, fontSize: { xs: '0.85rem', md: '1rem' } }}>
+                                      {cartItem.item.name}
+                                    </Typography>
+                                    <Box sx={{ display: 'flex', gap: { xs: '4px', md: '6px' }, marginTop: { xs: '4px', md: '6px' }, flexWrap: 'wrap' }}>
+                                      {cartItem.selectedWeight && (
+                                        <Chip
+                                          label={`${cartItem.selectedWeight} Kg`}
+                                          size="small"
+                                          sx={{
+                                            background: '#fff3e0',
+                                            color: '#e65100',
+                                            fontWeight: 600,
+                                            fontSize: { xs: '0.6rem', md: '10px' },
+                                            height: { xs: '18px', md: '20px' }
+                                          }}
+                                        />
+                                      )}
+                                      {cartItem.eggType === 'EGGLESS' && (
+                                        <Chip
+                                          label='🌱 Eggless'
+                                          size="small"
+                                          sx={{
+                                            background: '#e8f5e9',
+                                            color: '#2e7d32',
+                                            fontWeight: 600,
+                                            fontSize: { xs: '0.6rem', md: '10px' },
+                                            height: { xs: '18px', md: '20px' }
+                                          }}
+                                        />
+                                      )}
+                                    </Box>
+                                  </Box>
+                                </Box>
+                                <IconButton
+                                  color="error"
+                                  size="small"
+                                  onClick={() => handleOpenDeleteDialog(cartItem.id)}
+                                  sx={{ '&:hover': { background: 'rgba(211, 47, 47, 0.04)' } }}
+                                >
+                                  <Delete fontSize="small" />
+                                </IconButton>
+                              </Box>
+
+                              <Divider sx={{ margin: { xs: '8px 0', md: '12px 0' } }} />
+
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: { xs: '6px', md: '8px' } }}>
+                                <Typography variant="body2" color="textSecondary" sx={{ fontSize: { xs: '0.75rem', md: '0.875rem' } }}>
+                                  Price:
                                 </Typography>
-                                <Box sx={{ display: 'flex', gap: { xs: '4px', md: '6px' }, marginTop: { xs: '4px', md: '6px' }, flexWrap: 'wrap' }}>
-                                  {cartItem.selectedWeight && (
-                                    <Chip 
-                                      label={`${cartItem.selectedWeight} Kg`}
-                                      size="small"
-                                      sx={{ 
-                                        background: '#fff3e0',
-                                        color: '#e65100',
-                                        fontWeight: 600,
-                                        fontSize: { xs: '0.6rem', md: '10px' },
-                                        height: { xs: '18px', md: '20px' }
-                                      }}
-                                    />
-                                  )}
-                                  {cartItem.eggType === 'EGGLESS' && (
-                                    <Chip 
-                                      label='🌱 Eggless'
-                                      size="small"
-                                      sx={{ 
-                                        background: '#e8f5e9',
-                                        color: '#2e7d32',
-                                        fontWeight: 600,
-                                        fontSize: { xs: '0.6rem', md: '10px' },
-                                        height: { xs: '18px', md: '20px' }
-                                      }}
-                                    />
-                                  )}
+                                <Typography variant="body1" sx={{ fontWeight: 600, fontSize: { xs: '0.8rem', md: '1rem' } }}>
+                                  ₹{getItemPrice(cartItem)?.toFixed(2)}
+                                </Typography>
+                              </Box>
+
+                              <Box sx={{ marginBottom: { xs: '6px', md: '8px' } }}>
+                                <Typography variant="body2" color="textSecondary" sx={{ fontSize: { xs: '0.75rem', md: '0.875rem' }, marginBottom: { xs: '4px', md: '0' } }}>
+                                  Quantity:
+                                </Typography>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: '4px', md: '8px' }, justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
+                                  <Button
+                                    variant="outlined"
+                                    size="small"
+                                    onClick={() => handleUpdateQuantity(cartItem.id, Math.max(1, cartItem.quantity - 1))}
+                                    disabled={cartItem.quantity <= 1}
+                                    sx={{
+                                      minWidth: { xs: '24px', md: '36px' },
+                                      height: { xs: '24px', md: '34px' },
+                                      padding: { xs: '2px', md: '5px' },
+                                      borderColor: '#e91e63',
+                                      color: '#e91e63',
+                                      fontSize: { xs: '0.8rem', md: '1rem' },
+                                      borderRadius: '8px',
+                                      '&:hover': { borderColor: '#e91e63', background: 'rgba(233, 30, 99, 0.04)' },
+                                    }}
+                                  >
+                                    -
+                                  </Button>
+                                  <TextField
+                                    type="number"
+                                    value={cartItem.quantity}
+                                    onChange={(e) => {
+                                      const value = parseInt(e.target.value);
+                                      if (!isNaN(value) && value >= 1) {
+                                        handleUpdateQuantity(cartItem.id, value);
+                                      }
+                                    }}
+                                    InputProps={{ inputProps: { min: 1 } }}
+                                    size="small"
+                                    sx={{
+                                      width: { xs: '40px', md: '65px' },
+                                      '& input': {
+                                        fontSize: { xs: '0.7rem', md: '0.875rem' },
+                                        padding: { xs: '4px 2px', md: '8.5px 14px' },
+                                        textAlign: 'center',
+                                      },
+                                    }}
+                                  />
+                                  <Button
+                                    variant="outlined"
+                                    size="small"
+                                    onClick={() => handleUpdateQuantity(cartItem.id, cartItem.quantity + 1)}
+                                    sx={{
+                                      minWidth: { xs: '24px', md: '36px' },
+                                      height: { xs: '24px', md: '34px' },
+                                      padding: { xs: '2px', md: '5px' },
+                                      borderColor: '#e91e63',
+                                      color: '#e91e63',
+                                      fontSize: { xs: '0.8rem', md: '1rem' },
+                                      borderRadius: '8px',
+                                      '&:hover': { borderColor: '#e91e63', background: 'rgba(233, 30, 99, 0.04)' },
+                                    }}
+                                  >
+                                    +
+                                  </Button>
                                 </Box>
                               </Box>
-                            </Box>
-                            <IconButton 
-                              color="error" 
-                              size="small"
-                              onClick={() => handleOpenDeleteDialog(cartItem.id)}
-                            >
-                              <Delete fontSize="small" />
-                            </IconButton>
-                          </Box>
-                          
-                          <Divider sx={{ margin: { xs: '8px 0', md: '12px 0' } }} />
-                          
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: { xs: '6px', md: '8px' } }}>
-                            <Typography variant="body2" color="textSecondary" sx={{ fontSize: { xs: '0.75rem', md: '0.875rem' } }}>
-                              Price:
-                            </Typography>
-                            <Typography variant="body1" sx={{ fontWeight: 600, fontSize: { xs: '0.8rem', md: '1rem' } }}>
-                              ₹{getItemPrice(cartItem)?.toFixed(2)}
-                            </Typography>
-                          </Box>
-                          
-                          <Box sx={{ marginBottom: { xs: '6px', md: '8px' } }}>
-                            <Typography variant="body2" color="textSecondary" sx={{ fontSize: { xs: '0.75rem', md: '0.875rem' }, marginBottom: { xs: '4px', md: '0' } }}>
-                              Quantity:
-                            </Typography>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: '4px', md: '8px' }, justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
-                              <Button
-                                variant="outlined"
-                                size="small"
-                                onClick={() => handleUpdateQuantity(cartItem.id, Math.max(1, cartItem.quantity - 1))}
-                                disabled={cartItem.quantity <= 1}
-                                sx={{
-                                  minWidth: { xs: '24px', md: '36px' },
-                                  height: { xs: '24px', md: '34px' },
-                                  padding: { xs: '2px', md: '5px' },
-                                  borderColor: '#e91e63',
-                                  color: '#e91e63',
-                                  fontSize: { xs: '0.8rem', md: '1rem' },
-                                  '&:hover': { borderColor: '#e91e63', background: 'rgba(233, 30, 99, 0.04)' },
-                                  '&.Mui-disabled': { borderColor: '#ddd', color: '#ddd' },
-                                }}
-                              >
-                                -
-                              </Button>
-                              <TextField
-                                type="number"
-                                value={cartItem.quantity}
-                                onChange={(e) => {
-                                  const value = parseInt(e.target.value);
-                                  if (!isNaN(value) && value >= 1) {
-                                    handleUpdateQuantity(cartItem.id, value);
-                                  }
-                                }}
-                                InputProps={{ inputProps: { min: 1 } }}
-                                size="small"
-                                sx={{ 
-                                  width: { xs: '40px', md: '65px' }, 
-                                  '& input': { 
-                                    fontSize: { xs: '0.7rem', md: '0.875rem' }, 
-                                    padding: { xs: '4px 2px', md: '8.5px 14px' },
-                                    textAlign: 'center',
-                                  },
-                                  '& input[type=number]': {
-                                    MozAppearance: 'textfield',
-                                  },
-                                  '& input[type=number]::-webkit-outer-spin-button': {
-                                    WebkitAppearance: 'none',
-                                    margin: 0,
-                                  },
-                                  '& input[type=number]::-webkit-inner-spin-button': {
-                                    WebkitAppearance: 'none',
-                                    margin: 0,
-                                  },
-                                }}
-                              />
-                              <Button
-                                variant="outlined"
-                                size="small"
-                                onClick={() => handleUpdateQuantity(cartItem.id, cartItem.quantity + 1)}
-                                sx={{
-                                  minWidth: { xs: '24px', md: '36px' },
-                                  height: { xs: '24px', md: '34px' },
-                                  padding: { xs: '2px', md: '5px' },
-                                  borderColor: '#e91e63',
-                                  color: '#e91e63',
-                                  fontSize: { xs: '0.8rem', md: '1rem' },
-                                  '&:hover': { borderColor: '#e91e63', background: 'rgba(233, 30, 99, 0.04)' },
-                                }}
-                              >
-                                +
-                              </Button>
-                            </Box>
-                          </Box>
-                          
-                          <Divider sx={{ margin: { xs: '8px 0', md: '12px 0' } }} />
-                          
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Typography variant="body1" sx={{ fontWeight: 700, fontSize: { xs: '0.8rem', md: '1rem' } }}>
-                              Subtotal:
-                            </Typography>
-                            <Typography variant="h6" sx={{ fontWeight: 700, color: '#000000', fontSize: { xs: '0.9rem', md: '1.25rem' } }}>
-                              ₹{(getItemPrice(cartItem) * cartItem.quantity).toFixed(2)}
-                            </Typography>
-                          </Box>
-                        </CardContent>
-                      </Card>
-                    ))}
+
+                              <Divider sx={{ margin: { xs: '8px 0', md: '12px 0' } }} />
+
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="body1" sx={{ fontWeight: 700, fontSize: { xs: '0.8rem', md: '1rem' } }}>
+                                  Subtotal:
+                                </Typography>
+                                <Typography variant="h6" sx={{ fontWeight: 800, color: '#e91e63', fontSize: { xs: '0.9rem', md: '1.25rem' } }}>
+                                  ₹{(getItemPrice(cartItem) * cartItem.quantity).toFixed(2)}
+                                </Typography>
+                              </Box>
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
                   </Box>
                 ) : (
                   /* Desktop Table Layout */
@@ -366,121 +368,125 @@ const Cart = () => {
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {cart.items.map((cartItem) => (
-                          <TableRow key={cartItem.id} hover>
-                            <TableCell>
-                              <Box style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <Box>
-                                  <Typography>{cartItem.item.name}</Typography>
-                                  <Box style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
-                                    {cartItem.selectedWeight && (
-                                      <Chip 
-                                        label={`${cartItem.selectedWeight} Kg`}
-                                        size="small"
-                                        style={{ 
-                                          background: '#fff3e0',
-                                          color: '#e65100',
-                                          fontWeight: 600,
-                                          fontSize: '11px'
-                                        }}
-                                      />
-                                    )}
-                                    {cartItem.eggType === 'EGGLESS' && (
-                                      <Chip 
-                                        label='🌱 Eggless'
-                                        size="small"
-                                        style={{ 
-                                          background: '#e8f5e9',
-                                          color: '#2e7d32',
-                                          fontWeight: 600,
-                                          fontSize: '11px'
-                                        }}
-                                      />
-                                    )}
+                        <AnimatePresence>
+                          {cart.items.map((cartItem) => (
+                            <TableRow
+                              key={cartItem.id}
+                              component={motion.tr}
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              exit={{ opacity: 0, x: 20, backgroundColor: 'rgba(233, 30, 99, 0.05)' }}
+                              layout
+                              hover
+                            >
+                              <TableCell>
+                                <Box style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <Box>
+                                    <Typography sx={{ fontWeight: 600 }}>{cartItem.item.name}</Typography>
+                                    <Box style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
+                                      {cartItem.selectedWeight && (
+                                        <Chip
+                                          label={`${cartItem.selectedWeight} Kg`}
+                                          size="small"
+                                          style={{
+                                            background: '#fff3e0',
+                                            color: '#e65100',
+                                            fontWeight: 600,
+                                            fontSize: '11px'
+                                          }}
+                                        />
+                                      )}
+                                      {cartItem.eggType === 'EGGLESS' && (
+                                        <Chip
+                                          label='🌱 Eggless'
+                                          size="small"
+                                          style={{
+                                            background: '#e8f5e9',
+                                            color: '#2e7d32',
+                                            fontWeight: 600,
+                                            fontSize: '11px'
+                                          }}
+                                        />
+                                      )}
+                                    </Box>
                                   </Box>
                                 </Box>
-                              </Box>
-                            </TableCell>
-                            <TableCell>₹{getItemPrice(cartItem)?.toFixed(2)}</TableCell>
-                            <TableCell>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <Button
-                                  variant="outlined"
-                                  size="small"
-                                  onClick={() => handleUpdateQuantity(cartItem.id, Math.max(1, cartItem.quantity - 1))}
-                                  disabled={cartItem.quantity <= 1}
-                                  sx={{
-                                    minWidth: '32px',
-                                    height: '32px',
-                                    padding: '4px',
-                                    borderColor: '#e91e63',
-                                    color: '#e91e63',
-                                    fontSize: '0.875rem',
-                                    '&:hover': { borderColor: '#e91e63', background: 'rgba(233, 30, 99, 0.04)' },
-                                    '&.Mui-disabled': { borderColor: '#ddd', color: '#ddd' },
-                                  }}
-                                >
-                                  -
-                                </Button>
-                                <TextField
-                                  type="number"
-                                  value={cartItem.quantity}
-                                  onChange={(e) => {
-                                    const value = parseInt(e.target.value);
-                                    if (!isNaN(value) && value >= 1) {
-                                      handleUpdateQuantity(cartItem.id, value);
-                                    }
-                                  }}
-                                  InputProps={{ inputProps: { min: 1 } }}
-                                  size="small"
-                                  sx={{ 
-                                    width: '60px',
-                                    '& input': {
-                                      textAlign: 'center',
+                              </TableCell>
+                              <TableCell sx={{ fontWeight: 500 }}>₹{getItemPrice(cartItem)?.toFixed(2)}</TableCell>
+                              <TableCell>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <Button
+                                    variant="outlined"
+                                    size="small"
+                                    onClick={() => handleUpdateQuantity(cartItem.id, Math.max(1, cartItem.quantity - 1))}
+                                    disabled={cartItem.quantity <= 1}
+                                    sx={{
+                                      minWidth: '32px',
+                                      height: '32px',
+                                      padding: '4px',
+                                      borderColor: '#e91e63',
+                                      color: '#e91e63',
                                       fontSize: '0.875rem',
-                                      padding: '6px 8px',
-                                    },
-                                    '& input[type=number]': {
-                                      MozAppearance: 'textfield',
-                                    },
-                                    '& input[type=number]::-webkit-outer-spin-button': {
-                                      WebkitAppearance: 'none',
-                                      margin: 0,
-                                    },
-                                    '& input[type=number]::-webkit-inner-spin-button': {
-                                      WebkitAppearance: 'none',
-                                      margin: 0,
-                                    },
-                                  }}
-                                />
-                                <Button
-                                  variant="outlined"
-                                  size="small"
-                                  onClick={() => handleUpdateQuantity(cartItem.id, cartItem.quantity + 1)}
-                                  sx={{
-                                    minWidth: '32px',
-                                    height: '32px',
-                                    padding: '4px',
-                                    borderColor: '#e91e63',
-                                    color: '#e91e63',
-                                    fontSize: '0.875rem',
-                                    '&:hover': { borderColor: '#e91e63', background: 'rgba(233, 30, 99, 0.04)' },
-                                  }}
+                                      borderRadius: '8px',
+                                      '&:hover': { borderColor: '#e91e63', background: 'rgba(233, 30, 99, 0.04)' },
+                                    }}
+                                  >
+                                    -
+                                  </Button>
+                                  <TextField
+                                    type="number"
+                                    value={cartItem.quantity}
+                                    onChange={(e) => {
+                                      const value = parseInt(e.target.value);
+                                      if (!isNaN(value) && value >= 1) {
+                                        handleUpdateQuantity(cartItem.id, value);
+                                      }
+                                    }}
+                                    InputProps={{ inputProps: { min: 1 } }}
+                                    size="small"
+                                    sx={{
+                                      width: '60px',
+                                      '& input': {
+                                        textAlign: 'center',
+                                        fontSize: '0.875rem',
+                                        padding: '6px 8px',
+                                      },
+                                    }}
+                                  />
+                                  <Button
+                                    variant="outlined"
+                                    size="small"
+                                    onClick={() => handleUpdateQuantity(cartItem.id, cartItem.quantity + 1)}
+                                    sx={{
+                                      minWidth: '32px',
+                                      height: '32px',
+                                      padding: '4px',
+                                      borderColor: '#e91e63',
+                                      color: '#e91e63',
+                                      fontSize: '0.875rem',
+                                      borderRadius: '8px',
+                                      '&:hover': { borderColor: '#e91e63', background: 'rgba(233, 30, 99, 0.04)' },
+                                    }}
+                                  >
+                                    +
+                                  </Button>
+                                </Box>
+                              </TableCell>
+                              <TableCell style={{ fontWeight: 800, color: '#e91e63' }}>
+                                ₹{(getItemPrice(cartItem) * cartItem.quantity).toFixed(2)}
+                              </TableCell>
+                              <TableCell align="right">
+                                <IconButton
+                                  color="error"
+                                  onClick={() => handleOpenDeleteDialog(cartItem.id)}
+                                  sx={{ '&:hover': { background: 'rgba(211, 47, 47, 0.04)' } }}
                                 >
-                                  +
-                                </Button>
-                              </Box>
-                            </TableCell>
-                            <TableCell style={{ fontWeight: 600, color: '#000000' }}>
-                              ₹{(getItemPrice(cartItem) * cartItem.quantity).toFixed(2)}
-                            </TableCell>
-                            <TableCell align="right">
-                              <IconButton color="error" onClick={() => handleOpenDeleteDialog(cartItem.id)}>
-                                <Delete />
-                              </IconButton>
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                                  <Delete />
+                                </IconButton>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </AnimatePresence>
                       </TableBody>
                     </Table>
                   </TableContainer>
@@ -504,14 +510,30 @@ const Cart = () => {
                       marginTop: { xs: '12px', md: '20px' },
                       background: '#e91e63',
                       color: '#fff',
-                      padding: { xs: '10px', md: '12px' },
+                      padding: { xs: '10px', md: '14px' },
                       fontSize: { xs: '0.875rem', md: '16px' },
-                      fontWeight: 600,
+                      fontWeight: 700,
                       textTransform: 'none',
-                      borderRadius: '0',
+                      borderRadius: '50px',
+                      boxShadow: '0 8px 24px rgba(233, 30, 99, 0.25)',
+                      '&:hover': { background: '#d81b60', boxShadow: '0 12px 32px rgba(233, 30, 99, 0.35)' }
                     }}
                   >
                     Proceed to Checkout
+                  </Button>
+                  <Button
+                    fullWidth
+                    variant="text"
+                    onClick={() => navigate('/shop')}
+                    sx={{
+                      marginTop: '10px',
+                      color: '#666',
+                      fontWeight: 600,
+                      textTransform: 'none',
+                      '&:hover': { background: 'transparent', textDecoration: 'underline', color: '#e91e63' }
+                    }}
+                  >
+                    Continue Shopping
                   </Button>
                 </Box>
               </>
@@ -540,17 +562,17 @@ const Cart = () => {
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ padding: { xs: '12px 16px', md: '16px 24px' } }}>
-          <Button 
+          <Button
             onClick={handleCloseDeleteDialog}
             sx={{ textTransform: 'none', color: '#666', fontSize: { xs: '0.8rem', md: '0.875rem' } }}
           >
             Cancel
           </Button>
-          <Button 
+          <Button
             onClick={handleRemoveItem}
             variant="contained"
-            sx={{ 
-              background: '#e91e63', 
+            sx={{
+              background: '#e91e63',
               color: '#fff',
               textTransform: 'none',
               borderRadius: '0',
@@ -562,7 +584,7 @@ const Cart = () => {
           </Button>
         </DialogActions>
       </Dialog>
-      
+
       <Footer />
     </Box>
   );

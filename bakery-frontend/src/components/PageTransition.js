@@ -1,17 +1,22 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { pageTransitions } from '../utils/pageTransitions';
 
-const PageTransition = ({ children }) => {
+const PageTransition = ({ children, variant = 'default' }) => {
+  const selectedVariant = pageTransitions[variant] || pageTransitions.default;
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{
-        duration: 0.3,
-        ease: 'easeInOut',
+      initial={selectedVariant.initial}
+      animate={selectedVariant.animate}
+      exit={selectedVariant.exit}
+      transition={selectedVariant.transition}
+      style={{
+        width: '100%',
+        minHeight: '100vh',
+        position: 'relative',
+        overflowX: 'hidden'
       }}
-      style={{ width: '100%', minHeight: '100vh' }}
     >
       {children}
     </motion.div>

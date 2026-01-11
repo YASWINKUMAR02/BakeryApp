@@ -1,0 +1,75 @@
+# Artillery Load Testing Configuration
+# Install: npm install -g artillery
+# Run: artillery run artillery-config.yml
+
+config:
+  target: "http://localhost:8080"
+  phases:
+    # Warm-up phase
+    - duration: 60
+      arrivalRate: 5
+      name: "Warm up"
+    # Ramp up phase
+    - duration: 120
+      arrivalRate: 5
+      rampTo: 50
+      name: "Ramp up load"
+    # Sustained load phase
+    - duration: 300
+      arrivalRate: 50
+      name: "Sustained load"
+    # Spike test
+    - duration: 60
+      arrivalRate: 100
+      name: "Spike test"
+  processor: "./custom-functions.js"
+  
+scenarios:
+  # Test 1: Browse products (public endpoint)
+  - name: "Browse Products"
+    weight: 40
+    flow:
+      - get:
+          url: "/api/items"
+          expect:
+            - statusCode: 200
+      - think: 2
+      - get:
+          url: "/api/categories"
+          expect:
+            - statusCode: 200
+      - think: 3
+      - get:
+          url: "/api/items/featured"
+          expect:
+            - statusCode: 200
+
+  # Test 2: View product details
+  - name: "View Product Details"
+    weight: 30
+    flow:
+      - get:
+          url: "/api/items/{{ $randomNumber(1, 20) }}"
+          expect:
+            - statusCode: [200, 500]
+      - think: 5
+
+  # Test 3: Search products
+  - name: "Search Products"
+    weight: 20
+    flow:
+      - get:
+          url: "/api/items/search?keyword=cake"
+          expect:
+            - statusCode: 200
+      - think: 2
+
+  # Test 4: Health check
+  - name: "Health Check"
+    weight: 10
+    flow:
+      - get:
+          url: "/actuator/health"
+          expect:
+            - statusCode: 200
+            - contentType: json

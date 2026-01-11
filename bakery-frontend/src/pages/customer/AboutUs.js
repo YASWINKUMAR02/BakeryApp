@@ -54,9 +54,8 @@ const AboutUs = () => {
 
   return (
     <>
-      <CustomerHeader />
-      
-      <Box style={{ minHeight: '100vh', background: '#f5f5f5', paddingTop: '70px' }}>
+
+      <Box style={{ minHeight: '100vh', background: '#f5f5f5', paddingTop: '100px' }}>
         {/* Hero Section */}
         <Box
           style={{
@@ -107,16 +106,16 @@ const AboutUs = () => {
                 Our Story
               </Typography>
               <Typography variant="body1" style={{ fontSize: '18px', lineHeight: 1.8, color: '#666', marginBottom: '16px' }}>
-                Frost & Crinkle was born from a passion for creating delightful baked goods that bring joy to every occasion. 
+                Frost & Crinkle was born from a passion for creating delightful baked goods that bring joy to every occasion.
                 What started as a small family bakery has grown into a beloved destination for quality pastries, cakes, and breads.
               </Typography>
               <Typography variant="body1" style={{ fontSize: '18px', lineHeight: 1.8, color: '#666', marginBottom: '16px' }}>
-                Our commitment to using premium ingredients, time-honored techniques, and innovative recipes has made us 
-                a trusted name in the community. Every product that leaves our kitchen is a testament to our dedication 
+                Our commitment to using premium ingredients, time-honored techniques, and innovative recipes has made us
+                a trusted name in the community. Every product that leaves our kitchen is a testament to our dedication
                 to excellence and our love for the art of baking.
               </Typography>
               <Typography variant="body1" style={{ fontSize: '18px', lineHeight: 1.8, color: '#666' }}>
-                We believe that great food brings people together, and we're honored to be part of your special moments, 
+                We believe that great food brings people together, and we're honored to be part of your special moments,
                 celebrations, and everyday pleasures.
               </Typography>
             </Grid>
@@ -175,8 +174,8 @@ const AboutUs = () => {
               Our Mission
             </Typography>
             <Typography variant="h6" style={{ lineHeight: 1.8, color: '#666', maxWidth: '900px', margin: '0 auto' }}>
-              To create exceptional baked goods that delight our customers and bring sweetness to their lives. 
-              We strive to maintain the highest standards of quality, freshness, and service while fostering a 
+              To create exceptional baked goods that delight our customers and bring sweetness to their lives.
+              We strive to maintain the highest standards of quality, freshness, and service while fostering a
               warm and welcoming environment for our community.
             </Typography>
           </Paper>

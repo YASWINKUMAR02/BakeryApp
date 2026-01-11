@@ -52,8 +52,8 @@ const Customers = () => {
         setCustomers(response.data.data);
       }
     } catch (err) {
-      setError('Failed to fetch customers');
-      showError('Failed to fetch customers');
+      setError('Something went wrong');
+      showError('Something went wrong');
     } finally {
       setLoading(false);
     }

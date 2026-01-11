@@ -1,9 +1,10 @@
 import axios from 'axios';
 
 // Use environment variable or fallback to localhost
-// For LAN access, set REACT_APP_API_URL in .env file to your computer's IP
+// For production with tunnel (ngrok/cloudflare), set REACT_APP_API_URL in .env.production
+// Example: REACT_APP_API_URL=https://api.yourdomain.com/api
 
-const API_BASE_URL ='http://localhost:8080/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
 
 
 
@@ -59,7 +60,6 @@ export const customerAPI = {
 
 // Admin APIs
 export const adminAPI = {
-  register: (data) => api.post('/admin/register', data),
   login: (data) => api.post('/admin/login', data),
   getDashboard: () => api.get('/admin/dashboard'),
 };

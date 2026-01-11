@@ -1,13 +1,11 @@
 import React from 'react';
 import { Container, Box, Typography, Paper, Divider } from '@mui/material';
-import CustomerHeader from '../components/CustomerHeader';
 import Footer from '../components/Footer';
 
 const Terms = () => {
   return (
     <Box style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <CustomerHeader />
-      
+
       <Box style={{ paddingTop: '80px', flex: 1, background: '#f9f9f9' }}>
         <Container maxWidth="md" style={{ padding: '60px 20px' }}>
           <Paper elevation={0} style={{ padding: '60px 40px', borderRadius: '16px' }}>

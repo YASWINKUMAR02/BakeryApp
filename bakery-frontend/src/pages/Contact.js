@@ -11,7 +11,6 @@ import {
   CardContent,
 } from '@mui/material';
 import { Email, Phone, LocationOn, Send } from '@mui/icons-material';
-import CustomerHeader from '../components/CustomerHeader';
 import Footer from '../components/Footer';
 import { showSuccess, showError } from '../utils/toast';
 
@@ -70,7 +69,6 @@ const Contact = () => {
 
   return (
     <Box style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <CustomerHeader />
 
       <Box style={{ paddingTop: '80px', flex: 1 }}>
         {/* Hero Section */}

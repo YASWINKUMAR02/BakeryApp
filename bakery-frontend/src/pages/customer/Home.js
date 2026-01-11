@@ -1,121 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { useNavigate, Link } from 'react-router-dom';
 import {
-  Container,
-  Box,
-  Typography,
-  Button,
-  Paper,
-  Grid,
-  Card,
-  CardContent,
-  CardMedia,
-  CardActions,
-  CircularProgress,
-  IconButton,
+  Box, Container, Typography, Card, CardContent,
   Chip,
-  FormControl,
-  Select,
-  MenuItem,
-  Checkbox,
-  FormControlLabel,
-  Divider,
-  Slider,
-  FormGroup,
-  InputLabel,
-  Pagination,
-  TextField,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Alert,
+  IconButton,
+  Button,
 } from '@mui/material';
-import {
-  ArrowForward,
-  ShoppingCart,
-  Star,
-  Cake,
-  ChevronLeft,
-  ChevronRight,
-  FilterList,
-  Sort,
-  BakeryDining,
-  LocalOffer,
-  Search,
-  ExpandMore,
-  ExpandLess,
-} from '@mui/icons-material';
-import { itemAPI, cartAPI, categoryAPI, reviewAPI, carouselAPI } from '../../services/api';
-import { useAuth } from '../../context/AuthContext';
-import CustomerHeader from '../../components/CustomerHeader';
+import { Star, ArrowForward, Cake, ShoppingCart, ShoppingBag } from '@mui/icons-material';
+import { motion, AnimatePresence } from 'framer-motion';
 import Footer from '../../components/Footer';
-import { showSuccess, showError } from '../../utils/toast';
+import PullToRefresh from '../../components/PullToRefresh';
+import ScrollReveal from '../../components/ScrollReveal';
+import { pageTransitions } from '../../utils/pageTransitions';
+import { itemAPI, carouselAPI, reviewAPI } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import { ProductGridSkeleton } from '../../components/LoadingSkeleton';
 import { optimizeImageUrl } from '../../utils/imageOptimization';
+import CustomerHeader from '../../components/CustomerHeader';
+import ProductCard from '../../components/ProductCard';
 
 const Home = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  
-  // Debug log to verify Home component is loading
-  console.log('🏠 Home component loaded - User:', user ? `${user.name} (${user.role})` : 'Guest');
-  console.log('📍 Current path:', window.location.pathname);
-  
+
   const [items, setItems] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [carouselSlides, setCarouselSlides] = useState([]);
+  const [itemReviews, setItemReviews] = useState({});
+
+  // Touch swipe handlers for carousel
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
-  const [itemReviews, setItemReviews] = useState({});
-  const [openDialog, setOpenDialog] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null);
-  const [quantity, setQuantity] = useState(1);
-  const [isEggless, setIsEggless] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
-  
-  // Filter and Sort States
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  const [priceRange, setPriceRange] = useState([0, 1000]);
-  const [minRating, setMinRating] = useState(0);
-  const [sortBy, setSortBy] = useState('featured');
-  const [searchQuery, setSearchQuery] = useState('');
-  
-  // Pagination state
-  const [page, setPage] = useState(1);
-  const itemsPerPage = 9;
-
-  // Carousel slides from API
-  const [carouselSlides, setCarouselSlides] = useState([]);
 
   useEffect(() => {
-    // Prevent any automatic redirects
-    const preventRedirect = (e) => {
-      if (window.location.pathname === '/' || window.location.pathname === '/home') {
-        console.log('🛑 Preventing redirect from Home page');
-        // Don't allow navigation away from home unless user clicks something
-      }
-    };
-    
-    // Check for corrupted localStorage that might cause redirect issues
-    try {
-      const storedUser = localStorage.getItem('user');
-      const storedToken = localStorage.getItem('token');
-      
-      // If there's a token but no valid user, clear everything
-      if (storedToken && (!storedUser || storedUser === 'undefined' || storedUser === 'null')) {
-        console.warn('⚠️ Clearing corrupted localStorage data');
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
-        window.location.reload(); // Reload to reset state
-        return;
-      }
-    } catch (error) {
-      console.error('Error checking localStorage:', error);
-    }
-    
     fetchData();
   }, []);
 
@@ -123,27 +41,26 @@ const Home = () => {
     if (carouselSlides.length > 0) {
       const interval = setInterval(() => {
         setCurrentSlide((prev) => (prev + 1) % carouselSlides.length);
-      }, 5000);
+      }, 4000);
       return () => clearInterval(interval);
     }
   }, [carouselSlides.length]);
 
   const fetchData = async () => {
     try {
-      const [itemsResponse, categoriesResponse, carouselResponse] = await Promise.all([
+      const [itemsResponse, carouselResponse] = await Promise.all([
         itemAPI.getAll(),
-        categoryAPI.getAll(),
         carouselAPI.getActive(),
       ]);
-      
+
       if (itemsResponse.data.success) {
         const itemsData = itemsResponse.data.data;
         setItems(itemsData);
-        
-        // Fetch reviews for all items
+
+        // Fetch reviews for items (optional optimization: fetch only for featured)
         const reviewsData = {};
         await Promise.all(
-          itemsData.map(async (item) => {
+          itemsData.slice(0, 10).map(async (item) => { // Limit to first 10 for perf
             try {
               const reviewResponse = await reviewAPI.getByItem(item.id);
               if (reviewResponse.data.success) {
@@ -156,400 +73,270 @@ const Home = () => {
         );
         setItemReviews(reviewsData);
       }
-      if (categoriesResponse.data.success) {
-        setCategories(categoriesResponse.data.data);
-      }
+
       if (carouselResponse.data.success) {
-        // Transform API data to match carousel format
         const slides = carouselResponse.data.data.map(slide => ({
           title: slide.title,
           subtitle: slide.subtitle,
           description: slide.description,
           image: slide.imageUrl,
-          icon: Cake,
-          buttonText: slide.buttonText,
+          buttonText: slide.buttonText || 'Shop Now',
           buttonAction: () => {
             if (slide.linkType === 'CATEGORY') {
               navigate(`/shop?categoryId=${slide.linkValue}`);
             } else if (slide.linkType === 'ITEM') {
               navigate(`/item/${slide.linkValue}`);
             } else {
-              navigate(slide.linkValue);
+              navigate(slide.linkValue || '/shop');
             }
           },
         }));
         setCarouselSlides(slides);
       }
     } catch (err) {
-      showError('Failed to fetch data');
-    } finally{
+      console.error('Error fetching data:', err);
+    } finally {
       setLoading(false);
     }
   };
 
-  const handleOpenDialog = (item) => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-    setSelectedItem(item);
-    setQuantity(1);
-    setIsEggless(false);
-    setOpenDialog(true);
-  };
-
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-    setSelectedItem(null);
-    setQuantity(1);
-    setIsEggless(false);
-  };
-
-  const handleAddToCart = async () => {
-    try {
-      await cartAPI.addItem(user.id, {
-        itemId: selectedItem.id,
-        quantity: quantity,
-        eggType: isEggless ? 'EGGLESS' : null,
-      });
-      showSuccess(`${selectedItem.name}${isEggless ? ' (Eggless)' : ''} added to cart!`);
-      handleCloseDialog();
-    } catch (err) {
-      showError(err.response?.data?.message || 'Failed to add to cart');
-    }
+  const handleRefresh = async () => {
+    setLoading(true);
+    await fetchData();
   };
 
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % carouselSlides.length);
+    if (carouselSlides.length > 0)
+      setCurrentSlide((prev) => (prev + 1) % carouselSlides.length);
   };
 
   const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + carouselSlides.length) % carouselSlides.length);
+    if (carouselSlides.length > 0)
+      setCurrentSlide((prev) => (prev - 1 + carouselSlides.length) % carouselSlides.length);
+  };
+
+  const handleTouchStart = (e) => setTouchStart(e.targetTouches[0].clientX);
+  const handleTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
+  const handleTouchEnd = () => {
+    if (touchStart - touchEnd > 75) nextSlide();
+    if (touchStart - touchEnd < -75) prevSlide();
   };
 
   const getItemRatingData = (itemId) => {
     const reviews = itemReviews[itemId] || [];
-    if (reviews.length === 0) {
-      return { averageRating: 0, reviewCount: 0 };
-    }
+    if (reviews.length === 0) return { averageRating: 0, reviewCount: 0 };
     const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
-    const averageRating = (totalRating / reviews.length).toFixed(1);
-    return { averageRating, reviewCount: reviews.length };
+    return {
+      averageRating: (totalRating / reviews.length).toFixed(1),
+      reviewCount: reviews.length
+    };
   };
 
-  // Filter and Sort Logic
-  const getFilteredAndSortedItems = () => {
-    let filtered = [...items];
-
-    // Filter by search query
-    if (searchQuery.trim()) {
-      filtered = filtered.filter(item =>
-        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.description?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    // Filter by categories
-    if (selectedCategories.length > 0) {
-      filtered = filtered.filter(item => 
-        selectedCategories.includes(item.category?.id)
-      );
-    }
-
-    // Filter by price range
-    filtered = filtered.filter(item => 
-      item.price >= priceRange[0] && item.price <= priceRange[1]
-    );
-
-    // Filter by rating
-    if (minRating > 0) {
-      filtered = filtered.filter(item => {
-        const { averageRating } = getItemRatingData(item.id);
-        return parseFloat(averageRating) >= minRating;
-      });
-    }
-
-    // Sort items
-    switch (sortBy) {
-      case 'price-low':
-        filtered.sort((a, b) => a.price - b.price);
-        break;
-      case 'price-high':
-        filtered.sort((a, b) => b.price - a.price);
-        break;
-      case 'rating':
-        filtered.sort((a, b) => {
-          const ratingA = parseFloat(getItemRatingData(a.id).averageRating);
-          const ratingB = parseFloat(getItemRatingData(b.id).averageRating);
-          return ratingB - ratingA;
-        });
-        break;
-      case 'name':
-        filtered.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case 'featured':
-      default:
-        // Keep original order or prioritize featured items
-        filtered.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
-        break;
-    }
-
-    return filtered;
-  };
-
-  const filteredItems = getFilteredAndSortedItems();
-  const featuredItems = filteredItems.slice(0, 6);
-  
-  // Pagination logic
-  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
-  const paginatedItems = filteredItems.slice(
-    (page - 1) * itemsPerPage,
-    page * itemsPerPage
-  );
-
-  const handlePageChange = (event, value) => {
-    setPage(value);
-    window.scrollTo({ top: 400, behavior: 'smooth' });
-  };
-
-  const handleCategoryToggle = (categoryId) => {
-    setPage(1);
-    setSelectedCategories(prev => 
-      prev.includes(categoryId)
-        ? prev.filter(id => id !== categoryId)
-        : [...prev, categoryId]
-    );
-  };
-
-  const handleClearFilters = () => {
-    setSelectedCategories([]);
-    setPriceRange([0, 1000]);
-    setMinRating(0);
-    setSearchQuery('');
-    setPage(1);
-    setSortBy('featured');
-  };
-
-  // Animation variants
+  // UI Variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
+      transition: { staggerChildren: 0.05, delayChildren: 0.1, when: "beforeChildren" }
     }
   };
 
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
+  const mobileProductVariants = {
+    hidden: { opacity: 0, y: 40, scale: 0.9, rotateX: 15 },
+    visible: (i) => ({
+      opacity: 1, y: 0, scale: 1, rotateX: 0,
       transition: {
-        duration: 0.5,
-        ease: "easeOut"
+        delay: i * 0.08, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94],
+        type: "spring", stiffness: 100, damping: 15
       }
-    }
+    }),
+    tap: { scale: 0.95, transition: { duration: 0.1 } }
   };
+
+  // Filter featured or top items for display
+  const displayItems = items.filter(i => i.featured).slice(0, 6);
+  // Fallback if no featured items
+  const finalDisplayItems = displayItems.length > 0 ? displayItems : items.slice(0, 6);
+
+  if (loading && items.length === 0) {
+    return (
+      <Box sx={{ pt: '100px' }}>
+        <ProductGridSkeleton />
+      </Box>
+    );
+  }
 
   return (
-    <Box style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <CustomerHeader />
+    <motion.div
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      variants={pageTransitions.home}
+    >
+      <PullToRefresh onRefresh={handleRefresh}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '100%' }}>
 
-      <Box style={{ background: '#f5f5f5', paddingTop: '70px' }}>
-        {/* Hero Carousel Section */}
-        <Box 
-          sx={{ 
-            position: 'relative', 
-            height: { xs: '300px', sm: '400px', md: '500px' }, 
-            width: '100%',
-            overflow: 'hidden', 
-            background: '#1a1a1a',
-          }}
-          onTouchStart={(e) => setTouchStart(e.targetTouches[0].clientX)}
-          onTouchMove={(e) => setTouchEnd(e.targetTouches[0].clientX)}
-          onTouchEnd={() => {
-            if (touchStart - touchEnd > 75) {
-              // Swipe left - next slide
-              nextSlide();
-            }
-            if (touchStart - touchEnd < -75) {
-              // Swipe right - previous slide
-              prevSlide();
-            }
-          }}
-        >
-          {carouselSlides.map((slide, index) => (
-            <Box
-              key={index}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(${slide.image})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                opacity: currentSlide === index ? 1 : 0,
-                transition: 'opacity 0.8s ease-in-out',
-                zIndex: currentSlide === index ? 1 : 0,
-              }}
-            >
-              <Container maxWidth="lg" style={{ height: '100%', display: 'flex', alignItems: 'center' }}>
-                <Box sx={{ color: '#fff', maxWidth: { xs: '100%', sm: '600px' }, padding: { xs: '0 16px', sm: '0' } }}>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      color: '#ffb6c1', 
-                      fontSize: { xs: '12px', sm: '14px', md: '16px' }, 
-                      fontWeight: 500, 
-                      letterSpacing: { xs: '1px', sm: '2px' }, 
-                      marginBottom: { xs: '8px', sm: '16px' }, 
-                      display: 'block',
-                    }}
-                  >
-                    {slide.description}
-                  </Typography>
-                  <Typography 
-                    variant="h1" 
-                    sx={{ 
-                      fontWeight: 800, 
-                      marginBottom: { xs: '4px', sm: '8px' }, 
-                      fontSize: { xs: '32px', sm: '48px', md: '72px' }, 
-                      lineHeight: 1.1, 
-                      fontStyle: 'italic',
-                    }}
-                  >
-                    {slide.title}
-                  </Typography>
-                  <Typography 
-                    variant="h1" 
-                    sx={{ 
-                      fontWeight: 800, 
-                      marginBottom: { xs: '16px', sm: '24px', md: '32px' }, 
-                      fontSize: { xs: '32px', sm: '48px', md: '72px' }, 
-                      lineHeight: 1.1, 
-                      fontStyle: 'italic',
-                    }}
-                  >
-                    {slide.subtitle}
-                  </Typography>
-                  <Box sx={{ display: 'flex', gap: { xs: '8px', sm: '16px' }, flexWrap: 'wrap' }}>
-                    <Button
-                      variant="contained"
-                      size="large"
-                      onClick={slide.buttonAction}
-                      sx={{
-                        background: '#e91e63',
-                        color: '#fff',
-                        padding: { xs: '10px 20px', sm: '14px 36px' },
-                        fontSize: { xs: '14px', sm: '16px' },
-                        fontWeight: 600,
-                        textTransform: 'none',
-                        borderRadius: '8px',
-                        boxShadow: '0 4px 20px rgba(255, 105, 180, 0.4)',
-                      }}
-                    >
-                      {slide.buttonText}
-                    </Button>
-                  </Box>
-                </Box>
-              </Container>
-            </Box>
-          ))}
-
-          {/* Carousel Indicators */}
+          {/* Hero Carousel Section */}
           <Box
-            style={{
-              position: 'absolute',
-              bottom: '20px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              display: 'flex',
-              gap: '10px',
-              zIndex: 2,
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            sx={{
+              position: 'relative',
+              height: { xs: '240px', sm: '300px', md: '500px' }, // Adjusted height
+              width: '100%',
+              overflow: 'hidden',
+              background: '#000',
+              marginTop: '64px',
+              touchAction: 'pan-y',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.3)'
             }}
           >
-            {carouselSlides.map((_, index) => (
-              <Box
-                key={index}
-                onClick={() => setCurrentSlide(index)}
-                style={{
-                  width: currentSlide === index ? '30px' : '10px',
-                  height: '10px',
-                  borderRadius: '5px',
-                  background: currentSlide === index ? '#fff' : 'rgba(255,255,255,0.5)',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                }}
-              />
-            ))}
+            <AnimatePresence mode="wait">
+              {carouselSlides.length > 0 && (
+                <motion.div
+                  key={currentSlide}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+                  style={{
+                    position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: '100%', height: '100%',
+                      backgroundImage: `linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.2) 50%, rgba(0, 0, 0, 0.7) 100%), url(${carouselSlides[currentSlide].image})`,
+                      backgroundSize: 'cover', backgroundPosition: 'center',
+                      display: 'flex', alignItems: 'center', justifyContent: 'flex-start',
+                      position: 'relative',
+                    }}
+                    component={motion.div}
+                    initial={{ scale: 1.15 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 6, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    <Container maxWidth="lg" sx={{ height: '100%', display: 'flex', alignItems: 'center', position: 'relative', zIndex: 2 }}>
+                      <Box sx={{ color: '#fff', maxWidth: { xs: '100%', sm: '600px' }, padding: { xs: '20px', sm: '0' } }}>
+                        <motion.div
+                          initial={{ opacity: 0, y: 30 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.8, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                        >
+                          <Typography variant="h1" sx={{ fontWeight: 800, mb: 1, fontSize: { xs: '28px', md: '56px' }, color: '#fff', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+                            {carouselSlides[currentSlide].title}
+                          </Typography>
+                          <Typography variant="h3" sx={{ fontWeight: 600, fontSize: { xs: '18px', md: '32px' }, mb: 3, color: '#e91e63' }}>
+                            {carouselSlides[currentSlide].subtitle}
+                          </Typography>
+                        </motion.div>
+
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.8, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                        >
+                          <Button
+                            variant="contained" size="large"
+                            onClick={() => carouselSlides[currentSlide].buttonAction()}
+                            endIcon={<ArrowForward />}
+                            sx={{
+                              background: 'linear-gradient(135deg, #e91e63 0%, #ad1457 100%)',
+                              color: '#fff', padding: '14px 32px', borderRadius: '50px',
+                              fontWeight: 700, textTransform: 'none',
+                              fontSize: '1rem',
+                              boxShadow: '0 8px 25px rgba(233, 30, 99, 0.3)',
+                              '&:hover': {
+                                transform: 'translateY(-2px)',
+                                boxShadow: '0 12px 30px rgba(233, 30, 99, 0.4)',
+                              }
+                            }}
+                          >
+                            {carouselSlides[currentSlide].buttonText}
+                          </Button>
+                        </motion.div>
+                      </Box>
+                    </Container>
+                  </Box>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {carouselSlides.length === 0 && (
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'white' }}>
+                <Typography>No slides available</Typography>
+              </Box>
+            )}
+
+            {/* Indicators */}
+            <Box sx={{ position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 1, zIndex: 3 }}>
+              {carouselSlides.map((_, index) => (
+                <Box
+                  key={index}
+                  onClick={() => setCurrentSlide(index)}
+                  sx={{
+                    width: currentSlide === index ? 24 : 8, height: 8, borderRadius: 4,
+                    background: currentSlide === index ? '#e91e63' : 'rgba(255,255,255,0.5)',
+                    cursor: 'pointer', transition: 'all 0.3s ease'
+                  }}
+                />
+              ))}
+            </Box>
           </Box>
-        </Box>
 
-        {/* Shop Section - Redirect to Shop Page */}
-        <Box 
-          sx={{ 
-            background: '#fff', 
-            padding: { xs: '20px 16px', sm: '40px 20px', md: '60px 0' }, 
-            textAlign: 'center' 
-          }}
-        >
-          <Container maxWidth="lg">
-            <Typography 
-              variant="h3" 
-              sx={{ 
-                fontWeight: 700, 
-                marginBottom: '16px', 
-                color: '#333',
-                fontSize: { xs: '1.75rem', sm: '2.5rem', md: '3rem' },
-              }}
-            >
-              Explore Our Delicious Collection
-            </Typography>
-            <Typography 
-              variant="h6" 
-              color="textSecondary" 
-              sx={{ 
-                marginBottom: { xs: '24px', sm: '32px' },
-                fontSize: { xs: '1rem', sm: '1.25rem' },
-              }}
-            >
-              Freshly baked treats made with love
-            </Typography>
-            <Button
-              variant="contained"
-              size="large"
-              onClick={() => navigate('/shop')}
-              endIcon={<ArrowForward />}
-              sx={{
-                background: '#e91e63',
-                color: '#fff',
-                padding: { xs: '12px 32px', sm: '14px 40px' },
-                fontSize: { xs: '16px', sm: '18px' },
-                fontWeight: 600,
-                textTransform: 'none',
-                borderRadius: '0',
-                boxShadow: '0 4px 20px rgba(233, 30, 99, 0.4)',
-                '&:hover': {
-                  background: '#d81b60',
-                  boxShadow: '0 6px 24px rgba(233, 30, 99, 0.5)',
-                },
-              }}
-            >
-              Browse All Products
-            </Button>
-          </Container>
-        </Box>
-      </Box>
+          {/* Products Section */}
+          <Box sx={{ background: '#fafafa', py: { xs: 4, md: 8 }, flex: 1 }}>
+            <Container maxWidth="lg">
+              <ScrollReveal animation="slideUp">
+                <Typography variant="h2" sx={{ textAlign: 'center', fontWeight: 800, mb: 4, fontSize: { xs: '2rem', md: '3.5rem' }, color: '#1a1a1a' }}>
+                  Our Delicious Products
+                </Typography>
+              </ScrollReveal>
 
-      <Footer />
-    </Box>
+              <Box
+                component={motion.div}
+                variants={containerVariants}
+                initial="hidden"
+                animate={!loading ? "visible" : "hidden"}
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+                  gap: { xs: 2, md: 3 },
+                }}
+              >
+                {finalDisplayItems.map((item, index) => (
+                  <ProductCard
+                    key={item.id}
+                    item={item}
+                    ratingData={getItemRatingData(item.id)}
+                    index={index}
+                  />
+                ))}
+              </Box>
+
+              <Box sx={{ textAlign: 'center', mt: 6 }}>
+                <Button
+                  variant="contained" size="large"
+                  onClick={() => navigate('/shop')}
+                  endIcon={<ArrowForward />}
+                  sx={{
+                    background: 'linear-gradient(135deg, #e91e63 0%, #ad1457 100%)',
+                    color: '#fff', padding: '16px 40px', borderRadius: '50px',
+                    boxShadow: '0 8px 24px rgba(233, 30, 99, 0.3)',
+                  }}
+                >
+                  Browse All Products
+                </Button>
+              </Box>
+
+            </Container>
+          </Box>
+
+          <Footer />
+        </Box>
+      </PullToRefresh>
+    </motion.div>
   );
 };
 

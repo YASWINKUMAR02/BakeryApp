@@ -75,8 +75,8 @@ const Orders = () => {
         setOrders(response.data.data);
       }
     } catch (err) {
-      setError('Failed to fetch orders');
-      showError('Failed to fetch orders');
+      setError('Something went wrong');
+      showError('Something went wrong');
     } finally {
       setLoading(false);
     }

@@ -83,7 +83,7 @@ const Profile = () => {
       ...passwordData,
       [name]: value,
     });
-    
+
     // Real-time validation
     const errors = {};
     if (name === 'newPassword') {
@@ -162,7 +162,6 @@ const Profile = () => {
 
   return (
     <Box style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <CustomerHeader />
 
       <Box style={{ flex: 1, background: '#f5f5f5', paddingTop: '100px', paddingBottom: '40px', paddingLeft: '8px', paddingRight: '8px' }}>
         <Container maxWidth="md">
@@ -188,8 +187,8 @@ const Profile = () => {
           </Paper>
 
           {/* Profile Information */}
-          <Accordion 
-            expanded={expandedProfile} 
+          <Accordion
+            expanded={expandedProfile}
             onChange={() => setExpandedProfile(!expandedProfile)}
             style={{ marginBottom: '20px', borderRadius: '0', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
           >
@@ -223,80 +222,80 @@ const Profile = () => {
             </AccordionSummary>
             <AccordionDetails style={{ padding: '24px' }}>
 
-            <form onSubmit={handleUpdateProfile}>
-              <Grid container spacing={3}>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Full Name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    disabled={!editMode}
-                    InputProps={{
-                      startAdornment: <Person style={{ marginRight: '10px', color: '#666' }} />,
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    disabled
-                    helperText="Email cannot be changed"
-                    InputProps={{
-                      startAdornment: <Email style={{ marginRight: '10px', color: '#666' }} />,
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Phone Number"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    required
-                    disabled={!editMode}
-                    InputProps={{
-                      startAdornment: <Phone style={{ marginRight: '10px', color: '#666' }} />,
-                    }}
-                  />
-                </Grid>
-                {editMode && (
+              <form onSubmit={handleUpdateProfile}>
+                <Grid container spacing={3}>
                   <Grid item xs={12}>
-                    <Button
-                      type="submit"
-                      variant="contained"
+                    <TextField
                       fullWidth
-                      disabled={loading}
-                      startIcon={<Save />}
-                      style={{
-                        background: '#e91e63',
-                        color: '#fff',
-                        padding: '12px',
-                        textTransform: 'none',
-                        fontSize: '16px',
+                      label="Full Name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                      disabled={!editMode}
+                      InputProps={{
+                        startAdornment: <Person style={{ marginRight: '10px', color: '#666' }} />,
                       }}
-                    >
-                      Save Changes
-                    </Button>
+                    />
                   </Grid>
-                )}
-              </Grid>
-            </form>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Email"
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      disabled
+                      helperText="Email cannot be changed"
+                      InputProps={{
+                        startAdornment: <Email style={{ marginRight: '10px', color: '#666' }} />,
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Phone Number"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      required
+                      disabled={!editMode}
+                      InputProps={{
+                        startAdornment: <Phone style={{ marginRight: '10px', color: '#666' }} />,
+                      }}
+                    />
+                  </Grid>
+                  {editMode && (
+                    <Grid item xs={12}>
+                      <Button
+                        type="submit"
+                        variant="contained"
+                        fullWidth
+                        disabled={loading}
+                        startIcon={<Save />}
+                        style={{
+                          background: '#e91e63',
+                          color: '#fff',
+                          padding: '12px',
+                          textTransform: 'none',
+                          fontSize: '16px',
+                        }}
+                      >
+                        Save Changes
+                      </Button>
+                    </Grid>
+                  )}
+                </Grid>
+              </form>
             </AccordionDetails>
           </Accordion>
 
           {/* Change Password */}
-          <Accordion 
-            expanded={expandedPassword} 
+          <Accordion
+            expanded={expandedPassword}
             onChange={() => setExpandedPassword(!expandedPassword)}
             style={{ borderRadius: '0', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
           >
@@ -330,112 +329,112 @@ const Profile = () => {
             </AccordionSummary>
             <AccordionDetails style={{ padding: '24px' }}>
 
-            {editPasswordMode ? (
-              <form onSubmit={handleUpdatePassword}>
-                <Grid container spacing={3}>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Current Password"
-                    name="currentPassword"
-                    type={showPasswords.current ? 'text' : 'password'}
-                    value={passwordData.currentPassword}
-                    onChange={handlePasswordChange}
-                    required
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton
-                            onClick={() => togglePasswordVisibility('current')}
-                            edge="end"
-                          >
-                            {showPasswords.current ? <VisibilityOff /> : <Visibility />}
-                          </IconButton>
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="New Password"
-                    name="newPassword"
-                    type={showPasswords.new ? 'text' : 'password'}
-                    value={passwordData.newPassword}
-                    onChange={handlePasswordChange}
-                    required
-                    error={!!passwordErrors.newPassword}
-                    helperText={passwordErrors.newPassword || "Must be at least 6 characters"}
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton
-                            onClick={() => togglePasswordVisibility('new')}
-                            edge="end"
-                          >
-                            {showPasswords.new ? <VisibilityOff /> : <Visibility />}
-                          </IconButton>
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Confirm New Password"
-                    name="confirmPassword"
-                    type={showPasswords.confirm ? 'text' : 'password'}
-                    value={passwordData.confirmPassword}
-                    onChange={handlePasswordChange}
-                    required
-                    error={!!passwordErrors.confirmPassword}
-                    helperText={passwordErrors.confirmPassword}
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton
-                            onClick={() => togglePasswordVisibility('confirm')}
-                            edge="end"
-                          >
-                            {showPasswords.confirm ? <VisibilityOff /> : <Visibility />}
-                          </IconButton>
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    fullWidth
-                    disabled={loading}
-                    startIcon={<Lock />}
-                    style={{
-                      background: '#e91e63',
-                      color: '#fff',
-                      padding: '12px',
-                      textTransform: 'none',
-                      fontSize: '16px',
-                    }}
-                  >
-                    Update Password
-                  </Button>
-                </Grid>
-                </Grid>
-              </form>
-            ) : (
-              <Typography variant="body1" color="textSecondary" style={{ textAlign: 'center', padding: '20px' }}>
-                Click "Edit Password" to change your password
-              </Typography>
-            )}
+              {editPasswordMode ? (
+                <form onSubmit={handleUpdatePassword}>
+                  <Grid container spacing={3}>
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="Current Password"
+                        name="currentPassword"
+                        type={showPasswords.current ? 'text' : 'password'}
+                        value={passwordData.currentPassword}
+                        onChange={handlePasswordChange}
+                        required
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <IconButton
+                                onClick={() => togglePasswordVisibility('current')}
+                                edge="end"
+                              >
+                                {showPasswords.current ? <VisibilityOff /> : <Visibility />}
+                              </IconButton>
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="New Password"
+                        name="newPassword"
+                        type={showPasswords.new ? 'text' : 'password'}
+                        value={passwordData.newPassword}
+                        onChange={handlePasswordChange}
+                        required
+                        error={!!passwordErrors.newPassword}
+                        helperText={passwordErrors.newPassword || "Must be at least 6 characters"}
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <IconButton
+                                onClick={() => togglePasswordVisibility('new')}
+                                edge="end"
+                              >
+                                {showPasswords.new ? <VisibilityOff /> : <Visibility />}
+                              </IconButton>
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="Confirm New Password"
+                        name="confirmPassword"
+                        type={showPasswords.confirm ? 'text' : 'password'}
+                        value={passwordData.confirmPassword}
+                        onChange={handlePasswordChange}
+                        required
+                        error={!!passwordErrors.confirmPassword}
+                        helperText={passwordErrors.confirmPassword}
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <IconButton
+                                onClick={() => togglePasswordVisibility('confirm')}
+                                edge="end"
+                              >
+                                {showPasswords.confirm ? <VisibilityOff /> : <Visibility />}
+                              </IconButton>
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Button
+                        type="submit"
+                        variant="contained"
+                        fullWidth
+                        disabled={loading}
+                        startIcon={<Lock />}
+                        style={{
+                          background: '#e91e63',
+                          color: '#fff',
+                          padding: '12px',
+                          textTransform: 'none',
+                          fontSize: '16px',
+                        }}
+                      >
+                        Update Password
+                      </Button>
+                    </Grid>
+                  </Grid>
+                </form>
+              ) : (
+                <Typography variant="body1" color="textSecondary" style={{ textAlign: 'center', padding: '20px' }}>
+                  Click "Edit Password" to change your password
+                </Typography>
+              )}
             </AccordionDetails>
           </Accordion>
         </Container>
       </Box>
-      
+
       <Footer />
     </Box>
   );

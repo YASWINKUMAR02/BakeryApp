@@ -39,7 +39,7 @@ const Checkout = () => {
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     customerName: user?.name || '',
     doorNo: '',
@@ -70,7 +70,7 @@ const Checkout = () => {
         }
       }
     } catch (err) {
-      showError('Failed to fetch cart');
+      showError('Something went wrong');
     } finally {
       setLoading(false);
     }
@@ -83,25 +83,25 @@ const Checkout = () => {
       let itemPrice = item.priceAtAddition && item.priceAtAddition > 0
         ? item.priceAtAddition
         : item.item.price;
-      
+
       // Add ₹30 for eggless items (only if not using priceAtAddition)
       if (item.eggType === 'EGGLESS' && (!item.priceAtAddition || item.priceAtAddition === 0)) {
         itemPrice += 30;
       }
-      
+
       return total + (itemPrice * item.quantity);
     }, 0);
   };
 
   const validateForm = () => {
     const errors = {};
-    
+
     // Validate name
     errors.customerName = validateName(formData.customerName);
-    
+
     // Check if using location method
     const isLocationBased = addressMethod === 'location';
-    
+
     if (!isLocationBased) {
       // Only validate address fields for manual entry
       errors.doorNo = validateRequired(formData.doorNo, 'Door number');
@@ -116,26 +116,26 @@ const Checkout = () => {
         showError('Please verify your location before placing order');
       }
     }
-    
+
     // Validate phone
     errors.deliveryPhone = validatePhone(formData.deliveryPhone);
-    
+
     // Check if cart has any weight-based items (occasional/premium/party cakes) - if yes, delivery notes are mandatory
     const hasWeightBasedItems = cart?.items?.some(item => {
       const catName = item.item?.category?.name?.toLowerCase() || '';
       return catName.includes('occasional') || catName.includes('premium') || catName.includes('party');
     });
-    
+
     if (hasWeightBasedItems && (!formData.deliveryNotes || formData.deliveryNotes.trim() === '')) {
       errors.deliveryNotes = 'Please specify what to write on the cake';
     }
-    
+
     // Filter out empty errors
     const filteredErrors = {};
     Object.keys(errors).forEach(key => {
       if (errors[key]) filteredErrors[key] = errors[key];
     });
-    
+
     setFormErrors(filteredErrors);
     return Object.keys(filteredErrors).length === 0;
   };
@@ -165,20 +165,20 @@ const Checkout = () => {
       city: 'Coimbatore',
       pincode: '',
     }));
-    
+
     // Store coordinates
     setLocationCoordinates({
       lat: locationData.lat,
       lng: locationData.lng,
     });
-    
+
     setAddressMethod('location');
     showSuccess('Location verified! Your GPS location will be used for delivery.');
   };
 
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       showError('Please fill in all required fields correctly');
       return;
@@ -194,16 +194,16 @@ const Checkout = () => {
 
     try {
       const totalAmount = calculateTotal();
-      
+
       // Create Razorpay order
       const paymentResponse = await paymentAPI.createOrder(totalAmount, user.id);
-      
+
       if (!paymentResponse.data.success) {
         throw new Error('Failed to create payment order');
       }
 
       const razorpayOrderId = paymentResponse.data.data.razorpayOrderId;
-      
+
       // Initialize Razorpay payment
       initializeRazorpay({
         amount: totalAmount,
@@ -233,10 +233,10 @@ const Checkout = () => {
   const completeOrder = async (paymentData) => {
     try {
       console.log('Payment successful, placing order with verification...');
-      
+
       // Combine address fields into a single deliveryAddress string
       const deliveryAddress = `${formData.doorNo}, ${formData.street}, ${formData.area}, ${formData.city} - ${formData.pincode}`;
-      
+
       // Backend will verify payment before creating order
       const orderData = {
         customerName: formData.customerName,
@@ -249,29 +249,29 @@ const Checkout = () => {
         paymentOrderId: paymentData.razorpayOrderId,
         paymentSignature: paymentData.razorpaySignature,
       };
-      
+
       console.log('Placing order with payment data:', orderData);
-      
+
       const response = await orderAPI.placeOrder(user.id, orderData);
-      
+
       if (response.data.success) {
         const orderId = response.data.data?.id || Math.floor(Math.random() * 10000);
-        
+
         console.log('Order placed successfully with ID:', orderId);
-        
+
         // Notify customer about order placement
         notifyCustomerOrderPlaced(user.id, orderId);
-        
+
         // Notify admin about new order (use admin ID 1 for now)
         notifyAdminNewOrder(1, orderId, user.name);
-        
+
         // Trigger a custom event for real-time notification across tabs
         localStorage.setItem('newOrderNotification', JSON.stringify({
           orderId: orderId,
           customerName: user.name,
           timestamp: Date.now()
         }));
-        
+
         showSuccess('Payment verified! Order placed successfully.');
         setTimeout(() => navigate('/orders'), 2000);
       } else {
@@ -279,10 +279,10 @@ const Checkout = () => {
       }
     } catch (err) {
       console.error('Error in completeOrder:', err);
-      
+
       // Check if it's a payment verification error
       const errorMessage = err.response?.data?.message || '';
-      
+
       if (errorMessage.includes('Payment verification failed') || errorMessage.includes('Invalid signature')) {
         showError('Payment verification failed. Your payment was processed but order could not be created. Please contact support with payment ID: ' + paymentData.razorpayPaymentId);
       } else if (errorMessage.includes('Insufficient stock')) {
@@ -333,7 +333,7 @@ const Checkout = () => {
                     <Typography variant="h6" style={{ marginBottom: '20px', textAlign: 'center', fontWeight: 600 }}>
                       How would you like to provide your delivery address?
                     </Typography>
-                    
+
                     <Grid container spacing={2}>
                       <Grid item xs={12} sm={6}>
                         <Button
@@ -357,7 +357,7 @@ const Checkout = () => {
                           Quick & Easy - GPS Based
                         </Typography>
                       </Grid>
-                      
+
                       <Grid item xs={12} sm={6}>
                         <Button
                           fullWidth
@@ -420,157 +420,157 @@ const Checkout = () => {
                 )}
 
                 {addressMethod && (
-                <form onSubmit={handlePlaceOrder}>
-                  <Grid container spacing={3}>
-                    <Grid item xs={12}>
-                      <TextField
-                        fullWidth
-                        label="Full Name"
-                        name="customerName"
-                        value={formData.customerName}
-                        onChange={handleInputChange}
-                        error={!!formErrors.customerName}
-                        helperText={formErrors.customerName}
-                        required
-                        InputProps={{
-                          startAdornment: <Person style={{ color: '#ff69b4', marginRight: '8px' }} />,
-                        }}
-                      />
-                    </Grid>
+                  <form onSubmit={handlePlaceOrder}>
+                    <Grid container spacing={3}>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label="Full Name"
+                          name="customerName"
+                          value={formData.customerName}
+                          onChange={handleInputChange}
+                          error={!!formErrors.customerName}
+                          helperText={formErrors.customerName}
+                          required
+                          InputProps={{
+                            startAdornment: <Person style={{ color: '#ff69b4', marginRight: '8px' }} />,
+                          }}
+                        />
+                      </Grid>
 
-                    <Grid item xs={12}>
-                      <TextField
-                        fullWidth
-                        label="Phone Number"
-                        name="deliveryPhone"
-                        value={formData.deliveryPhone}
-                        onChange={handleInputChange}
-                        error={!!formErrors.deliveryPhone}
-                        helperText={formErrors.deliveryPhone || 'Enter 10-15 digit phone number'}
-                        required
-                        InputProps={{
-                          startAdornment: <Phone style={{ color: '#ff69b4', marginRight: '8px' }} />,
-                        }}
-                      />
-                    </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label="Phone Number"
+                          name="deliveryPhone"
+                          value={formData.deliveryPhone}
+                          onChange={handleInputChange}
+                          error={!!formErrors.deliveryPhone}
+                          helperText={formErrors.deliveryPhone || 'Enter 10-15 digit phone number'}
+                          required
+                          InputProps={{
+                            startAdornment: <Phone style={{ color: '#ff69b4', marginRight: '8px' }} />,
+                          }}
+                        />
+                      </Grid>
 
-                    {addressMethod === 'manual' && (
-                    <>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Door No / Building"
-                        name="doorNo"
-                        value={formData.doorNo}
-                        onChange={handleInputChange}
-                        error={!!formErrors.doorNo}
-                        helperText={formErrors.doorNo}
-                        required
-                        InputProps={{
-                          startAdornment: <Home style={{ color: '#ff69b4', marginRight: '8px' }} />,
-                        }}
-                      />
-                    </Grid>
+                      {addressMethod === 'manual' && (
+                        <>
+                          <Grid item xs={12} sm={6}>
+                            <TextField
+                              fullWidth
+                              label="Door No / Building"
+                              name="doorNo"
+                              value={formData.doorNo}
+                              onChange={handleInputChange}
+                              error={!!formErrors.doorNo}
+                              helperText={formErrors.doorNo}
+                              required
+                              InputProps={{
+                                startAdornment: <Home style={{ color: '#ff69b4', marginRight: '8px' }} />,
+                              }}
+                            />
+                          </Grid>
 
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Street"
-                        name="street"
-                        value={formData.street}
-                        onChange={handleInputChange}
-                        error={!!formErrors.street}
-                        helperText={formErrors.street}
-                        required
-                      />
-                    </Grid>
+                          <Grid item xs={12} sm={6}>
+                            <TextField
+                              fullWidth
+                              label="Street"
+                              name="street"
+                              value={formData.street}
+                              onChange={handleInputChange}
+                              error={!!formErrors.street}
+                              helperText={formErrors.street}
+                              required
+                            />
+                          </Grid>
 
-                    <Grid item xs={12}>
-                      <TextField
-                        fullWidth
-                        label="Area / Locality"
-                        name="area"
-                        value={formData.area}
-                        onChange={handleInputChange}
-                        error={!!formErrors.area}
-                        helperText={formErrors.area}
-                        required
-                      />
-                    </Grid>
+                          <Grid item xs={12}>
+                            <TextField
+                              fullWidth
+                              label="Area / Locality"
+                              name="area"
+                              value={formData.area}
+                              onChange={handleInputChange}
+                              error={!!formErrors.area}
+                              helperText={formErrors.area}
+                              required
+                            />
+                          </Grid>
 
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="City"
-                        name="city"
-                        value={formData.city}
-                        onChange={handleInputChange}
-                        error={!!formErrors.city}
-                        helperText="Delivery available only in Coimbatore"
-                        required
-                        disabled
-                        InputProps={{
-                          readOnly: true,
-                        }}
-                      />
-                    </Grid>
+                          <Grid item xs={12} sm={6}>
+                            <TextField
+                              fullWidth
+                              label="City"
+                              name="city"
+                              value={formData.city}
+                              onChange={handleInputChange}
+                              error={!!formErrors.city}
+                              helperText="Delivery available only in Coimbatore"
+                              required
+                              disabled
+                              InputProps={{
+                                readOnly: true,
+                              }}
+                            />
+                          </Grid>
 
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Pincode"
-                        name="pincode"
-                        value={formData.pincode}
-                        onChange={handleInputChange}
-                        error={!!formErrors.pincode}
-                        helperText={formErrors.pincode || 'Enter Coimbatore pincode (641xxx)'}
-                        required
-                        inputProps={{ maxLength: 6 }}
-                        placeholder="641xxx"
-                      />
-                    </Grid>
-                    </>
-                    )}
+                          <Grid item xs={12} sm={6}>
+                            <TextField
+                              fullWidth
+                              label="Pincode"
+                              name="pincode"
+                              value={formData.pincode}
+                              onChange={handleInputChange}
+                              error={!!formErrors.pincode}
+                              helperText={formErrors.pincode || 'Enter Coimbatore pincode (641xxx)'}
+                              required
+                              inputProps={{ maxLength: 6 }}
+                              placeholder="641xxx"
+                            />
+                          </Grid>
+                        </>
+                      )}
 
-                    <Grid item xs={12}>
-                      <TextField
-                        fullWidth
-                        label={(() => {
-                          const hasWeightBased = cart?.items?.some(item => {
-                            const catName = item.item?.category?.name?.toLowerCase() || '';
-                            return catName.includes('occasional') || catName.includes('premium') || catName.includes('party');
-                          });
-                          return hasWeightBased ? "Delivery Notes (Required for Cakes) *" : "Delivery Notes (Optional)";
-                        })()}
-                        name="deliveryNotes"
-                        value={formData.deliveryNotes}
-                        onChange={handleInputChange}
-                        multiline
-                        rows={3}
-                        placeholder={(() => {
-                          const hasWeightBased = cart?.items?.some(item => {
-                            const catName = item.item?.category?.name?.toLowerCase() || '';
-                            return catName.includes('occasional') || catName.includes('premium') || catName.includes('party');
-                          });
-                          return hasWeightBased 
-                            ? "What to write on the cake? (e.g., 'Happy Birthday John!' or type 'Nothing' if you don't want any text)"
-                            : "Any special instructions for delivery...";
-                        })()}
-                        error={!!formErrors.deliveryNotes}
-                        helperText={formErrors.deliveryNotes || (() => {
-                          const hasWeightBased = cart?.items?.some(item => {
-                            const catName = item.item?.category?.name?.toLowerCase() || '';
-                            return catName.includes('occasional') || catName.includes('premium') || catName.includes('party');
-                          });
-                          return hasWeightBased ? "Required: Tell us what message you want on your cake" : "";
-                        })()}
-                        InputProps={{
-                          startAdornment: <Notes style={{ color: '#ff69b4', marginRight: '8px', alignSelf: 'flex-start', marginTop: '12px' }} />,
-                        }}
-                      />
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label={(() => {
+                            const hasWeightBased = cart?.items?.some(item => {
+                              const catName = item.item?.category?.name?.toLowerCase() || '';
+                              return catName.includes('occasional') || catName.includes('premium') || catName.includes('party');
+                            });
+                            return hasWeightBased ? "Delivery Notes (Required for Cakes) *" : "Delivery Notes (Optional)";
+                          })()}
+                          name="deliveryNotes"
+                          value={formData.deliveryNotes}
+                          onChange={handleInputChange}
+                          multiline
+                          rows={3}
+                          placeholder={(() => {
+                            const hasWeightBased = cart?.items?.some(item => {
+                              const catName = item.item?.category?.name?.toLowerCase() || '';
+                              return catName.includes('occasional') || catName.includes('premium') || catName.includes('party');
+                            });
+                            return hasWeightBased
+                              ? "What to write on the cake? (e.g., 'Happy Birthday John!' or type 'Nothing' if you don't want any text)"
+                              : "Any special instructions for delivery...";
+                          })()}
+                          error={!!formErrors.deliveryNotes}
+                          helperText={formErrors.deliveryNotes || (() => {
+                            const hasWeightBased = cart?.items?.some(item => {
+                              const catName = item.item?.category?.name?.toLowerCase() || '';
+                              return catName.includes('occasional') || catName.includes('premium') || catName.includes('party');
+                            });
+                            return hasWeightBased ? "Required: Tell us what message you want on your cake" : "";
+                          })()}
+                          InputProps={{
+                            startAdornment: <Notes style={{ color: '#ff69b4', marginRight: '8px', alignSelf: 'flex-start', marginTop: '12px' }} />,
+                          }}
+                        />
+                      </Grid>
                     </Grid>
-                  </Grid>
-                </form>
+                  </form>
                 )}
               </Paper>
             </Grid>
@@ -591,11 +591,11 @@ const Checkout = () => {
                   // Use stored price if available (for cakes with weight pricing)
                   const itemPrice = cartItem.priceAtAddition && cartItem.priceAtAddition > 0
                     ? cartItem.priceAtAddition
-                    : (cartItem.eggType === 'EGGLESS' 
-                        ? cartItem.item.price + 30 
-                        : cartItem.item.price);
+                    : (cartItem.eggType === 'EGGLESS'
+                      ? cartItem.item.price + 30
+                      : cartItem.item.price);
                   const itemTotal = itemPrice * cartItem.quantity;
-                  
+
                   return (
                     <Box key={cartItem.id} style={{ marginBottom: '15px' }}>
                       <Box style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -607,10 +607,10 @@ const Checkout = () => {
                           </Typography>
                           <Box style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
                             {cartItem.selectedWeight && (
-                              <Chip 
+                              <Chip
                                 label={`${cartItem.selectedWeight} Kg`}
                                 size="small"
-                                style={{ 
+                                style={{
                                   background: '#fff3e0',
                                   color: '#e65100',
                                   fontSize: '10px',
@@ -619,10 +619,10 @@ const Checkout = () => {
                               />
                             )}
                             {cartItem.eggType === 'EGGLESS' && (
-                              <Chip 
+                              <Chip
                                 label="🌱 Eggless"
                                 size="small"
-                                style={{ 
+                                style={{
                                   background: '#e8f5e9',
                                   color: '#2e7d32',
                                   fontSize: '10px',
@@ -661,14 +661,15 @@ const Checkout = () => {
                     background: (submitting || !addressMethod) ? '#ccc' : '#e91e63',
                     color: '#fff',
                     padding: '14px',
-                    fontSize: '16px',
-                    fontWeight: 600,
+                    fontSize: '16.5px',
+                    fontWeight: 700,
                     textTransform: 'none',
                     marginBottom: '10px',
-                    borderRadius: '0',
+                    borderRadius: '50px', // More suitabe rounded look
+                    boxShadow: '0 8px 25px rgba(233, 30, 99, 0.25)',
                   }}
                 >
-                  {submitting ? <CircularProgress size={24} style={{ color: '#fff' }} /> : 'Proceed to Payment'}
+                  {submitting ? <CircularProgress size={24} style={{ color: '#fff' }} /> : 'Confirm & Order'}
                 </Button>
 
                 <Button
@@ -698,7 +699,7 @@ const Checkout = () => {
         onClose={() => setShowLocationPicker(false)}
         onSelectLocation={handleLocationSelect}
       />
-      
+
       <Footer />
     </Box>
   );

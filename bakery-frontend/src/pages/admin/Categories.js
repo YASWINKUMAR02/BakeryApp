@@ -61,8 +61,8 @@ const Categories = () => {
         setCategories(response.data.data);
       }
     } catch (err) {
-      setError('Failed to fetch categories');
-      showError('Failed to fetch categories');
+      setError('Something went wrong');
+      showError('Something went wrong');
     } finally {
       setLoading(false);
     }

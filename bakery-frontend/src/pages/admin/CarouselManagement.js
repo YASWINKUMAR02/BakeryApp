@@ -73,7 +73,7 @@ const CarouselManagement = () => {
       if (categoriesRes.data.success) setCategories(categoriesRes.data.data);
       if (itemsRes.data.success) setItems(itemsRes.data.data);
     } catch (error) {
-      showError('Failed to fetch data');
+      showError('Something went wrong');
     } finally {
       setLoading(false);
     }

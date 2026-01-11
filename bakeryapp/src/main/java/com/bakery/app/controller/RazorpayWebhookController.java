@@ -21,7 +21,6 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/webhooks/razorpay")
-@CrossOrigin(origins = "*")
 public class RazorpayWebhookController {
 
     private static final Logger logger = LoggerFactory.getLogger(RazorpayWebhookController.class);

@@ -1,0 +1,25 @@
+{
+  "short_name": "Frost & Crinkle",
+  "name": "Frost & Crinkle - Premium Artisan Bakery",
+  "description": "Premium artisan brownies, customized cakes, and freshly baked desserts",
+  "icons": [
+    {
+      "src": "LOGOO.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "LOGOO.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#e91e63",
+  "background_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "categories": ["food", "shopping", "lifestyle"]
+}

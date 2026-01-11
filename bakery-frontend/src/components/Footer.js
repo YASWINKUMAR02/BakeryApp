@@ -1,324 +1,190 @@
 import React from 'react';
-import { Link as RouterLink } from 'react-router-dom';
-import { Box, Container, Grid, Typography, Link, IconButton, Divider } from '@mui/material';
-import {
-  Facebook,
-  Instagram,
-  Twitter,
-  Email,
-  Phone,
-  LocationOn,
-  Favorite,
-} from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+import { Box, Container, Grid, Typography, IconButton } from '@mui/material';
+import { Facebook, Instagram, Twitter, LocationOn, Phone, Email, Favorite } from '@mui/icons-material';
+import footerImage from '../sample-images/afbb6beb2bc3e1cd789dd0117c0ee637-removebg-preview.png';
 
 const Footer = () => {
+  const navigate = useNavigate();
   const currentYear = new Date().getFullYear();
 
   return (
-    <Box
-      component="footer"
-      style={{
-        background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)',
-        color: '#fff',
-        marginTop: 'auto',
-      }}
-    >
-      <Container maxWidth="lg" sx={{ padding: { xs: '30px 16px 16px', sm: '40px 20px 20px', md: '60px 20px 20px' } }}>
-        <Grid container spacing={{ xs: 2, sm: 3, md: 4 }}>
-          {/* About Section */}
-          <Grid item xs={12} sm={6} md={3} sx={{ display: { xs: 'none', sm: 'block' } }}>
-            <Typography
-              variant="h6"
+    <Box sx={{
+      background: '#1a1a1a',
+      color: '#fff',
+      padding: { xs: '12px 0', sm: '16px 0', lg: '24px 0 16px' },
+      position: 'relative',
+      zIndex: 1000,
+      marginTop: 'auto',
+    }}>
+      <Container maxWidth="lg">
+        {/* Mobile Compact Layout */}
+        <Box sx={{ display: { xs: 'flex', lg: 'none' }, flexDirection: 'column', alignItems: 'center', gap: 2, textAlign: 'center' }}>
+          {/* Mobile Logo and Brand */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <img
+              src={footerImage}
+              alt="Frost & Crinkle"
               style={{
-                fontWeight: 700,
-                marginBottom: '20px',
-                color: '#e91e63',
+                width: 'auto',
+                height: '40px',
+                objectFit: 'contain',
               }}
-            >
+            />
+            <Typography variant="h6" sx={{ color: '#e91e63', fontWeight: 700, fontSize: '1rem' }}>
               Frost & Crinkle
             </Typography>
-            <Typography
-              variant="body2"
-              style={{
-                color: '#b0b0b0',
-                lineHeight: 1.8,
-                marginBottom: '20px',
-              }}
-            >
-              Your premium online bakery for fresh cakes, pastries, and breads.
-              Baked with love, delivered with care.
-            </Typography>
-            {/* Social Media Icons */}
-            <Box style={{ display: 'flex', gap: '12px' }}>
-              <IconButton
-                size="small"
-                style={{ color: '#e91e63', background: 'rgba(233, 30, 99, 0.1)' }}
-                href="https://facebook.com"
-                target="_blank"
-              >
-                <Facebook />
-              </IconButton>
-              <IconButton
-                size="small"
-                style={{ color: '#e91e63', background: 'rgba(233, 30, 99, 0.1)' }}
-                href="https://instagram.com"
-                target="_blank"
-              >
-                <Instagram />
-              </IconButton>
-              <IconButton
-                size="small"
-                style={{ color: '#e91e63', background: 'rgba(233, 30, 99, 0.1)' }}
-                href="https://twitter.com"
-                target="_blank"
-              >
-                <Twitter />
-              </IconButton>
-            </Box>
-          </Grid>
+          </Box>
 
-          {/* Quick Links */}
-          <Grid item xs={6} sm={6} md={3}>
-            <Typography
-              variant="h6"
-              sx={{
-                fontWeight: 700,
-                marginBottom: { xs: '12px', sm: '20px' },
-                color: '#e91e63',
-                fontSize: { xs: '1rem', sm: '1.25rem' },
-              }}
-            >
-              Quick Links
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: '8px', sm: '12px' } }}>
-              <Link
-                component={RouterLink}
-                to="/"
-                style={{
-                  color: '#b0b0b0',
-                  textDecoration: 'none',
-                  fontSize: '14px',
-                  transition: 'color 0.3s',
-                }}
-                onMouseEnter={(e) => (e.target.style.color = '#e91e63')}
-                onMouseLeave={(e) => (e.target.style.color = '#b0b0b0')}
-              >
-                Home
-              </Link>
-              <Link
-                component={RouterLink}
-                to="/shop"
-                style={{
-                  color: '#b0b0b0',
-                  textDecoration: 'none',
-                  fontSize: '14px',
-                  transition: 'color 0.3s',
-                }}
-                onMouseEnter={(e) => (e.target.style.color = '#e91e63')}
-                onMouseLeave={(e) => (e.target.style.color = '#b0b0b0')}
-              >
-                Shop
-              </Link>
-              <Link
-                component={RouterLink}
-                to="/about"
-                style={{
-                  color: '#b0b0b0',
-                  textDecoration: 'none',
-                  fontSize: '14px',
-                  transition: 'color 0.3s',
-                }}
-                onMouseEnter={(e) => (e.target.style.color = '#e91e63')}
-                onMouseLeave={(e) => (e.target.style.color = '#b0b0b0')}
-              >
-                About Us
-              </Link>
-              <Link
-                component={RouterLink}
-                to="/contact"
-                style={{
-                  color: '#b0b0b0',
-                  textDecoration: 'none',
-                  fontSize: '14px',
-                  transition: 'color 0.3s',
-                }}
-                onMouseEnter={(e) => (e.target.style.color = '#e91e63')}
-                onMouseLeave={(e) => (e.target.style.color = '#b0b0b0')}
-              >
-                Contact
-              </Link>
-            </Box>
-          </Grid>
+          {/* Mobile Navigation */}
+          <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', justifyContent: 'center' }}>
+            <Typography variant="body2" sx={{ color: '#999', cursor: 'pointer', '&:hover': { color: '#e91e63' }, fontSize: '0.875rem' }} onClick={() => navigate('/')}>Home</Typography>
+            <Typography variant="body2" sx={{ color: '#999', cursor: 'pointer', '&:hover': { color: '#e91e63' }, fontSize: '0.875rem' }} onClick={() => navigate('/shop')}>Shop</Typography>
+            <Typography variant="body2" sx={{ color: '#999', cursor: 'pointer', '&:hover': { color: '#e91e63' }, fontSize: '0.875rem' }} onClick={() => navigate('/about')}>About</Typography>
+            <Typography variant="body2" sx={{ color: '#999', cursor: 'pointer', '&:hover': { color: '#e91e63' }, fontSize: '0.875rem' }} onClick={() => navigate('/contact')}>Contact</Typography>
+            <Typography variant="body2" sx={{ color: '#999', cursor: 'pointer', '&:hover': { color: '#e91e63' }, fontSize: '0.875rem' }} onClick={() => navigate('/refund-policy')}>Refund Policy</Typography>
+            <Typography variant="body2" sx={{ color: '#999', cursor: 'pointer', '&:hover': { color: '#e91e63' }, fontSize: '0.875rem' }} onClick={() => navigate('/delivery-policy')}>Delivery Policy</Typography>
+          </Box>
 
-          {/* Social Media on Mobile / Legal on Desktop */}
-          <Grid item xs={6} sm={6} md={3}>
-            {/* Social Media - Mobile Only */}
-            <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
-              <Typography
-                variant="h6"
-                sx={{
-                  fontWeight: 700,
-                  marginBottom: '12px',
-                  color: '#e91e63',
-                  fontSize: '1rem',
-                }}
-              >
-                Follow Us
-              </Typography>
-              <Box sx={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                <IconButton
-                  size="small"
-                  style={{ color: '#e91e63', background: 'rgba(233, 30, 99, 0.1)' }}
-                  href="https://facebook.com"
-                  target="_blank"
-                >
-                  <Facebook />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  style={{ color: '#e91e63', background: 'rgba(233, 30, 99, 0.1)' }}
-                  href="https://instagram.com"
-                  target="_blank"
-                >
-                  <Instagram />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  style={{ color: '#e91e63', background: 'rgba(233, 30, 99, 0.1)' }}
-                  href="https://twitter.com"
-                  target="_blank"
-                >
-                  <Twitter />
-                </IconButton>
-              </Box>
-            </Box>
+          {/* Mobile Social Icons */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <IconButton component="a" href="https://www.facebook.com" target="_blank" rel="noopener noreferrer" sx={{ color: '#e91e63', '&:hover': { background: 'rgba(233, 30, 99, 0.1)' }, p: 0.5 }}>
+              <Facebook fontSize="small" />
+            </IconButton>
+            <IconButton component="a" href="https://www.instagram.com/frost_and_crinkle?igsh=bzVoaGVlMm1uaG1q" target="_blank" rel="noopener noreferrer" sx={{ color: '#e91e63', '&:hover': { background: 'rgba(233, 30, 99, 0.1)' }, p: 0.5 }}>
+              <Instagram fontSize="small" />
+            </IconButton>
+            <IconButton component="a" href="https://www.twitter.com" target="_blank" rel="noopener noreferrer" sx={{ color: '#e91e63', '&:hover': { background: 'rgba(233, 30, 99, 0.1)' }, p: 0.5 }}>
+              <Twitter fontSize="small" />
+            </IconButton>
+          </Box>
 
-            {/* Legal - Tablet & Desktop */}
-            <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-              <Typography
-                variant="h6"
-                sx={{
-                  fontWeight: 700,
-                  marginBottom: { xs: '12px', sm: '20px' },
-                  color: '#e91e63',
-                  fontSize: { xs: '1rem', sm: '1.25rem' },
-                }}
-              >
-                Legal
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: '8px', sm: '12px' } }}>
-                <Link
-                  component={RouterLink}
-                  to="/terms"
-                  style={{
-                    color: '#b0b0b0',
-                    textDecoration: 'none',
-                    fontSize: '14px',
-                    transition: 'color 0.3s',
-                  }}
-                  onMouseEnter={(e) => (e.target.style.color = '#e91e63')}
-                  onMouseLeave={(e) => (e.target.style.color = '#b0b0b0')}
-                >
-                  Terms of Service
-                </Link>
-                <Link
-                  component={RouterLink}
-                  to="/privacy"
-                  style={{
-                    color: '#b0b0b0',
-                    textDecoration: 'none',
-                    fontSize: '14px',
-                    transition: 'color 0.3s',
-                  }}
-                  onMouseEnter={(e) => (e.target.style.color = '#e91e63')}
-                  onMouseLeave={(e) => (e.target.style.color = '#b0b0b0')}
-                >
-                  Privacy Policy
-                </Link>
-                <Link
-                  component={RouterLink}
-                  to="/refund"
-                  style={{
-                    color: '#b0b0b0',
-                    textDecoration: 'none',
-                    fontSize: '14px',
-                    transition: 'color 0.3s',
-                  }}
-                  onMouseEnter={(e) => (e.target.style.color = '#e91e63')}
-                  onMouseLeave={(e) => (e.target.style.color = '#b0b0b0')}
-                >
-                  Refund Policy
-                </Link>
-              </Box>
-            </Box>
-          </Grid>
-
-          {/* Contact Info */}
-          <Grid item xs={12} sm={6} md={3} sx={{ display: { xs: 'none', md: 'block' } }}>
-            <Typography
-              variant="h6"
-              style={{
-                fontWeight: 700,
-                marginBottom: '20px',
-                color: '#e91e63',
-              }}
-            >
-              Contact Us
-            </Typography>
-            <Box style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <Box style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                <LocationOn style={{ color: '#e91e63', fontSize: '20px' }} />
-                <Typography variant="body2" style={{ color: '#b0b0b0', fontSize: '14px' }}>
-                  123 Bakery Street,
-                  <br />
-                  Sweet City, SC 12345
-                </Typography>
-              </Box>
-              <Box style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <Phone style={{ color: '#e91e63', fontSize: '20px' }} />
-                <Typography variant="body2" style={{ color: '#b0b0b0', fontSize: '14px' }}>
-                  +91 1234567890
-                </Typography>
-              </Box>
-              <Box style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <Email style={{ color: '#e91e63', fontSize: '20px' }} />
-                <Typography variant="body2" style={{ color: '#b0b0b0', fontSize: '14px' }}>
-                  hello@frostandcrinkle.com
-                </Typography>
-              </Box>
-            </Box>
-          </Grid>
-        </Grid>
-
-        {/* Divider */}
-        <Divider sx={{ background: 'rgba(255, 255, 255, 0.1)', margin: { xs: '20px 0 12px', sm: '30px 0 16px', md: '40px 0 20px' } }} />
-
-        {/* Bottom Bar */}
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: { xs: 'center', sm: 'space-between' },
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: { xs: '8px', sm: '16px' },
-            textAlign: { xs: 'center', sm: 'left' },
-          }}
-        >
-          <Typography variant="body2" sx={{ color: '#b0b0b0', fontSize: { xs: '12px', sm: '14px' } }}>
+          <Typography variant="caption" sx={{ color: '#666', textAlign: 'center' }}>
             © {currentYear} Frost & Crinkle. All rights reserved.
           </Typography>
-          <Typography
-            variant="body2"
-            sx={{
-              color: '#b0b0b0',
-              fontSize: { xs: '12px', sm: '14px' },
-              display: { xs: 'none', sm: 'flex' },
-              alignItems: 'center',
-              gap: '4px',
-            }}
-          >
-            Made with <Favorite style={{ color: '#e91e63', fontSize: '16px' }} /> for bakery lovers
-          </Typography>
+        </Box>
+
+        {/* Desktop Full Layout */}
+        <Box sx={{ display: { xs: 'none', lg: 'block' } }}>
+          <Grid container spacing={3} alignItems="flex-start">
+            {/* Company Info */}
+            <Grid item xs={12} lg={4}>
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                <img
+                  src={footerImage}
+                  alt="Frost & Crinkle"
+                  style={{
+                    width: 'auto',
+                    height: '60px',
+                    objectFit: 'contain',
+                    flexShrink: 0
+                  }}
+                />
+                <Box>
+                  <Typography variant="h6" sx={{ color: '#e91e63', fontWeight: 700, marginBottom: 1 }}>
+                    Frost & Crinkle
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#999', lineHeight: 1.5, marginBottom: 1.5, fontSize: '0.875rem' }}>
+                    Your premium online bakery for fresh cakes, pastries, and breads. Baked with love, delivered with care.
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 0.5 }}>
+                    <IconButton
+                      component="a"
+                      href="https://www.facebook.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      sx={{ color: '#e91e63', '&:hover': { background: 'rgba(233, 30, 99, 0.1)' }, p: 0.5 }}
+                    >
+                      <Facebook fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                      component="a"
+                      href="https://www.instagram.com/frost_and_crinkle?igsh=bzVoaGVlMm1uaG1q"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      sx={{ color: '#e91e63', '&:hover': { background: 'rgba(233, 30, 99, 0.1)' }, p: 0.5 }}
+                    >
+                      <Instagram fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                      component="a"
+                      href="https://www.twitter.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      sx={{ color: '#e91e63', '&:hover': { background: 'rgba(233, 30, 99, 0.1)' }, p: 0.5 }}
+                    >
+                      <Twitter fontSize="small" />
+                    </IconButton>
+                  </Box>
+                </Box>
+              </Box>
+            </Grid>
+
+            {/* Navigation Links */}
+            <Grid item xs={12} sm={6} lg={2.5}>
+              <Typography variant="h6" sx={{ color: '#e91e63', fontWeight: 700, marginBottom: 1.5, fontSize: '1rem' }}>
+                Quick Links
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.8 }}>
+                <Typography variant="body2" sx={{ color: '#999', cursor: 'pointer', '&:hover': { color: '#e91e63' }, fontSize: '0.875rem' }} onClick={() => navigate('/')}>Home</Typography>
+                <Typography variant="body2" sx={{ color: '#999', cursor: 'pointer', '&:hover': { color: '#e91e63' }, fontSize: '0.875rem' }} onClick={() => navigate('/shop')}>Shop</Typography>
+                <Typography variant="body2" sx={{ color: '#999', cursor: 'pointer', '&:hover': { color: '#e91e63' }, fontSize: '0.875rem' }} onClick={() => navigate('/about')}>About Us</Typography>
+                <Typography variant="body2" sx={{ color: '#999', cursor: 'pointer', '&:hover': { color: '#e91e63' }, fontSize: '0.875rem' }} onClick={() => navigate('/faq')}>FAQ</Typography>
+                <Typography variant="body2" sx={{ color: '#999', cursor: 'pointer', '&:hover': { color: '#e91e63' }, fontSize: '0.875rem' }} onClick={() => navigate('/contact')}>Contact</Typography>
+              </Box>
+            </Grid>
+
+            {/* Legal Links */}
+            <Grid item xs={12} sm={6} lg={2.5}>
+              <Typography variant="h6" sx={{ color: '#e91e63', fontWeight: 700, marginBottom: 1.5, fontSize: '1rem' }}>
+                Legal
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.8 }}>
+                <Typography variant="body2" sx={{ color: '#999', cursor: 'pointer', '&:hover': { color: '#e91e63' }, fontSize: '0.875rem' }} onClick={() => navigate('/terms')}>Terms of Service</Typography>
+                <Typography variant="body2" sx={{ color: '#999', cursor: 'pointer', '&:hover': { color: '#e91e63' }, fontSize: '0.875rem' }} onClick={() => navigate('/privacy')}>Privacy Policy</Typography>
+                <Typography variant="body2" sx={{ color: '#999', cursor: 'pointer', '&:hover': { color: '#e91e63' }, fontSize: '0.875rem' }} onClick={() => navigate('/refund-policy')}>Refund Policy</Typography>
+                <Typography variant="body2" sx={{ color: '#999', cursor: 'pointer', '&:hover': { color: '#e91e63' }, fontSize: '0.875rem' }} onClick={() => navigate('/delivery-policy')}>Delivery Policy</Typography>
+              </Box>
+            </Grid>
+
+            {/* Contact Info */}
+            <Grid item xs={12} lg={3}>
+              <Typography variant="h6" sx={{ color: '#e91e63', fontWeight: 700, marginBottom: 1.5, fontSize: '1rem' }}>
+                Contact Us
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                  <LocationOn sx={{ color: '#e91e63', fontSize: '18px', mt: 0.1 }} />
+                  <Typography variant="body2" sx={{ color: '#999', lineHeight: 1.5, fontSize: '0.875rem' }}>
+                    Lawly Road<br />
+                    Coimbatore - 641003
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Phone sx={{ color: '#e91e63', fontSize: '18px' }} />
+                  <Typography variant="body2" sx={{ color: '#999', fontSize: '0.875rem' }}>
+                    +91 9629198467
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Email sx={{ color: '#e91e63', fontSize: '18px' }} />
+                  <Typography variant="body2" sx={{ color: '#999', fontSize: '0.875rem' }}>
+                    frostandcrinkle@gmail.com
+                  </Typography>
+                </Box>
+              </Box>
+            </Grid>
+          </Grid>
+
+          {/* Desktop Bottom Bar */}
+          <Box sx={{ marginTop: 3, paddingTop: 2, borderTop: '1px solid #333', textAlign: 'center' }}>
+            <Typography variant="body2" sx={{ color: '#666' }}>
+              © {currentYear} Frost & Crinkle. All rights reserved.
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#666', marginTop: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+              Made with <Favorite sx={{ color: '#e91e63', fontSize: '16px' }} /> for bakery lovers
+            </Typography>
+          </Box>
         </Box>
       </Container>
     </Box>

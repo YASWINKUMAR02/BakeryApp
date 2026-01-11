@@ -11,7 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 public class DashboardStats {
     private Long totalOrders;
-    private Long pendingOrders;
+    private Long currentOrders;
     private Long deliveredOrders;
     private Long totalCustomers;
     private Long totalItems;

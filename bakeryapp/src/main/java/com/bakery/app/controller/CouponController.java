@@ -15,7 +15,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/coupons")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class CouponController {
     
     private final CouponService couponService;

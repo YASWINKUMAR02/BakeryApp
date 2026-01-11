@@ -250,22 +250,6 @@ const AdminLogin = () => {
               </Typography>
             </Box>
 
-            <Box style={{ textAlign: 'center', marginTop: '10px' }}>
-              <Typography variant="body2" style={{ color: '#999', fontSize: '12px' }}>
-                Don't have admin access?{' '}
-                <Link
-                  component={RouterLink}
-                  to="/admin/register"
-                  style={{
-                    color: '#667eea',
-                    fontWeight: 600,
-                    textDecoration: 'none',
-                  }}
-                >
-                  Register
-                </Link>
-              </Typography>
-            </Box>
           </form>
         </Paper>
       </Container>

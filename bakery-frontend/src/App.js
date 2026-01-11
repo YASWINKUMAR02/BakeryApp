@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { Box, CircularProgress } from '@mui/material';
@@ -6,7 +6,12 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { AnimatePresence } from 'framer-motion';
 import { ToastProvider, useToast } from './context/ToastContext';
 import { setToastFunction } from './utils/toast';
+import { checkBackendWithRetry } from './utils/checkBackendStatus';
 import PageTransition from './components/PageTransition';
+import OfflineNotice from './components/OfflineNotice';
+import BackToTop from './components/BackToTop';
+import BottomNav from './components/BottomNav';
+import CustomerHeader from './components/CustomerHeader';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ResetPassword from './pages/ResetPassword';
@@ -40,6 +45,10 @@ import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import NotFound from './pages/NotFound';
 import SimpleHome from './pages/SimpleHome';
+import FAQ from './pages/FAQ';
+import Gallery from './pages/Gallery';
+import PageLoader from './components/PageLoader';
+import useSwipeGesture from './hooks/useSwipeGesture';
 
 const theme = createTheme({
   palette: {
@@ -141,7 +150,7 @@ const theme = createTheme({
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  
+
   if (loading) {
     return (
       <Box style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
@@ -149,13 +158,13 @@ const ProtectedRoute = ({ children }) => {
       </Box>
     );
   }
-  
+
   return user ? children : <Navigate to="/login" />;
 };
 
 const AdminProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  
+
   if (loading) {
     return (
       <Box style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
@@ -163,37 +172,17 @@ const AdminProtectedRoute = ({ children }) => {
       </Box>
     );
   }
-  
+
   return user && user.role === 'ADMIN' ? children : <Navigate to="/admin/login" />;
 };
 
-const RootRedirect = () => {
-  const { user, loading } = useAuth();
-  
-  if (loading) {
-    return (
-      <Box style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-  
-  if (user) {
-    // Redirect based on role
-    if (user.role === 'ADMIN') {
-      return <Navigate to="/admin/dashboard" />;
-    }
-    // Customer goes to home
-    return <Navigate to="/home" />;
-  }
-  
-  // Guests go to home page
-  return <Navigate to="/home" />;
-};
+
+
+
 
 const AuthRedirect = ({ children }) => {
   const { user, loading } = useAuth();
-  
+
   if (loading) {
     return (
       <Box style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
@@ -201,7 +190,7 @@ const AuthRedirect = ({ children }) => {
       </Box>
     );
   }
-  
+
   if (user) {
     // Redirect based on role
     if (user.role === 'ADMIN') {
@@ -215,176 +204,183 @@ const AuthRedirect = ({ children }) => {
 
 const AnimatedRoutes = () => {
   const location = useLocation();
-  
+
   // Debug log to see what route is being accessed
   console.log('🔀 Route changed to:', location.pathname);
-  
+
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        {/* Home Page - Landing page for everyone (guests, customers) */}
-        <Route path="/" element={<Home />} />
-        <Route path="/home" element={<Home />} />
-        
+        <Route path="/" element={<PageTransition variant="home"><Home /></PageTransition>} />
+        <Route path="/home" element={<PageTransition variant="home"><Home /></PageTransition>} />
+
         {/* Customer Routes */}
-        <Route 
-          path="/login" 
+        <Route
+          path="/login"
           element={
             <PageTransition>
               <AuthRedirect>
                 <Login />
               </AuthRedirect>
             </PageTransition>
-          } 
+          }
         />
-        <Route 
-          path="/register" 
+        <Route
+          path="/register"
           element={
             <AuthRedirect>
               <Register />
             </AuthRedirect>
-          } 
+          }
         />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/about-us" element={<AboutUs />} />
         <Route path="/contact-us" element={<Contact />} />
         <Route path="/about" element={<PageTransition><About /></PageTransition>} />
         <Route path="/contact" element={<PageTransition><ContactPage /></PageTransition>} />
+        <Route path="/faq" element={<PageTransition><FAQ /></PageTransition>} />
         <Route path="/terms" element={<PageTransition><Terms /></PageTransition>} />
         <Route path="/privacy" element={<PageTransition><Privacy /></PageTransition>} />
-        <Route path="/shop" element={<PageTransition><Shop /></PageTransition>} />
-        <Route path="/item/:id" element={<PageTransition><ItemDetail /></PageTransition>} />
-        <Route 
-          path="/cart" 
-          element={
-            <ProtectedRoute>
+        <Route path="/gallery" element={<PageTransition><Gallery /></PageTransition>} />
+        <Route path="/shop" element={<PageTransition variant="shop"><Shop /></PageTransition>} />
+        <Route path="/item/:id" element={<PageTransition variant="detail"><ItemDetail /></PageTransition>} />
+        <Route path="/cart" element={
+          <ProtectedRoute>
+            <PageTransition>
               <Cart />
-            </ProtectedRoute>
-          } 
+            </PageTransition>
+          </ProtectedRoute>
+        }
         />
-        <Route 
-          path="/checkout" 
+        <Route
+          path="/checkout"
           element={
             <ProtectedRoute>
-              <Checkout />
+              <PageTransition>
+                <Checkout />
+              </PageTransition>
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/orders" 
+        <Route
+          path="/orders"
           element={
             <ProtectedRoute>
-              <CustomerOrders />
+              <PageTransition>
+                <CustomerOrders />
+              </PageTransition>
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/profile" 
+        <Route
+          path="/profile"
           element={
             <ProtectedRoute>
-              <Profile />
+              <PageTransition>
+                <Profile />
+              </PageTransition>
             </ProtectedRoute>
-          } 
+          }
         />
-        
+
         {/* Admin Routes */}
-        <Route 
-          path="/admin/login" 
+        <Route
+          path="/admin/login"
           element={
             <AuthRedirect>
               <AdminLogin />
             </AuthRedirect>
-          } 
+          }
         />
-        <Route 
-          path="/admin/register" 
+        <Route
+          path="/admin/register"
           element={
             <AuthRedirect>
               <AdminRegister />
             </AuthRedirect>
-          } 
+          }
         />
-        <Route 
-          path="/admin/dashboard" 
+        <Route
+          path="/admin/dashboard"
           element={
             <AdminProtectedRoute>
               <AdminDashboard />
             </AdminProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/admin/categories" 
+        <Route
+          path="/admin/categories"
           element={
             <AdminProtectedRoute>
               <Categories />
             </AdminProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/admin/items" 
+        <Route
+          path="/admin/items"
           element={
             <AdminProtectedRoute>
               <Items />
             </AdminProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/admin/orders" 
+        <Route
+          path="/admin/orders"
           element={
             <AdminProtectedRoute>
               <Orders />
             </AdminProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/admin/customers" 
+        <Route
+          path="/admin/customers"
           element={
             <AdminProtectedRoute>
               <Customers />
             </AdminProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/admin/carousel-management" 
+        <Route
+          path="/admin/carousel-management"
           element={
             <AdminProtectedRoute>
               <CarouselManagement />
             </AdminProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/admin/order-history" 
+        <Route
+          path="/admin/order-history"
           element={
             <AdminProtectedRoute>
               <AdminOrderHistory />
             </AdminProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/admin/analytics" 
+        <Route
+          path="/admin/analytics"
           element={
             <AdminProtectedRoute>
               <Analytics />
             </AdminProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/admin/analytics-dashboard" 
+        <Route
+          path="/admin/analytics-dashboard"
           element={
             <AdminProtectedRoute>
               <AnalyticsDashboard />
             </AdminProtectedRoute>
-          } 
+          }
         />
-        <Route 
-          path="/admin/home" 
+        <Route
+          path="/admin/home"
           element={
             <AdminProtectedRoute>
               <AdminHome />
             </AdminProtectedRoute>
-          } 
+          }
         />
-        
+
         {/* Catch all - 404 page */}
         <Route path="*" element={<NotFound />} />
       </Routes>
@@ -392,18 +388,72 @@ const AnimatedRoutes = () => {
   );
 };
 
+const GlobalHeader = () => {
+  const location = useLocation();
+  // Don't show header on admin pages
+  if (location.pathname.startsWith('/admin')) {
+    return null;
+  }
+  return <CustomerHeader />;
+};
+
 const AppRoutes = () => {
   const { showToast } = useToast();
+  const { loading: authLoading } = useAuth();
+  const [backendOnline, setBackendOnline] = useState(true);
+  const [checking, setChecking] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+
+  // Apply global swipe gestures for mobile navigation
+  useSwipeGesture({ threshold: 120 });
+
+  useEffect(() => {
+    // Show splash screen for at least 2 seconds
+    const timer = setTimeout(() => {
+      setInitialLoading(false);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     setToastFunction(showToast);
+
+    // Check backend status on mount
+    const checkBackend = async () => {
+      const isOnline = await checkBackendWithRetry(2);
+      setBackendOnline(isOnline);
+      setChecking(false);
+    };
+
+    checkBackend();
+
+    // Check backend status every 30 seconds
+    const interval = setInterval(async () => {
+      const isOnline = await checkBackendWithRetry(1);
+      setBackendOnline(isOnline);
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, [showToast]);
 
+  // Show splash screen/loader on initial load OR during backend/auth check
+  if (checking || initialLoading || authLoading) {
+    return <PageLoader />;
+  }
+
+  // Show offline notice if backend is down
+  if (!backendOnline) {
+    return <OfflineNotice />;
+  }
+
   return (
-    <Router>
+    <>
       <ScrollToTop />
+      <GlobalHeader />
       <AnimatedRoutes />
-    </Router>
+      <BackToTop />
+      <BottomNav />
+    </>
   );
 };
 
@@ -411,11 +461,13 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <ToastProvider>
-        <AuthProvider>
-          <AppRoutes />
-        </AuthProvider>
-      </ToastProvider>
+      <Router>
+        <ToastProvider>
+          <AuthProvider>
+            <AppRoutes />
+          </AuthProvider>
+        </ToastProvider>
+      </Router>
     </ThemeProvider>
   );
 }

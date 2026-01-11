@@ -1,7 +1,6 @@
 import React from 'react';
 import { Container, Box, Typography, Grid, Paper, Card, CardContent } from '@mui/material';
 import { Cake, LocalShipping, Favorite, Star } from '@mui/icons-material';
-import CustomerHeader from '../components/CustomerHeader';
 import Footer from '../components/Footer';
 
 const About = () => {
@@ -30,8 +29,7 @@ const About = () => {
 
   return (
     <Box style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <CustomerHeader />
-      
+
       <Box style={{ paddingTop: '80px', flex: 1 }}>
         {/* Hero Section */}
         <Box
