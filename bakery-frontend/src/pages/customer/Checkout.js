@@ -32,6 +32,8 @@ import { notifyCustomerOrderPlaced, notifyAdminNewOrder } from '../../utils/noti
 import LocationPicker from '../../components/LocationPicker';
 import { initializeRazorpay, isRazorpayLoaded } from '../../services/razorpay';
 import { validateName, validatePhone, validateRequired, validatePincode } from '../../utils/formValidation';
+import { formatCurrency } from '../../utils/currencyUtils';
+import PriceDisplay from '../../components/PriceDisplay';
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -632,9 +634,7 @@ const Checkout = () => {
                             )}
                           </Box>
                         </Box>
-                        <Typography variant="body1" style={{ fontWeight: 600 }}>
-                          ₹{itemTotal.toFixed(2)}
-                        </Typography>
+                        <PriceDisplay amount={itemTotal} fontSize="1rem" fontWeight={600} />
                       </Box>
                     </Box>
                   );
@@ -646,9 +646,7 @@ const Checkout = () => {
                   <Typography variant="h6" style={{ fontWeight: 700 }}>
                     Total:
                   </Typography>
-                  <Typography variant="h5" style={{ fontWeight: 700, color: '#000000' }}>
-                    ₹{calculateTotal().toFixed(2)}
-                  </Typography>
+                  <PriceDisplay amount={calculateTotal()} fontSize="1.5rem" fontWeight={700} />
                 </Box>
 
                 <Button

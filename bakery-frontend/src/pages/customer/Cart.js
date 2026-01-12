@@ -30,6 +30,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import {
   Delete,
   ShoppingCart,
@@ -41,6 +42,9 @@ import { cartAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import Footer from '../../components/Footer';
 import { showSuccess, showError } from '../../utils/toast';
+import QuantitySelector from '../../components/QuantitySelector';
+import { formatCurrency } from '../../utils/currencyUtils';
+import PriceDisplay from '../../components/PriceDisplay';
 
 const Cart = () => {
   const navigate = useNavigate();
@@ -49,6 +53,7 @@ const Cart = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [updatingItems, setUpdatingItems] = useState(new Set());
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
 
@@ -76,12 +81,19 @@ const Cart = () => {
   const handleUpdateQuantity = async (cartItemId, newQuantity) => {
     if (newQuantity < 1) return;
 
+    setUpdatingItems(prev => new Set(prev).add(cartItemId));
     try {
       await cartAPI.updateItem(cartItemId, newQuantity);
-      fetchCart();
+      await fetchCart();
       showSuccess('Quantity updated!');
     } catch (err) {
       showError(err.response?.data?.message || 'Failed to update quantity');
+    } finally {
+      setUpdatingItems(prev => {
+        const next = new Set(prev);
+        next.delete(cartItemId);
+        return next;
+      });
     }
   };
 
@@ -224,7 +236,7 @@ const Cart = () => {
                                     <Typography variant="body1" sx={{ fontWeight: 600, fontSize: { xs: '0.85rem', md: '1rem' } }}>
                                       {cartItem.item.name}
                                     </Typography>
-                                    <Box sx={{ display: 'flex', gap: { xs: '4px', md: '6px' }, marginTop: { xs: '4px', md: '6px' }, flexWrap: 'wrap' }}>
+                                    <Box sx={{ display: 'flex', gap: { xs: '4px', md: '6px' }, marginTop: { xs: '4px', md: '6px' }, flexWrap: 'wrap', alignItems: 'center' }}>
                                       {cartItem.selectedWeight && (
                                         <Chip
                                           label={`${cartItem.selectedWeight} Kg`}
@@ -251,6 +263,11 @@ const Cart = () => {
                                           }}
                                         />
                                       )}
+                                      {cartItem.item.stock < 10 && cartItem.item.stock > 0 && (
+                                        <Typography variant="caption" sx={{ color: '#ed6c02', fontWeight: 700, fontSize: '10px', ml: 0.5 }}>
+                                          Only {cartItem.item.stock} left
+                                        </Typography>
+                                      )}
                                     </Box>
                                   </Box>
                                 </Box>
@@ -270,72 +287,24 @@ const Cart = () => {
                                 <Typography variant="body2" color="textSecondary" sx={{ fontSize: { xs: '0.75rem', md: '0.875rem' } }}>
                                   Price:
                                 </Typography>
-                                <Typography variant="body1" sx={{ fontWeight: 600, fontSize: { xs: '0.8rem', md: '1rem' } }}>
-                                  ₹{getItemPrice(cartItem)?.toFixed(2)}
-                                </Typography>
+                                <PriceDisplay
+                                  amount={getItemPrice(cartItem)}
+                                  fontSize="0.9rem"
+                                  fontWeight={600}
+                                />
                               </Box>
 
-                              <Box sx={{ marginBottom: { xs: '6px', md: '8px' } }}>
-                                <Typography variant="body2" color="textSecondary" sx={{ fontSize: { xs: '0.75rem', md: '0.875rem' }, marginBottom: { xs: '4px', md: '0' } }}>
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: { xs: '6px', md: '8px' } }}>
+                                <Typography variant="body2" color="textSecondary" sx={{ fontSize: { xs: '0.75rem', md: '0.875rem' } }}>
                                   Quantity:
                                 </Typography>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: '4px', md: '8px' }, justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
-                                  <Button
-                                    variant="outlined"
-                                    size="small"
-                                    onClick={() => handleUpdateQuantity(cartItem.id, Math.max(1, cartItem.quantity - 1))}
-                                    disabled={cartItem.quantity <= 1}
-                                    sx={{
-                                      minWidth: { xs: '24px', md: '36px' },
-                                      height: { xs: '24px', md: '34px' },
-                                      padding: { xs: '2px', md: '5px' },
-                                      borderColor: '#e91e63',
-                                      color: '#e91e63',
-                                      fontSize: { xs: '0.8rem', md: '1rem' },
-                                      borderRadius: '8px',
-                                      '&:hover': { borderColor: '#e91e63', background: 'rgba(233, 30, 99, 0.04)' },
-                                    }}
-                                  >
-                                    -
-                                  </Button>
-                                  <TextField
-                                    type="number"
-                                    value={cartItem.quantity}
-                                    onChange={(e) => {
-                                      const value = parseInt(e.target.value);
-                                      if (!isNaN(value) && value >= 1) {
-                                        handleUpdateQuantity(cartItem.id, value);
-                                      }
-                                    }}
-                                    InputProps={{ inputProps: { min: 1 } }}
-                                    size="small"
-                                    sx={{
-                                      width: { xs: '40px', md: '65px' },
-                                      '& input': {
-                                        fontSize: { xs: '0.7rem', md: '0.875rem' },
-                                        padding: { xs: '4px 2px', md: '8.5px 14px' },
-                                        textAlign: 'center',
-                                      },
-                                    }}
-                                  />
-                                  <Button
-                                    variant="outlined"
-                                    size="small"
-                                    onClick={() => handleUpdateQuantity(cartItem.id, cartItem.quantity + 1)}
-                                    sx={{
-                                      minWidth: { xs: '24px', md: '36px' },
-                                      height: { xs: '24px', md: '34px' },
-                                      padding: { xs: '2px', md: '5px' },
-                                      borderColor: '#e91e63',
-                                      color: '#e91e63',
-                                      fontSize: { xs: '0.8rem', md: '1rem' },
-                                      borderRadius: '8px',
-                                      '&:hover': { borderColor: '#e91e63', background: 'rgba(233, 30, 99, 0.04)' },
-                                    }}
-                                  >
-                                    +
-                                  </Button>
-                                </Box>
+                                <QuantitySelector
+                                  value={cartItem.quantity}
+                                  onIncrement={() => handleUpdateQuantity(cartItem.id, cartItem.quantity + 1)}
+                                  onDecrement={() => handleUpdateQuantity(cartItem.id, cartItem.quantity - 1)}
+                                  loading={updatingItems.has(cartItem.id)}
+                                  size="small"
+                                />
                               </Box>
 
                               <Divider sx={{ margin: { xs: '8px 0', md: '12px 0' } }} />
@@ -344,9 +313,12 @@ const Cart = () => {
                                 <Typography variant="body1" sx={{ fontWeight: 700, fontSize: { xs: '0.8rem', md: '1rem' } }}>
                                   Subtotal:
                                 </Typography>
-                                <Typography variant="h6" sx={{ fontWeight: 800, color: '#e91e63', fontSize: { xs: '0.9rem', md: '1.25rem' } }}>
-                                  ₹{(getItemPrice(cartItem) * cartItem.quantity).toFixed(2)}
-                                </Typography>
+                                <PriceDisplay
+                                  amount={getItemPrice(cartItem) * cartItem.quantity}
+                                  fontSize="1rem"
+                                  fontWeight={800}
+                                  color="primary.main"
+                                />
                               </Box>
                             </CardContent>
                           </Card>
@@ -408,72 +380,28 @@ const Cart = () => {
                                           }}
                                         />
                                       )}
+                                      {cartItem.item.stock < 10 && cartItem.item.stock > 0 && (
+                                        <Typography variant="caption" sx={{ color: '#ed6c02', fontWeight: 700, fontSize: '11px', display: 'flex', alignItems: 'center' }}>
+                                          Only {cartItem.item.stock} left
+                                        </Typography>
+                                      )}
                                     </Box>
                                   </Box>
                                 </Box>
                               </TableCell>
-                              <TableCell sx={{ fontWeight: 500 }}>₹{getItemPrice(cartItem)?.toFixed(2)}</TableCell>
-                              <TableCell>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                  <Button
-                                    variant="outlined"
-                                    size="small"
-                                    onClick={() => handleUpdateQuantity(cartItem.id, Math.max(1, cartItem.quantity - 1))}
-                                    disabled={cartItem.quantity <= 1}
-                                    sx={{
-                                      minWidth: '32px',
-                                      height: '32px',
-                                      padding: '4px',
-                                      borderColor: '#e91e63',
-                                      color: '#e91e63',
-                                      fontSize: '0.875rem',
-                                      borderRadius: '8px',
-                                      '&:hover': { borderColor: '#e91e63', background: 'rgba(233, 30, 99, 0.04)' },
-                                    }}
-                                  >
-                                    -
-                                  </Button>
-                                  <TextField
-                                    type="number"
-                                    value={cartItem.quantity}
-                                    onChange={(e) => {
-                                      const value = parseInt(e.target.value);
-                                      if (!isNaN(value) && value >= 1) {
-                                        handleUpdateQuantity(cartItem.id, value);
-                                      }
-                                    }}
-                                    InputProps={{ inputProps: { min: 1 } }}
-                                    size="small"
-                                    sx={{
-                                      width: '60px',
-                                      '& input': {
-                                        textAlign: 'center',
-                                        fontSize: '0.875rem',
-                                        padding: '6px 8px',
-                                      },
-                                    }}
-                                  />
-                                  <Button
-                                    variant="outlined"
-                                    size="small"
-                                    onClick={() => handleUpdateQuantity(cartItem.id, cartItem.quantity + 1)}
-                                    sx={{
-                                      minWidth: '32px',
-                                      height: '32px',
-                                      padding: '4px',
-                                      borderColor: '#e91e63',
-                                      color: '#e91e63',
-                                      fontSize: '0.875rem',
-                                      borderRadius: '8px',
-                                      '&:hover': { borderColor: '#e91e63', background: 'rgba(233, 30, 99, 0.04)' },
-                                    }}
-                                  >
-                                    +
-                                  </Button>
-                                </Box>
+                              <TableCell sx={{ fontWeight: 500 }}>
+                                <PriceDisplay amount={getItemPrice(cartItem)} fontSize="1rem" fontWeight={500} />
                               </TableCell>
-                              <TableCell style={{ fontWeight: 800, color: '#e91e63' }}>
-                                ₹{(getItemPrice(cartItem) * cartItem.quantity).toFixed(2)}
+                              <TableCell>
+                                <QuantitySelector
+                                  value={cartItem.quantity}
+                                  onIncrement={() => handleUpdateQuantity(cartItem.id, cartItem.quantity + 1)}
+                                  onDecrement={() => handleUpdateQuantity(cartItem.id, cartItem.quantity - 1)}
+                                  loading={updatingItems.has(cartItem.id)}
+                                />
+                              </TableCell>
+                              <TableCell>
+                                <PriceDisplay amount={getItemPrice(cartItem) * cartItem.quantity} fontSize="1.1rem" fontWeight={700} color="primary.main" />
                               </TableCell>
                               <TableCell align="right">
                                 <IconButton
@@ -497,9 +425,11 @@ const Cart = () => {
                     <Typography variant="h5" sx={{ fontWeight: 700, fontSize: { xs: '1rem', md: '1.5rem' } }}>
                       Total:
                     </Typography>
-                    <Typography variant="h4" sx={{ fontWeight: 700, color: '#000000', fontSize: { xs: '1.2rem', md: '2.125rem' } }}>
-                      ₹{calculateTotal().toFixed(2)}
-                    </Typography>
+                    <PriceDisplay
+                      amount={calculateTotal()}
+                      fontSize={isMobile ? "1.4rem" : "2.2rem"}
+                      fontWeight={800}
+                    />
                   </Box>
                   <Button
                     fullWidth

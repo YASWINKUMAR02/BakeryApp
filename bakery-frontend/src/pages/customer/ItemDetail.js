@@ -20,6 +20,7 @@ import {
   DialogActions,
   Paper,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import {
   FavoriteBorder,
   Share,
@@ -37,6 +38,9 @@ import { useAuth } from '../../context/AuthContext';
 import CustomerHeader from '../../components/CustomerHeader';
 import ProductCard from '../../components/ProductCard';
 import { showSuccess, showError } from '../../utils/toast';
+import QuantitySelector from '../../components/QuantitySelector';
+import { formatCurrency } from '../../utils/currencyUtils';
+import PriceDisplay from '../../components/PriceDisplay';
 
 const ItemDetail = () => {
   const { id } = useParams();
@@ -282,9 +286,43 @@ const ItemDetail = () => {
                 <Divider sx={{ mb: 2 }} />
 
                 {/* Description */}
-                <Typography variant="body2" color="text.secondary" paragraph sx={{ mb: 3, lineHeight: 1.5, fontSize: '0.9rem' }}>
+                <Typography variant="body2" color="text.secondary" paragraph sx={{ mb: 2, lineHeight: 1.5, fontSize: '0.9rem' }}>
                   {item.description || 'Crafted with premium ingredients and baked fresh daily to perfection.'}
                 </Typography>
+
+                {/* Professional Stock Indicator */}
+                <Box sx={{ mb: 3 }}>
+                  {item.stock === 0 ? (
+                    <Typography variant="body2" sx={{ color: '#d32f2f', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#d32f2f' }} />
+                      Out of Stock
+                    </Typography>
+                  ) : item.stock < 10 ? (
+                    <Typography variant="body2" sx={{
+                      color: '#ed6c02',
+                      fontWeight: 700,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      background: alpha('#ed6c02', 0.08),
+                      px: 1.5,
+                      py: 0.5,
+                      borderRadius: '6px'
+                    }}>
+                      <motion.span
+                        animate={{ opacity: [1, 0.4, 1] }}
+                        transition={{ repeat: Infinity, duration: 1.5 }}
+                        style={{ width: 8, height: 8, borderRadius: '50%', background: '#ed6c02', display: 'inline-block' }}
+                      />
+                      Hurry! Only {item.stock} left in stock
+                    </Typography>
+                  ) : (
+                    <Typography variant="body2" sx={{ color: '#2e7d32', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#2e7d32' }} />
+                      {item.stock} units available
+                    </Typography>
+                  )}
+                </Box>
 
                 {/* Weight Selection */}
                 {isWeightBased() && (
@@ -343,24 +381,20 @@ const ItemDetail = () => {
                         px: 1.5, py: 0.5, borderRadius: '6px', fontWeight: 600, fontSize: '0.8rem'
                       }}
                     >
-                      Eggless (+₹30)
+                      Eggless (+{formatCurrency(30)})
                     </Button>
                   </Box>
                 </Box>
 
-                {/* Quantity for non-weight based */}
                 {!isWeightBased() && (
                   <Box sx={{ mb: 2 }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5, color: '#1a1a1a' }}>Quantity</Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <IconButton onClick={() => setQuantity(Math.max(1, quantity - 1))} disabled={quantity <= 1} size="small" sx={{ border: '1px solid #ddd', p: 0.5 }}>
-                        <Remove fontSize="small" />
-                      </IconButton>
-                      <Typography sx={{ mx: 2, fontWeight: 700, fontSize: '0.9rem' }}>{quantity}</Typography>
-                      <IconButton onClick={() => setQuantity(quantity + 1)} disabled={quantity >= (item.stock || 10)} size="small" sx={{ border: '1px solid #ddd', p: 0.5 }}>
-                        <Add fontSize="small" />
-                      </IconButton>
-                    </Box>
+                    <QuantitySelector
+                      value={quantity}
+                      onIncrement={() => setQuantity(quantity + 1)}
+                      onDecrement={() => setQuantity(Math.max(1, quantity - 1))}
+                      max={item.stock || 10}
+                    />
                   </Box>
                 )}
 
@@ -368,9 +402,11 @@ const ItemDetail = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1, mb: 3 }}>
                   <Box>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>Total Price</Typography>
-                    <Typography variant="h3" sx={{ color: '#e91e63', fontWeight: 800, fontSize: { xs: '1.8rem', md: '2.2rem' }, lineHeight: 1 }}>
-                      ₹{getSubtotal().toFixed(0)}
-                    </Typography>
+                    <PriceDisplay
+                      amount={getSubtotal()}
+                      fontSize="2.2rem"
+                      color="primary.main"
+                    />
                   </Box>
 
                   <motion.div

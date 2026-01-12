@@ -39,6 +39,7 @@ import AdminHeader from '../../components/AdminHeader';
 import AdminSidebar from '../../components/AdminSidebar';
 import { analyticsAPI } from '../../services/api';
 import { showError, showSuccess } from '../../utils/toast';
+import { formatCurrency } from '../../utils/currencyUtils';
 
 const AnalyticsDashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -69,10 +70,10 @@ const AnalyticsDashboard = () => {
 
   const exportToExcel = () => {
     if (!analytics) return;
-    
+
     // Create CSV rows
     const rows = [];
-    
+
     // Sales Overview Section
     rows.push(['SALES OVERVIEW']);
     rows.push(['']);
@@ -87,7 +88,7 @@ const AnalyticsDashboard = () => {
     rows.push(['Month Revenue', `Rs ${analytics.salesOverview.monthRevenue.toFixed(2)}`]);
     rows.push(['Average Order Value', `Rs ${analytics.salesOverview.averageOrderValue.toFixed(2)}`]);
     rows.push(['']);
-    
+
     // Popular Items Section
     rows.push(['POPULAR ITEMS']);
     rows.push(['']);
@@ -102,7 +103,7 @@ const AnalyticsDashboard = () => {
       ]);
     });
     rows.push(['']);
-    
+
     // Customer Insights Section
     rows.push(['CUSTOMER INSIGHTS']);
     rows.push(['']);
@@ -112,7 +113,7 @@ const AnalyticsDashboard = () => {
     rows.push(['Repeat Customer Rate', `${analytics.customerInsights.repeatCustomerRate.toFixed(2)}%`]);
     rows.push(['New Customers This Month', analytics.customerInsights.newCustomersThisMonth]);
     rows.push(['']);
-    
+
     // Top Customers Section
     rows.push(['TOP CUSTOMERS']);
     rows.push(['']);
@@ -127,7 +128,7 @@ const AnalyticsDashboard = () => {
       ]);
     });
     rows.push(['']);
-    
+
     // Low Stock Items Section
     if (analytics.lowStockItems.length > 0) {
       rows.push(['LOW STOCK ALERT']);
@@ -142,9 +143,9 @@ const AnalyticsDashboard = () => {
         ]);
       });
     }
-    
+
     // Convert to CSV format
-    const csvContent = rows.map(row => 
+    const csvContent = rows.map(row =>
       row.map(cell => {
         // Escape quotes and wrap in quotes if contains comma
         const cellStr = String(cell);
@@ -154,7 +155,7 @@ const AnalyticsDashboard = () => {
         return cellStr;
       }).join(',')
     ).join('\n');
-    
+
     // Create and download
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
@@ -165,7 +166,7 @@ const AnalyticsDashboard = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     showSuccess('Analytics exported to CSV successfully!');
   };
 
@@ -174,11 +175,11 @@ const AnalyticsDashboard = () => {
       <>
         <AdminHeader title="Analytics Dashboard" onMenuClick={() => setSidebarOpen(!sidebarOpen)} sidebarOpen={sidebarOpen} />
         <AdminSidebar open={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
-        <Box sx={{ 
-          minHeight: '100vh', 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center', 
+        <Box sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           marginLeft: { xs: 0, md: sidebarOpen ? '260px' : '70px' },
           transition: 'margin-left 0.3s ease'
         }}>
@@ -193,8 +194,8 @@ const AnalyticsDashboard = () => {
       <>
         <AdminHeader title="Analytics Dashboard" onMenuClick={() => setSidebarOpen(!sidebarOpen)} sidebarOpen={sidebarOpen} />
         <AdminSidebar open={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
-        <Box sx={{ 
-          minHeight: '100vh', 
+        <Box sx={{
+          minHeight: '100vh',
           paddingTop: { xs: '70px', sm: '100px' },
           paddingBottom: { xs: '20px', sm: '40px' },
           paddingLeft: { xs: '8px', sm: '20px' },
@@ -215,10 +216,10 @@ const AnalyticsDashboard = () => {
       <AdminHeader title="Analytics Dashboard" onMenuClick={() => setSidebarOpen(!sidebarOpen)} sidebarOpen={sidebarOpen} />
       <AdminSidebar open={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
 
-      <Box sx={{ 
-        minHeight: '100vh', 
-        background: '#f5f5f5', 
-        paddingTop: { xs: '70px', sm: '80px' }, 
+      <Box sx={{
+        minHeight: '100vh',
+        background: '#f5f5f5',
+        paddingTop: { xs: '70px', sm: '80px' },
         paddingBottom: { xs: '20px', sm: '40px' },
         paddingLeft: { xs: '8px', sm: '16px' },
         paddingRight: { xs: '8px', sm: '16px' },
@@ -280,10 +281,10 @@ const AnalyticsDashboard = () => {
                     <Box>
                       <Typography variant="body2" style={{ opacity: 0.9 }}>Total Revenue</Typography>
                       <Typography variant="h4" style={{ fontWeight: 700, marginTop: '8px' }}>
-                        ₹{salesOverview.totalRevenue.toFixed(0)}
+                        {formatCurrency(salesOverview.totalRevenue)}
                       </Typography>
                       <Typography variant="caption" style={{ opacity: 0.8 }}>
-                        Today: ₹{salesOverview.todayRevenue.toFixed(0)}
+                        Today: {formatCurrency(salesOverview.todayRevenue)}
                       </Typography>
                     </Box>
                     <CurrencyRupee style={{ fontSize: 48, opacity: 0.3 }} />
@@ -299,7 +300,7 @@ const AnalyticsDashboard = () => {
                     <Box>
                       <Typography variant="body2" style={{ opacity: 0.9 }}>Avg Order Value</Typography>
                       <Typography variant="h4" style={{ fontWeight: 700, marginTop: '8px' }}>
-                        ₹{salesOverview.averageOrderValue.toFixed(0)}
+                        {formatCurrency(salesOverview.averageOrderValue)}
                       </Typography>
                       <Typography variant="caption" style={{ opacity: 0.8 }}>
                         Per order
@@ -355,18 +356,18 @@ const AnalyticsDashboard = () => {
                     return (
                       <Box key={index} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <Typography variant="caption" style={{ marginBottom: '4px', fontWeight: 600 }}>
-                          ₹{day.revenue.toFixed(0)}
+                          {formatCurrency(day.revenue)}
                         </Typography>
-                        <Box 
-                          style={{ 
-                            width: '100%', 
-                            height: `${height}px`, 
+                        <Box
+                          style={{
+                            width: '100%',
+                            height: `${height}px`,
                             background: 'linear-gradient(180deg, #1976d2 0%, #42a5f5 100%)',
                             borderRadius: '4px 4px 0 0',
                             minHeight: day.revenue > 0 ? '20px' : '2px',
                             transition: 'all 0.3s ease'
                           }}
-                          title={`${day.date}: ₹${day.revenue.toFixed(2)} (${day.orders} orders)`}
+                          title={`${day.date}: ${formatCurrency(day.revenue)} (${day.orders} orders)`}
                         />
                         <Typography variant="caption" style={{ marginTop: '8px', fontSize: '10px' }}>
                           {day.date}
@@ -385,17 +386,17 @@ const AnalyticsDashboard = () => {
                     return (
                       <Box key={index} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <Typography variant="caption" style={{ marginBottom: '4px', fontWeight: 600 }}>
-                          ₹{week.revenue.toFixed(0)}
+                          {formatCurrency(week.revenue)}
                         </Typography>
-                        <Box 
-                          style={{ 
-                            width: '100%', 
-                            height: `${height}px`, 
+                        <Box
+                          style={{
+                            width: '100%',
+                            height: `${height}px`,
                             background: 'linear-gradient(180deg, #4caf50 0%, #66bb6a 100%)',
                             borderRadius: '4px 4px 0 0',
                             minHeight: week.revenue > 0 ? '20px' : '2px'
                           }}
-                          title={`${week.week}: ₹${week.revenue.toFixed(2)} (${week.orders} orders)`}
+                          title={`${week.week}: ${formatCurrency(week.revenue)} (${week.orders} orders)`}
                         />
                         <Typography variant="caption" style={{ marginTop: '8px', fontSize: '10px' }}>
                           {week.week}
@@ -414,17 +415,17 @@ const AnalyticsDashboard = () => {
                     return (
                       <Box key={index} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <Typography variant="caption" style={{ marginBottom: '4px', fontWeight: 600 }}>
-                          ₹{month.revenue.toFixed(0)}
+                          {formatCurrency(month.revenue)}
                         </Typography>
-                        <Box 
-                          style={{ 
-                            width: '100%', 
-                            height: `${height}px`, 
+                        <Box
+                          style={{
+                            width: '100%',
+                            height: `${height}px`,
                             background: 'linear-gradient(180deg, #ff9800 0%, #ffb74d 100%)',
                             borderRadius: '4px 4px 0 0',
                             minHeight: month.revenue > 0 ? '20px' : '2px'
                           }}
-                          title={`${month.month}: ₹${month.revenue.toFixed(2)} (${month.orders} orders)`}
+                          title={`${month.month}: ${formatCurrency(month.revenue)} (${month.orders} orders)`}
                         />
                         <Typography variant="caption" style={{ marginTop: '8px', fontSize: '10px', transform: 'rotate(-45deg)', transformOrigin: 'top left' }}>
                           {month.month}
@@ -459,9 +460,9 @@ const AnalyticsDashboard = () => {
                       {popularItems.map((item, index) => (
                         <TableRow key={item.itemId} hover>
                           <TableCell>
-                            <Chip 
-                              label={`#${index + 1}`} 
-                              size="small" 
+                            <Chip
+                              label={`#${index + 1}`}
+                              size="small"
                               color={index < 3 ? 'primary' : 'default'}
                               style={{ fontWeight: 600 }}
                             />
@@ -469,7 +470,7 @@ const AnalyticsDashboard = () => {
                           <TableCell style={{ fontWeight: 500 }}>{item.itemName}</TableCell>
                           <TableCell align="right">{item.totalQuantitySold}</TableCell>
                           <TableCell align="right" style={{ color: '#1976d2', fontWeight: 600 }}>
-                            ₹{item.totalRevenue.toFixed(2)}
+                            {formatCurrency(item.totalRevenue)}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -500,9 +501,9 @@ const AnalyticsDashboard = () => {
                       {customerInsights.topCustomers.map((customer, index) => (
                         <TableRow key={customer.customerId} hover>
                           <TableCell>
-                            <Chip 
-                              label={`#${index + 1}`} 
-                              size="small" 
+                            <Chip
+                              label={`#${index + 1}`}
+                              size="small"
                               color={index < 3 ? 'success' : 'default'}
                               style={{ fontWeight: 600 }}
                             />
@@ -513,7 +514,7 @@ const AnalyticsDashboard = () => {
                           </TableCell>
                           <TableCell align="right">{customer.totalOrders}</TableCell>
                           <TableCell align="right" style={{ color: '#4caf50', fontWeight: 600 }}>
-                            ₹{customer.totalSpent.toFixed(2)}
+                            {formatCurrency(customer.totalSpent)}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -542,16 +543,16 @@ const AnalyticsDashboard = () => {
                             <Typography variant="body2" color="textSecondary">
                               Category: {item.category}
                             </Typography>
-                            <Chip 
-                              label={`${item.currentStock} left`} 
-                              size="small" 
+                            <Chip
+                              label={`${item.currentStock} left`}
+                              size="small"
                               color="warning"
                               style={{ fontWeight: 600 }}
                             />
                           </Box>
-                          <LinearProgress 
-                            variant="determinate" 
-                            value={(item.currentStock / item.threshold) * 100} 
+                          <LinearProgress
+                            variant="determinate"
+                            value={(item.currentStock / item.threshold) * 100}
                             style={{ marginTop: '12px', height: '8px', borderRadius: '4px' }}
                             color="warning"
                           />

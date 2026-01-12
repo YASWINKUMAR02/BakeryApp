@@ -53,95 +53,61 @@ import useSwipeGesture from './hooks/useSwipeGesture';
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#ff6b35',
-      light: '#ff8c5a',
-      dark: '#e55a2b',
+      main: '#e91e63', // Signature Pink
+      light: '#f06292',
+      dark: '#ad1457',
     },
     secondary: {
-      main: '#1a1a1a',
+      main: '#121212', // Richer Dark Charcoal
+      light: '#2d2d2d',
+      dark: '#000000',
+    },
+    accent: {
+      main: '#D4AF37', // Professional Metallic Gold
     },
     background: {
-      default: '#f5f5f5',
+      default: '#fcfcfc', // Slightly off-white for a warmer, richer feel
       paper: '#ffffff',
     },
+    text: {
+      primary: '#121212',
+      secondary: '#555555',
+    }
   },
-  typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-    // Mobile-first responsive typography
-    h1: {
-      fontSize: '2rem',
-      '@media (min-width:600px)': {
-        fontSize: '2.5rem',
-      },
-      '@media (min-width:960px)': {
-        fontSize: '3rem',
-      },
-    },
-    h2: {
-      fontSize: '1.75rem',
-      '@media (min-width:600px)': {
-        fontSize: '2rem',
-      },
-      '@media (min-width:960px)': {
-        fontSize: '2.5rem',
-      },
-    },
-    h3: {
-      fontSize: '1.5rem',
-      '@media (min-width:600px)': {
-        fontSize: '1.75rem',
-      },
-      '@media (min-width:960px)': {
-        fontSize: '2rem',
-      },
-    },
-    h4: {
-      fontSize: '1.25rem',
-      '@media (min-width:600px)': {
-        fontSize: '1.5rem',
-      },
-      '@media (min-width:960px)': {
-        fontSize: '1.75rem',
-      },
-    },
-    body1: {
-      fontSize: '0.875rem',
-      '@media (min-width:600px)': {
-        fontSize: '1rem',
-      },
-    },
+  shape: {
+    borderRadius: 16, // More modern, elegant rounded corners
   },
   components: {
     MuiButton: {
       styleOverrides: {
         root: {
-          // Touch-friendly button size
-          minHeight: '48px',
-          minWidth: '48px',
-          padding: '12px 24px',
-          '@media (max-width:600px)': {
-            padding: '10px 20px',
-            fontSize: '0.875rem',
+          borderRadius: '50px', // Circular pills for a modern look
+          padding: '10px 24px',
+          boxShadow: 'none',
+          '&:hover': {
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
           },
+        },
+        containedPrimary: {
+          background: 'linear-gradient(135deg, #e91e63 0%, #ad1457 100%)',
+        }
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          boxShadow: '0 10px 40px rgba(0,0,0,0.04)',
+          border: '1px solid rgba(0,0,0,0.02)',
         },
       },
     },
     MuiTextField: {
       styleOverrides: {
         root: {
-          // Touch-friendly input fields
-          '& .MuiInputBase-root': {
-            minHeight: '48px',
+          '& .MuiOutlinedInput-root': {
+            borderRadius: 12,
+            backgroundColor: '#fff',
           },
-        },
-      },
-    },
-    MuiIconButton: {
-      styleOverrides: {
-        root: {
-          // Touch-friendly icon buttons
-          minWidth: '48px',
-          minHeight: '48px',
         },
       },
     },

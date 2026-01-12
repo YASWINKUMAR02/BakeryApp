@@ -44,6 +44,7 @@ import { ProductGridSkeleton } from '../../components/LoadingSkeleton';
 import { optimizeImageUrl } from '../../utils/imageOptimization';
 import { pageTransitions } from '../../utils/pageTransitions';
 import ProductCard from '../../components/ProductCard';
+import { formatCurrency } from '../../utils/currencyUtils';
 
 const Shop = () => {
   const navigate = useNavigate();
@@ -115,7 +116,15 @@ const Shop = () => {
       ]);
 
       if (itemsResponse.data.success) {
-        const itemsData = itemsResponse.data.data;
+        let itemsData = itemsResponse.data.data;
+
+        // Enhance items with Best Seller / New flags for UI demo if not present
+        itemsData = itemsData.map((item, index) => ({
+          ...item,
+          isBestSeller: item.isBestSeller || index % 5 === 0,
+          isNew: item.isNew || index % 7 === 1
+        }));
+
         setItems(itemsData);
 
         // Fetch reviews for all items
@@ -393,8 +402,8 @@ const Shop = () => {
                       sx={{ color: '#e91e63' }}
                     />
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
-                      <Typography variant="caption" sx={{ color: '#666' }}>₹{priceRange[0]}</Typography>
-                      <Typography variant="caption" sx={{ color: '#666' }}>₹{priceRange[1]}</Typography>
+                      <Typography variant="caption" sx={{ color: '#666' }}>{formatCurrency(priceRange[0])}</Typography>
+                      <Typography variant="caption" sx={{ color: '#666' }}>{formatCurrency(priceRange[1])}</Typography>
                     </Box>
                   </Box>
                   <Divider sx={{ mb: 3 }} />
@@ -525,8 +534,8 @@ const Shop = () => {
                           }}
                         />
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1.5 }}>
-                          <Typography variant="caption" sx={{ color: '#1a1a1a', fontWeight: 700 }}>₹{priceRange[0]}</Typography>
-                          <Typography variant="caption" sx={{ color: '#1a1a1a', fontWeight: 700 }}>₹{priceRange[1]}</Typography>
+                          <Typography variant="caption" sx={{ color: '#1a1a1a', fontWeight: 700 }}>{formatCurrency(priceRange[0])}</Typography>
+                          <Typography variant="caption" sx={{ color: '#1a1a1a', fontWeight: 700 }}>{formatCurrency(priceRange[1])}</Typography>
                         </Box>
                       </Box>
                     </Box>
@@ -649,7 +658,7 @@ const Shop = () => {
                       )}
                       {(priceRange[0] > 0 || priceRange[1] < 1000) && (
                         <Chip
-                          label={`₹${priceRange[0]} - ₹${priceRange[1]}`}
+                          label={`${formatCurrency(priceRange[0])} - ${formatCurrency(priceRange[1])}`}
                           size="small"
                           onDelete={() => setPriceRange([0, 1000])}
                           sx={{ borderRadius: '6px', bgcolor: 'rgba(233, 30, 99, 0.08)', color: '#e91e63', fontWeight: 600, border: '1px solid rgba(233, 30, 99, 0.1)' }}

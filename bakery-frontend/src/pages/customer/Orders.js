@@ -50,6 +50,7 @@ import { showSuccess, showError } from '../../utils/toast';
 import LocationPicker from '../../components/LocationPicker';
 import { OrderCardSkeleton } from '../../components/LoadingSkeleton';
 import OrderStatusStepper from '../../components/OrderStatusStepper';
+import { formatCurrency } from '../../utils/currencyUtils';
 
 const Orders = () => {
   const navigate = useNavigate();
@@ -463,7 +464,7 @@ const Orders = () => {
                                   })}
                                 </TableCell>
                                 <TableCell sx={{ fontWeight: 600, color: '#000000', fontSize: { xs: '0.7rem', md: '0.875rem' }, padding: { xs: '6px 4px', md: '16px' } }}>
-                                  ₹{order.totalAmount?.toFixed(2)}
+                                  {formatCurrency(order.totalAmount)}
                                 </TableCell>
                                 <TableCell sx={{ padding: { xs: '6px 4px', md: '16px' } }}>
                                   <Chip
@@ -852,11 +853,11 @@ const Orders = () => {
                                                         )}
                                                       </Box>
                                                       <Typography variant="caption" color="textSecondary" sx={{ display: 'block', marginTop: { xs: '3px', md: '4px' }, fontSize: { xs: '0.65rem', md: '0.75rem' } }}>
-                                                        Quantity: {item.quantity} × ₹{item.price?.toFixed(2)}
+                                                        Quantity: {item.quantity} × {formatCurrency(item.price)}
                                                       </Typography>
                                                     </Box>
                                                     <Typography variant="h6" sx={{ fontWeight: 700, color: '#000000', marginLeft: { xs: '8px', md: '16px' }, fontSize: { xs: '0.8rem', md: '1.25rem' } }}>
-                                                      ₹{(item.price * item.quantity).toFixed(2)}
+                                                      {formatCurrency(item.price * item.quantity)}
                                                     </Typography>
                                                   </Box>
                                                 </Box>
@@ -867,7 +868,7 @@ const Orders = () => {
                                                   Order Total
                                                 </Typography>
                                                 <Typography variant="h5" sx={{ fontWeight: 700, color: '#000000', fontSize: { xs: '0.9rem', md: '1.5rem' } }}>
-                                                  ₹{order.totalAmount?.toFixed(2)}
+                                                  {formatCurrency(order.totalAmount)}
                                                 </Typography>
                                               </Box>
                                             </>
@@ -963,7 +964,7 @@ const Orders = () => {
                                   })}
                                 </TableCell>
                                 <TableCell sx={{ fontWeight: 600, color: '#000000', fontSize: { xs: '0.7rem', md: '0.875rem' }, padding: { xs: '6px 4px', md: '16px' } }}>
-                                  ₹{order.totalAmount?.toFixed(2)}
+                                  {formatCurrency(order.totalAmount)}
                                 </TableCell>
                                 <TableCell sx={{ padding: { xs: '6px 4px', md: '16px' } }}>
                                   <Chip
@@ -1077,11 +1078,11 @@ const Orders = () => {
                                                           )}
                                                         </Box>
                                                         <Typography variant="caption" color="textSecondary" style={{ display: 'block', marginTop: '4px' }}>
-                                                          Quantity: {item.quantity} × ₹{item.price?.toFixed(2)}
+                                                          Quantity: {item.quantity} × {formatCurrency(item.price)}
                                                         </Typography>
                                                       </Box>
                                                       <Typography variant="h6" style={{ fontWeight: 700, color: '#000000', marginLeft: '16px' }}>
-                                                        ₹{(item.price * item.quantity).toFixed(2)}
+                                                        {formatCurrency(item.price * item.quantity)}
                                                       </Typography>
                                                     </Box>
                                                   </Box>
@@ -1092,7 +1093,7 @@ const Orders = () => {
                                                     Order Total
                                                   </Typography>
                                                   <Typography variant="h5" style={{ fontWeight: 700, color: '#000000' }}>
-                                                    ₹{order.totalAmount?.toFixed(2)}
+                                                    {formatCurrency(order.totalAmount)}
                                                   </Typography>
                                                 </Box>
                                               </>

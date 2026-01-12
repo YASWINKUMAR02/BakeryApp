@@ -35,6 +35,7 @@ import {
 import { orderHistoryAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import CustomerHeader from '../../components/CustomerHeader';
+import { formatCurrency } from '../../utils/currencyUtils';
 
 const OrderHistory = () => {
   const navigate = useNavigate();
@@ -149,11 +150,11 @@ const OrderHistory = () => {
                             </Box>
                           </TableCell>
                           <TableCell style={{ fontWeight: 600, color: '#ff6b35' }}>
-                            ₹{order.totalAmount?.toFixed(2)}
+                            {formatCurrency(order.totalAmount)}
                           </TableCell>
                           <TableCell>
-                            <IconButton 
-                              size="small" 
+                            <IconButton
+                              size="small"
                               onClick={() => toggleOrderDetails(order.id)}
                               style={{ color: '#ff6b35' }}
                             >
@@ -197,10 +198,10 @@ const OrderHistory = () => {
                                           Delivery Address
                                         </Typography>
                                         <Typography variant="body1" style={{ fontWeight: 500, marginLeft: '24px' }}>
-                                          {order.deliveryAddress && order.deliveryAddress.startsWith('location,') 
-                                            ? (order.latitude && order.longitude 
-                                                ? `📍 Lat: ${order.latitude.toFixed(6)}, Long: ${order.longitude.toFixed(6)}` 
-                                                : '📍 Location-based Delivery')
+                                          {order.deliveryAddress && order.deliveryAddress.startsWith('location,')
+                                            ? (order.latitude && order.longitude
+                                              ? `📍 Lat: ${order.latitude.toFixed(6)}, Long: ${order.longitude.toFixed(6)}`
+                                              : '📍 Location-based Delivery')
                                             : (order.deliveryAddress || 'N/A')}
                                         </Typography>
                                       </Box>
@@ -248,10 +249,10 @@ const OrderHistory = () => {
                                             </Box>
                                             <Box style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
                                               <Typography variant="body2" color="textSecondary">
-                                                ₹{item.price?.toFixed(2)} each
+                                                {formatCurrency(item.price)} each
                                               </Typography>
                                               <Typography variant="body1" style={{ fontWeight: 600, color: '#000000' }}>
-                                                ₹{(item.price * item.quantity).toFixed(2)}
+                                                {formatCurrency(item.price * item.quantity)}
                                               </Typography>
                                             </Box>
                                             {index < order.orderItems.length - 1 && <Divider style={{ marginTop: '12px' }} />}

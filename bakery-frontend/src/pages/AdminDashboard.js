@@ -18,7 +18,7 @@ import {
   Chip,
   Divider,
 } from '@mui/material';
-import { 
+import {
   Category,
   Inventory,
   People,
@@ -39,6 +39,8 @@ import AdminHeader from '../components/AdminHeader';
 import AdminSidebar from '../components/AdminSidebar';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { formatCurrency } from '../utils/currencyUtils';
+import PriceDisplay from '../components/PriceDisplay';
 
 const MotionCard = motion(Card);
 const MotionPaper = motion(Paper);
@@ -63,12 +65,12 @@ const AdminDashboard = () => {
       if (response.data.success) {
         const data = response.data.data;
         console.log('Dashboard stats:', data); // Debug log
-        
+
         // If confirmedOrders is not provided, calculate from pendingOrders or set to 0
         if (data.confirmedOrders === undefined && data.pendingOrders !== undefined) {
           data.confirmedOrders = data.pendingOrders;
         }
-        
+
         setStats(data);
       }
     } catch (error) {
@@ -115,17 +117,17 @@ const AdminDashboard = () => {
   const statCards = [
     {
       title: 'Total Revenue',
-      value: stats ? `₹${stats.totalRevenue?.toFixed(2) || '0.00'}` : '₹0.00',
-      icon: <CurrencyRupee style={{ fontSize: '40px', color: '#fff' }} />,
-      color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      bgColor: '#667eea',
+      value: stats ? <PriceDisplay amount={stats.totalRevenue} color="#fff" fontSize="2rem" /> : <PriceDisplay amount={0} color="#fff" fontSize="2rem" />,
+      icon: <CurrencyRupee style={{ fontSize: '40px', opacity: 0.8, color: '#fff' }} />,
+      color: 'linear-gradient(135deg, #121212 0%, #333333 100%)', // More professional charcoal/black
+      bgColor: '#121212',
     },
     {
       title: "Today's Revenue",
-      value: stats ? `₹${stats.todayRevenue?.toFixed(2) || '0.00'}` : '₹0.00',
-      icon: <CurrencyRupee style={{ fontSize: '40px', color: '#fff' }} />,
-      color: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-      bgColor: '#f5576c',
+      value: stats ? <PriceDisplay amount={stats.todayRevenue} color="#fff" fontSize="2rem" /> : <PriceDisplay amount={0} color="#fff" fontSize="2rem" />,
+      icon: <CurrencyRupee style={{ fontSize: '40px', opacity: 0.8, color: '#fff' }} />,
+      color: 'linear-gradient(135deg, #ad1457 0%, #e91e63 100%)', // Brand pink but deeper
+      bgColor: '#ad1457',
     },
     {
       title: 'Total Orders',
@@ -417,7 +419,7 @@ const AdminDashboard = () => {
                       <TableRow key={order.orderId} hover>
                         <TableCell style={{ fontWeight: 600, color: '#1976d2' }}>#{order.orderId}</TableCell>
                         <TableCell>{order.customerName}</TableCell>
-                        <TableCell style={{ fontWeight: 600 }}>₹{order.totalAmount}</TableCell>
+                        <TableCell style={{ fontWeight: 600 }}>{formatCurrency(order.totalAmount)}</TableCell>
                         <TableCell>
                           <Chip
                             label={order.status}

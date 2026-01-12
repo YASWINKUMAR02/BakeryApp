@@ -40,6 +40,7 @@ import { itemAPI, categoryAPI, reviewAPI } from '../../services/api';
 import AdminHeader from '../../components/AdminHeader';
 import AdminSidebar from '../../components/AdminSidebar';
 import { showError } from '../../utils/toast';
+import { formatCurrency } from '../../utils/currencyUtils';
 
 const AdminHome = () => {
   const navigate = useNavigate();
@@ -48,7 +49,7 @@ const AdminHome = () => {
   const [loading, setLoading] = useState(true);
   const [itemReviews, setItemReviews] = useState({});
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  
+
   // Filter and Sort States
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [priceRange, setPriceRange] = useState([0, 1000]);
@@ -56,7 +57,7 @@ const AdminHome = () => {
   const [sortBy, setSortBy] = useState('featured');
   const [searchQuery, setSearchQuery] = useState('');
   const [stockFilter, setStockFilter] = useState('all'); // all, in-stock, low-stock, out-of-stock
-  
+
   // Pagination state
   const [page, setPage] = useState(1);
   const itemsPerPage = 12;
@@ -71,11 +72,11 @@ const AdminHome = () => {
         itemAPI.getAll(),
         categoryAPI.getAll(),
       ]);
-      
+
       if (itemsResponse.data.success) {
         const itemsData = itemsResponse.data.data;
         setItems(itemsData);
-        
+
         // Fetch reviews for all items
         const reviewsData = {};
         await Promise.all(
@@ -126,13 +127,13 @@ const AdminHome = () => {
 
     // Filter by categories
     if (selectedCategories.length > 0) {
-      filtered = filtered.filter(item => 
+      filtered = filtered.filter(item =>
         selectedCategories.includes(item.category?.id)
       );
     }
 
     // Filter by price range
-    filtered = filtered.filter(item => 
+    filtered = filtered.filter(item =>
       item.price >= priceRange[0] && item.price <= priceRange[1]
     );
 
@@ -190,7 +191,7 @@ const AdminHome = () => {
   };
 
   const filteredItems = getFilteredAndSortedItems();
-  
+
   // Pagination logic
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
   const paginatedItems = filteredItems.slice(
@@ -205,7 +206,7 @@ const AdminHome = () => {
 
   const handleCategoryToggle = (categoryId) => {
     setPage(1);
-    setSelectedCategories(prev => 
+    setSelectedCategories(prev =>
       prev.includes(categoryId)
         ? prev.filter(id => id !== categoryId)
         : [...prev, categoryId]
@@ -238,10 +239,10 @@ const AdminHome = () => {
       <AdminHeader title="Product Catalog" onMenuClick={() => setSidebarOpen(!sidebarOpen)} sidebarOpen={sidebarOpen} />
       <AdminSidebar open={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
 
-      <Box sx={{ 
-        minHeight: '100vh', 
-        background: '#f5f5f5', 
-        paddingTop: { xs: '70px', sm: '80px' }, 
+      <Box sx={{
+        minHeight: '100vh',
+        background: '#f5f5f5',
+        paddingTop: { xs: '70px', sm: '80px' },
         paddingBottom: { xs: '20px', sm: '40px' },
         paddingLeft: { xs: '8px', sm: '16px' },
         paddingRight: { xs: '8px', sm: '16px' },
@@ -362,7 +363,7 @@ const AdminHome = () => {
                 </FormControl>
               </Box>
             </Box>
-            
+
             {/* Search Bar */}
             <TextField
               fullWidth
@@ -393,8 +394,8 @@ const AdminHome = () => {
                     <Typography variant="h6" sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                       <FilterList /> Filters
                     </Typography>
-                    <Button 
-                      size="small" 
+                    <Button
+                      size="small"
                       onClick={handleClearFilters}
                       style={{ textTransform: 'none', color: '#1976d2' }}
                     >
@@ -443,10 +444,10 @@ const AdminHome = () => {
                     />
                     <Box style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px' }}>
                       <Typography variant="body2" color="textSecondary">
-                        ₹{priceRange[0]}
+                        {formatCurrency(priceRange[0])}
                       </Typography>
                       <Typography variant="body2" color="textSecondary">
-                        ₹{priceRange[1]}
+                        {formatCurrency(priceRange[1])}
                       </Typography>
                     </Box>
                   </Box>
@@ -496,7 +497,7 @@ const AdminHome = () => {
                     />
                   </Box>
                 )}
-                
+
                 {filteredItems.length === 0 ? (
                   <Paper style={{ padding: '60px', textAlign: 'center' }}>
                     <Typography variant="h6" color="textSecondary">
@@ -516,7 +517,7 @@ const AdminHome = () => {
                       {paginatedItems.map((item) => {
                         const { averageRating, reviewCount } = getItemRatingData(item.id);
                         const totalStock = (item.stock || 0) + (item.egglessStock || 0);
-                        
+
                         return (
                           <Grid item xs={12} sm={6} md={4} key={item.id}>
                             <Card
@@ -584,27 +585,27 @@ const AdminHome = () => {
                                   {item.name}
                                 </Typography>
                                 <Box style={{ display: 'flex', gap: '8px', marginBottom: '10px', flexWrap: 'wrap' }}>
-                                  <Chip 
-                                    label={item.category?.name} 
-                                    size="small" 
+                                  <Chip
+                                    label={item.category?.name}
+                                    size="small"
                                     style={{ background: '#1976d2', color: '#fff', borderRadius: 0 }}
                                   />
                                   {totalStock === 0 ? (
-                                    <Chip 
-                                      label="Out of Stock" 
-                                      size="small" 
+                                    <Chip
+                                      label="Out of Stock"
+                                      size="small"
                                       style={{ background: '#f44336', color: '#fff', borderRadius: 0 }}
                                     />
                                   ) : totalStock <= 10 ? (
-                                    <Chip 
-                                      label={`Low: ${totalStock}`} 
-                                      size="small" 
+                                    <Chip
+                                      label={`Low: ${totalStock}`}
+                                      size="small"
                                       style={{ background: '#ff9800', color: '#fff', borderRadius: 0 }}
                                     />
                                   ) : (
-                                    <Chip 
-                                      label={`Stock: ${totalStock}`} 
-                                      size="small" 
+                                    <Chip
+                                      label={`Stock: ${totalStock}`}
+                                      size="small"
                                       style={{ background: '#4caf50', color: '#fff', borderRadius: 0 }}
                                     />
                                   )}
@@ -615,7 +616,7 @@ const AdminHome = () => {
                                 <Box style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                                   <Star style={{ color: '#ffc107', fontSize: 20 }} />
                                   <Typography variant="body2" style={{ color: '#666' }}>
-                                    {reviewCount > 0 
+                                    {reviewCount > 0
                                       ? `${averageRating} (${reviewCount} review${reviewCount !== 1 ? 's' : ''})`
                                       : 'No reviews yet'}
                                   </Typography>
@@ -623,7 +624,7 @@ const AdminHome = () => {
                                 <Box style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
                                   <Box>
                                     <Typography variant="h5" style={{ fontWeight: 700, color: '#1976d2' }}>
-                                      ₹{item.price?.toFixed(2)}
+                                      {formatCurrency(item.price)}
                                     </Typography>
                                     <Typography variant="body2" color="textSecondary">
                                       {item.grams}g • {item.pieces || 1} pc{(item.pieces || 1) > 1 ? 's' : ''}
@@ -654,7 +655,7 @@ const AdminHome = () => {
                         );
                       })}
                     </Grid>
-                    
+
                     {/* Pagination - Bottom */}
                     {totalPages > 1 && (
                       <Box style={{ display: 'flex', justifyContent: 'center', marginTop: '40px' }}>

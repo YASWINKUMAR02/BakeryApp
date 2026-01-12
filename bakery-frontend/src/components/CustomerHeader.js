@@ -89,18 +89,28 @@ const CustomerHeader = () => {
     handleUserMenuClose();
   };
 
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const navButtonStyle = {
-    color: '#4a5568',
+    color: '#1a1a1a',
     textTransform: 'none',
-    fontSize: '14px',
+    fontSize: '0.95rem',
     fontWeight: 500,
-    padding: '6px 12px',
-    marginRight: '2px',
-    borderRadius: '6px',
-    transition: 'all 0.2s ease',
+    padding: '8px 16px',
+    borderRadius: '50px',
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
     '&:hover': {
-      background: 'rgba(0, 0, 0, 0.04)',
-      color: '#1a1a1a',
+      background: 'rgba(233, 30, 99, 0.05)',
+      color: '#e91e63',
+      transform: 'translateY(-1px)',
     },
   };
 
@@ -108,11 +118,15 @@ const CustomerHeader = () => {
     <AppBar
       position="fixed"
       elevation={0}
-      style={{
-        background: '#ffffff',
-        backdropFilter: 'blur(10px)',
-        borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+      sx={{
+        background: isScrolled ? 'rgba(255, 255, 255, 0.85)' : 'transparent',
+        backdropFilter: 'blur(12px)',
+        borderBottom: isScrolled ? '1px solid rgba(0, 0, 0, 0.05)' : 'none',
+        boxShadow: isScrolled ? '0 4px 20px rgba(0, 0, 0, 0.03)' : 'none',
+        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+        height: isScrolled ? { xs: '64px', md: '72px' } : { xs: '72px', md: '88px' },
+        display: 'flex',
+        justifyContent: 'center',
       }}
     >
       <Toolbar

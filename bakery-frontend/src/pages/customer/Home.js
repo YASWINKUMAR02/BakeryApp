@@ -8,6 +8,7 @@ import {
 } from '@mui/material';
 import { Star, ArrowForward, Cake, ShoppingCart, ShoppingBag } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
+import { alpha } from '@mui/material/styles';
 import Footer from '../../components/Footer';
 import PullToRefresh from '../../components/PullToRefresh';
 import ScrollReveal from '../../components/ScrollReveal';
@@ -54,13 +55,21 @@ const Home = () => {
       ]);
 
       if (itemsResponse.data.success) {
-        const itemsData = itemsResponse.data.data;
+        let itemsData = itemsResponse.data.data;
+
+        // Enhance first 4 items as Best Sellers to show as "Top 4"
+        itemsData = itemsData.map((item, index) => ({
+          ...item,
+          isBestSeller: item.isBestSeller || index < 4,
+          isNew: item.isNew || (index >= 4 && index < 8)
+        }));
+
         setItems(itemsData);
 
-        // Fetch reviews for items (optional optimization: fetch only for featured)
+        // Fetch reviews for items
         const reviewsData = {};
         await Promise.all(
-          itemsData.slice(0, 10).map(async (item) => { // Limit to first 10 for perf
+          itemsData.slice(0, 10).map(async (item) => {
             try {
               const reviewResponse = await reviewAPI.getByItem(item.id);
               if (reviewResponse.data.success) {
@@ -141,22 +150,8 @@ const Home = () => {
     }
   };
 
-  const mobileProductVariants = {
-    hidden: { opacity: 0, y: 40, scale: 0.9, rotateX: 15 },
-    visible: (i) => ({
-      opacity: 1, y: 0, scale: 1, rotateX: 0,
-      transition: {
-        delay: i * 0.08, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94],
-        type: "spring", stiffness: 100, damping: 15
-      }
-    }),
-    tap: { scale: 0.95, transition: { duration: 0.1 } }
-  };
-
-  // Filter featured or top items for display
-  const displayItems = items.filter(i => i.featured).slice(0, 6);
-  // Fallback if no featured items
-  const finalDisplayItems = displayItems.length > 0 ? displayItems : items.slice(0, 6);
+  // Filter best sellers
+  const bestSellers = items.filter(i => i.isBestSeller).slice(0, 4);
 
   if (loading && items.length === 0) {
     return (
@@ -183,7 +178,7 @@ const Home = () => {
             onTouchEnd={handleTouchEnd}
             sx={{
               position: 'relative',
-              height: { xs: '240px', sm: '300px', md: '500px' }, // Adjusted height
+              height: { xs: '240px', sm: '300px', md: '500px' },
               width: '100%',
               overflow: 'hidden',
               background: '#000',
@@ -193,7 +188,7 @@ const Home = () => {
             }}
           >
             <AnimatePresence mode="wait">
-              {carouselSlides.length > 0 && (
+              {carouselSlides.length > 0 ? (
                 <motion.div
                   key={currentSlide}
                   initial={{ opacity: 0 }}
@@ -260,16 +255,13 @@ const Home = () => {
                     </Container>
                   </Box>
                 </motion.div>
+              ) : (
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'white' }}>
+                  <Typography>No slides available</Typography>
+                </Box>
               )}
             </AnimatePresence>
 
-            {carouselSlides.length === 0 && (
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'white' }}>
-                <Typography>No slides available</Typography>
-              </Box>
-            )}
-
-            {/* Indicators */}
             <Box sx={{ position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 1, zIndex: 3 }}>
               {carouselSlides.map((_, index) => (
                 <Box
@@ -285,53 +277,79 @@ const Home = () => {
             </Box>
           </Box>
 
-          {/* Products Section */}
-          <Box sx={{ background: '#fafafa', py: { xs: 4, md: 8 }, flex: 1 }}>
-            <Container maxWidth="lg">
-              <ScrollReveal animation="slideUp">
-                <Typography variant="h2" sx={{ textAlign: 'center', fontWeight: 800, mb: 4, fontSize: { xs: '2rem', md: '3.5rem' }, color: '#1a1a1a' }}>
-                  Our Delicious Products
-                </Typography>
-              </ScrollReveal>
+          {/* Best Sellers Section */}
+          {bestSellers.length > 0 && (
+            <Box sx={{ background: '#fff', py: { xs: 4, md: 8 } }}>
+              <Container maxWidth="lg">
+                <ScrollReveal animation="slideUp">
+                  <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2, mb: 4 }}>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="overline" sx={{ color: '#e91e63', fontWeight: 700, letterSpacing: '2px' }}>
+                        Customer Favorites
+                      </Typography>
+                      <Typography variant="h2" sx={{ fontWeight: 800, fontSize: { xs: '1.8rem', md: '2.8rem' }, color: '#1a1a1a' }}>
+                        Signature Best Sellers
+                      </Typography>
+                    </Box>
+                    <Box component="span" sx={{
+                      px: 2, py: 1, borderRadius: '50px', background: 'rgba(255, 160, 0, 0.1)',
+                      color: '#FF8F00', fontWeight: 700, fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 1
+                    }}>
+                      <Box component="span" sx={{ fontSize: '1.2rem' }}>🔥</Box> Hot Now
+                    </Box>
+                  </Box>
+                </ScrollReveal>
 
-              <Box
-                component={motion.div}
-                variants={containerVariants}
-                initial="hidden"
-                animate={!loading ? "visible" : "hidden"}
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
-                  gap: { xs: 2, md: 3 },
-                }}
-              >
-                {finalDisplayItems.map((item, index) => (
-                  <ProductCard
-                    key={item.id}
-                    item={item}
-                    ratingData={getItemRatingData(item.id)}
-                    index={index}
-                  />
-                ))}
-              </Box>
-
-              <Box sx={{ textAlign: 'center', mt: 6 }}>
-                <Button
-                  variant="contained" size="large"
-                  onClick={() => navigate('/shop')}
-                  endIcon={<ArrowForward />}
+                <Box
+                  component={motion.div}
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
                   sx={{
-                    background: 'linear-gradient(135deg, #e91e63 0%, #ad1457 100%)',
-                    color: '#fff', padding: '16px 40px', borderRadius: '50px',
-                    boxShadow: '0 8px 24px rgba(233, 30, 99, 0.3)',
+                    display: 'grid',
+                    gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)', md: 'repeat(4, 1fr)' },
+                    gap: { xs: 2, md: 3 },
                   }}
                 >
-                  Browse All Products
-                </Button>
-              </Box>
+                  {bestSellers.map((item, index) => (
+                    <ProductCard
+                      key={item.id}
+                      item={item}
+                      ratingData={getItemRatingData(item.id)}
+                      index={index}
+                    />
+                  ))}
+                </Box>
 
-            </Container>
-          </Box>
+                <Box sx={{ textAlign: 'center', mt: { xs: 5, md: 8 } }}>
+                  <Button
+                    variant="contained"
+                    size="large"
+                    onClick={() => navigate('/shop')}
+                    endIcon={<ArrowForward />}
+                    sx={{
+                      background: 'linear-gradient(135deg, #e91e63 0%, #ad1457 100%)',
+                      color: '#fff',
+                      padding: { xs: '14px 40px', md: '18px 60px' },
+                      borderRadius: '50px',
+                      fontWeight: 800,
+                      textTransform: 'none',
+                      fontSize: { xs: '1rem', md: '1.1rem' },
+                      boxShadow: '0 8px 25px rgba(233, 30, 99, 0.3)',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        transform: 'translateY(-3px)',
+                        boxShadow: '0 12px 30px rgba(233, 30, 99, 0.4)',
+                        background: 'linear-gradient(135deg, #f06292 0%, #e91e63 100%)',
+                      }
+                    }}
+                  >
+                    Discover Our Full Menu
+                  </Button>
+                </Box>
+              </Container>
+            </Box>
+          )}
 
           <Footer />
         </Box>

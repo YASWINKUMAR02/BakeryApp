@@ -41,6 +41,7 @@ import { itemAPI, categoryAPI } from '../../services/api';
 import AdminHeader from '../../components/AdminHeader';
 import AdminSidebar from '../../components/AdminSidebar';
 import { showSuccess, showError } from '../../utils/toast';
+import { formatCurrency } from '../../utils/currencyUtils';
 
 const Items = () => {
   const navigate = useNavigate();
@@ -144,7 +145,7 @@ const Items = () => {
           console.error('Error parsing pricePerKg:', e);
         }
       }
-      
+
       setCurrentItem({
         id: item.id,
         name: item.name,
@@ -196,22 +197,22 @@ const Items = () => {
   const handleSave = async () => {
     // Check if selected category requires weight-based pricing
     const categoryName = categories.find(cat => cat.id === currentItem.categoryId)?.name?.toLowerCase() || '';
-    const isWeightBasedCategory = categoryName.includes('occasional') || 
-                                   categoryName.includes('premium') || 
-                                   categoryName.includes('party');
-    
+    const isWeightBasedCategory = categoryName.includes('occasional') ||
+      categoryName.includes('premium') ||
+      categoryName.includes('party');
+
     // Validation based on category
     if (!currentItem.name.trim() || !currentItem.categoryId) {
       showError('Name and category are required');
       return;
     }
-    
+
     // For non-weight-based items, validate price and grams
     if (!isWeightBasedCategory && (!currentItem.price || !currentItem.grams)) {
       showError('Price and weight are required');
       return;
     }
-    
+
     // For weight-based items, validate at least one weight price
     if (isWeightBasedCategory) {
       const hasAtLeastOnePrice = currentItem.pricePerKg && Object.values(currentItem.pricePerKg).some(price => price && parseFloat(price) > 0);
@@ -232,7 +233,7 @@ const Items = () => {
         featured: currentItem.featured || false,
         available: currentItem.available !== false,
       };
-      
+
       // Add price, grams, pieces only for non-weight-based items
       if (!isWeightBasedCategory) {
         itemData.price = parseFloat(currentItem.price);
@@ -277,7 +278,7 @@ const Items = () => {
 
   const handleDeleteConfirm = async () => {
     if (!itemToDelete) return;
-    
+
     try {
       await itemAPI.delete(itemToDelete.id);
       showSuccess('Item deleted successfully!');
@@ -302,10 +303,10 @@ const Items = () => {
       <AdminHeader title="Item Management" showBack={true} onMenuClick={() => setSidebarOpen(!sidebarOpen)} sidebarOpen={sidebarOpen} />
       <AdminSidebar open={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
 
-      <Box sx={{ 
-        minHeight: '100vh', 
-        background: '#f5f5f5', 
-        paddingTop: { xs: '70px', sm: '80px' }, 
+      <Box sx={{
+        minHeight: '100vh',
+        background: '#f5f5f5',
+        paddingTop: { xs: '70px', sm: '80px' },
         paddingBottom: { xs: '20px', sm: '40px' },
         paddingLeft: { xs: '8px', sm: '16px' },
         paddingRight: { xs: '8px', sm: '16px' },
@@ -314,19 +315,19 @@ const Items = () => {
       }}>
         <Container maxWidth="lg">
           <Paper sx={{ padding: { xs: '12px', sm: '20px' }, marginBottom: '20px' }}>
-            <Box sx={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
+            <Box sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
               alignItems: { xs: 'flex-start', sm: 'center' },
               flexDirection: { xs: 'column', sm: 'row' },
               gap: { xs: '12px', sm: '0' },
-              marginBottom: '20px' 
+              marginBottom: '20px'
             }}>
               <Typography variant="h5" sx={{ fontWeight: 600, fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
                 Items
               </Typography>
-              <Box sx={{ 
-                display: 'flex', 
+              <Box sx={{
+                display: 'flex',
                 gap: '10px',
                 flexDirection: { xs: 'column', sm: 'row' },
                 width: { xs: '100%', sm: 'auto' }
@@ -334,9 +335,9 @@ const Items = () => {
                 <Button
                   variant="outlined"
                   onClick={() => navigate('/admin/categories')}
-                  sx={{ 
-                    borderColor: '#ff6b35', 
-                    color: '#ff6b35', 
+                  sx={{
+                    borderColor: '#ff6b35',
+                    color: '#ff6b35',
                     textTransform: 'none',
                     fontSize: { xs: '0.875rem', sm: '1rem' }
                   }}
@@ -347,9 +348,9 @@ const Items = () => {
                   variant="contained"
                   startIcon={<Add />}
                   onClick={() => handleOpenDialog()}
-                  sx={{ 
-                    background: '#ff6b35', 
-                    color: '#fff', 
+                  sx={{
+                    background: '#ff6b35',
+                    color: '#fff',
                     textTransform: 'none',
                     fontSize: { xs: '0.875rem', sm: '1rem' }
                   }}
@@ -358,7 +359,7 @@ const Items = () => {
                 </Button>
               </Box>
             </Box>
-            
+
             {/* Search Bar */}
             <TextField
               fullWidth
@@ -385,7 +386,7 @@ const Items = () => {
                   </Typography>
                 ) : (
                   items
-                    .filter(item => 
+                    .filter(item =>
                       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                       item.description?.toLowerCase().includes(searchQuery.toLowerCase())
                     )
@@ -398,7 +399,7 @@ const Items = () => {
                             </Typography>
                             <Chip label={`#${item.id}`} size="small" color="default" />
                           </Box>
-                          
+
                           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                             {item.description?.substring(0, 80)}...
                           </Typography>
@@ -412,7 +413,7 @@ const Items = () => {
                                     Weight-based
                                   </Box>
                                 ) : (
-                                  `₹${item.price?.toFixed(2)}`
+                                  formatCurrency(item.price)
                                 )}
                               </Typography>
                             </Box>
@@ -427,16 +428,16 @@ const Items = () => {
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                               <Typography variant="body2" color="text.secondary">Stock:</Typography>
                               <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                                <Chip 
+                                <Chip
                                   label={`Regular: ${item.stock || 0}`}
-                                  size="small" 
+                                  size="small"
                                   color={item.stock === 0 ? 'error' : item.stock <= 10 ? 'warning' : 'success'}
                                   sx={{ fontSize: '0.7rem' }}
                                 />
                                 {item.egglessStock > 0 && (
-                                  <Chip 
+                                  <Chip
                                     label={`🌱 ${item.egglessStock || 0}`}
-                                    size="small" 
+                                    size="small"
                                     color={item.egglessStock === 0 ? 'error' : item.egglessStock <= 10 ? 'warning' : 'success'}
                                     sx={{ fontSize: '0.7rem' }}
                                   />
@@ -451,18 +452,18 @@ const Items = () => {
                           </Box>
 
                           <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
-                            <Button 
-                              size="small" 
-                              variant="outlined" 
+                            <Button
+                              size="small"
+                              variant="outlined"
                               startIcon={<Edit />}
                               onClick={() => handleOpenDialog(item)}
                               sx={{ textTransform: 'none' }}
                             >
                               Edit
                             </Button>
-                            <Button 
-                              size="small" 
-                              variant="outlined" 
+                            <Button
+                              size="small"
+                              variant="outlined"
                               color="error"
                               startIcon={<Delete />}
                               onClick={() => handleDeleteClick(item)}
@@ -501,80 +502,80 @@ const Items = () => {
                       </TableRow>
                     ) : (
                       items
-                        .filter(item => 
+                        .filter(item =>
                           item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           item.description?.toLowerCase().includes(searchQuery.toLowerCase())
                         )
                         .map((item) => (
-                        <TableRow key={item.id} hover>
-                          <TableCell>{item.id}</TableCell>
-                          <TableCell>{item.name}</TableCell>
-                          <TableCell>{item.description?.substring(0, 50)}...</TableCell>
-                          <TableCell>
-                            {item.category?.name?.toLowerCase().includes('cake') && item.pricePerKg ? (
-                              <Box>
-                                <Typography variant="body2" style={{ fontWeight: 600, color: '#ff6b35' }}>
-                                  Weight-based
+                          <TableRow key={item.id} hover>
+                            <TableCell>{item.id}</TableCell>
+                            <TableCell>{item.name}</TableCell>
+                            <TableCell>{item.description?.substring(0, 50)}...</TableCell>
+                            <TableCell>
+                              {item.category?.name?.toLowerCase().includes('cake') && item.pricePerKg ? (
+                                <Box>
+                                  <Typography variant="body2" style={{ fontWeight: 600, color: '#ff6b35' }}>
+                                    Weight-based
+                                  </Typography>
+                                  <Typography variant="caption" style={{ color: '#666' }}>
+                                    {(() => {
+                                      try {
+                                        const prices = JSON.parse(item.pricePerKg);
+                                        const priceList = Object.entries(prices)
+                                          .filter(([k, v]) => v && parseFloat(v) > 0)
+                                          .map(([k, v]) => `${k}kg: ${formatCurrency(parseFloat(v))}`)
+                                          .join(', ');
+                                        return priceList || 'Not set';
+                                      } catch (e) {
+                                        return 'Error';
+                                      }
+                                    })()}
+                                  </Typography>
+                                </Box>
+                              ) : (
+                                formatCurrency(item.price)
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {item.category?.name?.toLowerCase().includes('cake') ? (
+                                <Typography variant="body2" style={{ color: '#666' }}>
+                                  Variable
                                 </Typography>
-                                <Typography variant="caption" style={{ color: '#666' }}>
-                                  {(() => {
-                                    try {
-                                      const prices = JSON.parse(item.pricePerKg);
-                                      const priceList = Object.entries(prices)
-                                        .filter(([k, v]) => v && parseFloat(v) > 0)
-                                        .map(([k, v]) => `${k}kg: ₹${v}`)
-                                        .join(', ');
-                                      return priceList || 'Not set';
-                                    } catch (e) {
-                                      return 'Error';
-                                    }
-                                  })()}
-                                </Typography>
-                              </Box>
-                            ) : (
-                              `₹${item.price?.toFixed(2)}`
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {item.category?.name?.toLowerCase().includes('cake') ? (
-                              <Typography variant="body2" style={{ color: '#666' }}>
-                                Variable
-                              </Typography>
-                            ) : (
-                              `${item.grams}g`
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <Box style={{ display: 'flex', gap: '4px', flexDirection: 'column' }}>
-                              <Chip 
-                                label={`Regular: ${item.stock || 0}`}
-                                size="small" 
-                                color={item.stock === 0 ? 'error' : item.stock <= 10 ? 'warning' : 'success'}
-                                style={{ fontSize: '11px', borderRadius: 0 }}
-                              />
-                              {item.egglessStock > 0 && (
-                                <Chip 
-                                  label={`🌱 ${item.egglessStock || 0}`}
-                                  size="small" 
-                                  color={item.egglessStock === 0 ? 'error' : item.egglessStock <= 10 ? 'warning' : 'success'}
+                              ) : (
+                                `${item.grams}g`
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <Box style={{ display: 'flex', gap: '4px', flexDirection: 'column' }}>
+                                <Chip
+                                  label={`Regular: ${item.stock || 0}`}
+                                  size="small"
+                                  color={item.stock === 0 ? 'error' : item.stock <= 10 ? 'warning' : 'success'}
                                   style={{ fontSize: '11px', borderRadius: 0 }}
                                 />
-                              )}
-                            </Box>
-                          </TableCell>
-                          <TableCell>
-                            <Chip label={item.category?.name} size="small" color="primary" style={{ borderRadius: 0 }} />
-                          </TableCell>
-                          <TableCell align="right">
-                            <IconButton color="primary" onClick={() => handleOpenDialog(item)}>
-                              <Edit />
-                            </IconButton>
-                            <IconButton color="error" onClick={() => handleDeleteClick(item)}>
-                              <Delete />
-                            </IconButton>
-                          </TableCell>
-                        </TableRow>
-                      ))
+                                {item.egglessStock > 0 && (
+                                  <Chip
+                                    label={`🌱 ${item.egglessStock || 0}`}
+                                    size="small"
+                                    color={item.egglessStock === 0 ? 'error' : item.egglessStock <= 10 ? 'warning' : 'success'}
+                                    style={{ fontSize: '11px', borderRadius: 0 }}
+                                  />
+                                )}
+                              </Box>
+                            </TableCell>
+                            <TableCell>
+                              <Chip label={item.category?.name} size="small" color="primary" style={{ borderRadius: 0 }} />
+                            </TableCell>
+                            <TableCell align="right">
+                              <IconButton color="primary" onClick={() => handleOpenDialog(item)}>
+                                <Edit />
+                              </IconButton>
+                              <IconButton color="error" onClick={() => handleDeleteClick(item)}>
+                                <Delete />
+                              </IconButton>
+                            </TableCell>
+                          </TableRow>
+                        ))
                     )}
                   </TableBody>
                 </Table>
@@ -613,38 +614,38 @@ const Items = () => {
             const catName = categories.find(cat => cat.id === currentItem.categoryId)?.name?.toLowerCase() || '';
             return (catName.includes('occasional') || catName.includes('premium') || catName.includes('party'));
           })() && (
-            <>
-              <TextField
-                margin="dense"
-                label="Price (₹)"
-                type="number"
-                fullWidth
-                value={currentItem.price}
-                onChange={(e) => setCurrentItem({ ...currentItem, price: e.target.value })}
-              />
+              <>
+                <TextField
+                  margin="dense"
+                  label="Price (₹)"
+                  type="number"
+                  fullWidth
+                  value={currentItem.price}
+                  onChange={(e) => setCurrentItem({ ...currentItem, price: e.target.value })}
+                />
 
-              <TextField
-                margin="dense"
-                label="Weight (grams)"
-                type="number"
-                fullWidth
-                value={currentItem.grams}
-                onChange={(e) => setCurrentItem({ ...currentItem, grams: e.target.value })}
-                helperText="Enter weight in grams"
-              />
+                <TextField
+                  margin="dense"
+                  label="Weight (grams)"
+                  type="number"
+                  fullWidth
+                  value={currentItem.grams}
+                  onChange={(e) => setCurrentItem({ ...currentItem, grams: e.target.value })}
+                  helperText="Enter weight in grams"
+                />
 
-              <TextField
-                margin="dense"
-                label="Number of Pieces"
-                type="number"
-                fullWidth
-                value={currentItem.pieces}
-                onChange={(e) => setCurrentItem({ ...currentItem, pieces: parseInt(e.target.value) || 1 })}
-                helperText="How many pieces per item (e.g., 2 pieces of cake)"
-                InputProps={{ inputProps: { min: 1, max: 100 } }}
-              />
-            </>
-          )}
+                <TextField
+                  margin="dense"
+                  label="Number of Pieces"
+                  type="number"
+                  fullWidth
+                  value={currentItem.pieces}
+                  onChange={(e) => setCurrentItem({ ...currentItem, pieces: parseInt(e.target.value) || 1 })}
+                  helperText="How many pieces per item (e.g., 2 pieces of cake)"
+                  InputProps={{ inputProps: { min: 1, max: 100 } }}
+                />
+              </>
+            )}
 
           <TextField
             margin="dense"
@@ -673,7 +674,7 @@ const Items = () => {
             <Typography variant="body2" color="textSecondary" style={{ marginBottom: '12px' }}>
               Set separate stock for eggless variant. Regular stock above will be used for egg variant.
             </Typography>
-            
+
             <TextField
               label="🌱 Eggless Stock"
               type="number"
@@ -690,68 +691,68 @@ const Items = () => {
             const catName = categories.find(cat => cat.id === currentItem.categoryId)?.name?.toLowerCase() || '';
             return (catName.includes('occasional') || catName.includes('premium') || catName.includes('party'));
           })() && (
-            <Box style={{ marginTop: '16px', padding: '16px', background: '#fff3e0', borderRadius: '8px' }}>
-              <Typography variant="subtitle1" style={{ fontWeight: 600, marginBottom: '12px', color: '#ff6b35' }}>
-                🎂 Weight-Based Pricing
-              </Typography>
-              <Typography variant="body2" color="textSecondary" style={{ marginBottom: '16px' }}>
-                Set different prices for different weights. Leave empty to use base price.
-              </Typography>
-              
-              <Box style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <TextField
-                  label="1 Kg Price (₹)"
-                  type="number"
-                  value={currentItem.pricePerKg?.['1'] || ''}
-                  onChange={(e) => setCurrentItem({ 
-                    ...currentItem, 
-                    pricePerKg: { ...currentItem.pricePerKg, '1': e.target.value }
-                  })}
-                  InputProps={{ inputProps: { min: 0 } }}
-                />
-                <TextField
-                  label="1.5 Kg Price (₹)"
-                  type="number"
-                  value={currentItem.pricePerKg?.['1.5'] || ''}
-                  onChange={(e) => setCurrentItem({ 
-                    ...currentItem, 
-                    pricePerKg: { ...currentItem.pricePerKg, '1.5': e.target.value }
-                  })}
-                  InputProps={{ inputProps: { min: 0 } }}
-                />
-                <TextField
-                  label="2 Kg Price (₹)"
-                  type="number"
-                  value={currentItem.pricePerKg?.['2'] || ''}
-                  onChange={(e) => setCurrentItem({ 
-                    ...currentItem, 
-                    pricePerKg: { ...currentItem.pricePerKg, '2': e.target.value }
-                  })}
-                  InputProps={{ inputProps: { min: 0 } }}
-                />
-                <TextField
-                  label="2.5 Kg Price (₹)"
-                  type="number"
-                  value={currentItem.pricePerKg?.['2.5'] || ''}
-                  onChange={(e) => setCurrentItem({ 
-                    ...currentItem, 
-                    pricePerKg: { ...currentItem.pricePerKg, '2.5': e.target.value }
-                  })}
-                  InputProps={{ inputProps: { min: 0 } }}
-                />
-                <TextField
-                  label="3 Kg Price (₹)"
-                  type="number"
-                  value={currentItem.pricePerKg?.['3'] || ''}
-                  onChange={(e) => setCurrentItem({ 
-                    ...currentItem, 
-                    pricePerKg: { ...currentItem.pricePerKg, '3': e.target.value }
-                  })}
-                  InputProps={{ inputProps: { min: 0 } }}
-                />
+              <Box style={{ marginTop: '16px', padding: '16px', background: '#fff3e0', borderRadius: '8px' }}>
+                <Typography variant="subtitle1" style={{ fontWeight: 600, marginBottom: '12px', color: '#ff6b35' }}>
+                  🎂 Weight-Based Pricing
+                </Typography>
+                <Typography variant="body2" color="textSecondary" style={{ marginBottom: '16px' }}>
+                  Set different prices for different weights. Leave empty to use base price.
+                </Typography>
+
+                <Box style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <TextField
+                    label="1 Kg Price (₹)"
+                    type="number"
+                    value={currentItem.pricePerKg?.['1'] || ''}
+                    onChange={(e) => setCurrentItem({
+                      ...currentItem,
+                      pricePerKg: { ...currentItem.pricePerKg, '1': e.target.value }
+                    })}
+                    InputProps={{ inputProps: { min: 0 } }}
+                  />
+                  <TextField
+                    label="1.5 Kg Price (₹)"
+                    type="number"
+                    value={currentItem.pricePerKg?.['1.5'] || ''}
+                    onChange={(e) => setCurrentItem({
+                      ...currentItem,
+                      pricePerKg: { ...currentItem.pricePerKg, '1.5': e.target.value }
+                    })}
+                    InputProps={{ inputProps: { min: 0 } }}
+                  />
+                  <TextField
+                    label="2 Kg Price (₹)"
+                    type="number"
+                    value={currentItem.pricePerKg?.['2'] || ''}
+                    onChange={(e) => setCurrentItem({
+                      ...currentItem,
+                      pricePerKg: { ...currentItem.pricePerKg, '2': e.target.value }
+                    })}
+                    InputProps={{ inputProps: { min: 0 } }}
+                  />
+                  <TextField
+                    label="2.5 Kg Price (₹)"
+                    type="number"
+                    value={currentItem.pricePerKg?.['2.5'] || ''}
+                    onChange={(e) => setCurrentItem({
+                      ...currentItem,
+                      pricePerKg: { ...currentItem.pricePerKg, '2.5': e.target.value }
+                    })}
+                    InputProps={{ inputProps: { min: 0 } }}
+                  />
+                  <TextField
+                    label="3 Kg Price (₹)"
+                    type="number"
+                    value={currentItem.pricePerKg?.['3'] || ''}
+                    onChange={(e) => setCurrentItem({
+                      ...currentItem,
+                      pricePerKg: { ...currentItem.pricePerKg, '3': e.target.value }
+                    })}
+                    InputProps={{ inputProps: { min: 0 } }}
+                  />
+                </Box>
               </Box>
-            </Box>
-          )}
+            )}
 
           <Box style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
             <FormControl fullWidth margin="dense">
@@ -771,8 +772,8 @@ const Items = () => {
             <Button
               variant="outlined"
               onClick={() => setOpenCategoryDialog(true)}
-              style={{ 
-                marginTop: '8px', 
+              style={{
+                marginTop: '8px',
                 minWidth: '120px',
                 borderColor: '#ff6b35',
                 color: '#ff6b35'

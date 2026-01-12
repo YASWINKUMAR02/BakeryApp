@@ -27,6 +27,7 @@ import { customerAPI, orderAPI, orderHistoryAPI } from '../../services/api';
 import AdminHeader from '../../components/AdminHeader';
 import AdminSidebar from '../../components/AdminSidebar';
 import { showError } from '../../utils/toast';
+import { formatCurrency } from '../../utils/currencyUtils';
 
 const Customers = () => {
   const [customers, setCustomers] = useState([]);
@@ -63,22 +64,22 @@ const Customers = () => {
     setSelectedCustomer(customer);
     setDialogOpen(true);
     setLoadingOrders(true);
-    
+
     try {
       // Fetch both active orders and order history
       const [ordersResponse, historyResponse] = await Promise.all([
         orderAPI.getByCustomer(customer.id),
         orderHistoryAPI.getByCustomer(customer.id)
       ]);
-      
+
       const activeOrders = ordersResponse.data.success ? ordersResponse.data.data : [];
       const historyOrders = historyResponse.data || [];
-      
+
       // Combine and sort by date
-      const allOrders = [...activeOrders, ...historyOrders].sort((a, b) => 
+      const allOrders = [...activeOrders, ...historyOrders].sort((a, b) =>
         new Date(b.orderDate) - new Date(a.orderDate)
       );
-      
+
       setCustomerOrders(allOrders);
     } catch (err) {
       console.error('Error fetching customer orders:', err);
@@ -98,15 +99,15 @@ const Customers = () => {
   const handleOrderClick = async (order) => {
     setOrderDetailsOpen(true);
     setLoadingOrderDetails(true);
-    
+
     console.log('Clicked order:', order);
-    
+
     try {
       const response = await orderAPI.getById(order.id);
       console.log('Order details full response:', response);
       console.log('Order details data:', response.data);
       console.log('Order details items:', response.data?.data?.items);
-      
+
       if (response.data.success && response.data.data) {
         const orderData = response.data.data;
         console.log('Setting order with items:', orderData.items);
@@ -153,10 +154,10 @@ const Customers = () => {
       <AdminHeader title="Customer Management" showBack={true} onMenuClick={() => setSidebarOpen(!sidebarOpen)} sidebarOpen={sidebarOpen} />
       <AdminSidebar open={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
 
-      <Box sx={{ 
-        minHeight: '100vh', 
-        background: '#f5f5f5', 
-        paddingTop: { xs: '70px', sm: '80px' }, 
+      <Box sx={{
+        minHeight: '100vh',
+        background: '#f5f5f5',
+        paddingTop: { xs: '70px', sm: '80px' },
         paddingBottom: { xs: '20px', sm: '40px' },
         paddingLeft: { xs: '8px', sm: '16px' },
         paddingRight: { xs: '8px', sm: '16px' },
@@ -301,15 +302,15 @@ const Customers = () => {
                     </TableHead>
                     <TableBody>
                       {customerOrders.map((order) => (
-                        <TableRow 
-                          key={order.id} 
+                        <TableRow
+                          key={order.id}
                           hover
                           onClick={() => handleOrderClick(order)}
                           style={{ cursor: 'pointer' }}
                         >
                           <TableCell style={{ fontWeight: 600, color: '#1976d2' }}>#{order.id}</TableCell>
                           <TableCell>{new Date(order.orderDate).toLocaleDateString()}</TableCell>
-                          <TableCell style={{ fontWeight: 600 }}>₹{order.totalAmount?.toFixed(2) || '0.00'}</TableCell>
+                          <TableCell style={{ fontWeight: 600 }}>{formatCurrency(order.totalAmount)}</TableCell>
                           <TableCell>
                             <Chip
                               label={order.status}
@@ -439,10 +440,10 @@ const Customers = () => {
                         <TableRow key={index}>
                           <TableCell style={{ fontWeight: 500 }}>{item.itemName}</TableCell>
                           <TableCell>
-                            <Chip 
-                              label={item.isEggless ? '🌱 Eggless' : 'Regular'} 
+                            <Chip
+                              label={item.isEggless ? '🌱 Eggless' : 'Regular'}
                               size="small"
-                              style={{ 
+                              style={{
                                 background: item.isEggless ? '#4caf50' : '#2196f3',
                                 color: '#fff',
                                 borderRadius: 0,
@@ -450,9 +451,9 @@ const Customers = () => {
                               }}
                             />
                           </TableCell>
-                          <TableCell style={{ fontWeight: 500 }}>₹{item.price?.toFixed(2)}</TableCell>
+                          <TableCell style={{ fontWeight: 500 }}>{formatCurrency(item.price)}</TableCell>
                           <TableCell style={{ fontWeight: 600 }}>{item.quantity}</TableCell>
-                          <TableCell style={{ fontWeight: 700, color: '#000000' }}>₹{(item.price * item.quantity).toFixed(2)}</TableCell>
+                          <TableCell style={{ fontWeight: 700, color: '#000000' }}>{formatCurrency(item.price * item.quantity)}</TableCell>
                         </TableRow>
                       ))}
                       <TableRow style={{ background: '#f5f7fa' }}>
@@ -460,7 +461,7 @@ const Customers = () => {
                           Total Amount:
                         </TableCell>
                         <TableCell style={{ fontWeight: 700, fontSize: '16px', color: '#000000' }}>
-                          ₹{selectedOrder.totalAmount?.toFixed(2) || '0.00'}
+                          {formatCurrency(selectedOrder.totalAmount)}
                         </TableCell>
                       </TableRow>
                     </TableBody>
@@ -470,7 +471,7 @@ const Customers = () => {
                 <Box>
                   <Card style={{ background: '#e3f2fd', padding: '24px', textAlign: 'center', marginBottom: '16px' }}>
                     <Typography variant="h5" style={{ fontWeight: 700, color: '#1976d2', marginBottom: '8px' }}>
-                      ₹{selectedOrder.totalAmount?.toFixed(2) || '0.00'}
+                      {formatCurrency(selectedOrder.totalAmount)}
                     </Typography>
                     <Typography variant="body2" color="textSecondary">
                       Order Total

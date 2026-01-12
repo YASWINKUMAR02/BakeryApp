@@ -48,6 +48,7 @@ import AdminHeader from '../../components/AdminHeader';
 import AdminSidebar from '../../components/AdminSidebar';
 import { notifyCustomerOrderConfirmed, notifyCustomerOrderPacked, notifyCustomerOrderOutForDelivery, notifyCustomerOrderDelivered, notifyAdminOrderDelivered } from '../../utils/notificationUtils';
 import { showSuccess, showError } from '../../utils/toast';
+import { formatCurrency } from '../../utils/currencyUtils';
 
 const Orders = () => {
   const navigate = useNavigate();
@@ -99,23 +100,23 @@ const Orders = () => {
 
   const handleStatusChange = async (orderId, newStatus) => {
     setUpdatingOrderId(orderId);
-    
+
     // Find the order BEFORE updating to get customer ID
     const order = orders.find(o => o.id === orderId);
     const customerId = order?.customer?.id;
-    
+
     console.log('🔍 Order details:', { orderId, customerId, customerName: order?.customer?.name, newStatus });
-    
+
     // Optimistic update - immediately update UI
-    setOrders(prevOrders => 
-      prevOrders.map(order => 
+    setOrders(prevOrders =>
+      prevOrders.map(order =>
         order.id === orderId ? { ...order, status: newStatus } : order
       )
     );
-    
+
     try {
       await orderAPI.updateStatus(orderId, { status: newStatus });
-      
+
       // Send notification to customer based on status
       if (customerId) {
         console.log('📤 Sending notification to customer:', customerId, 'for order:', orderId, 'status:', newStatus);
@@ -140,7 +141,7 @@ const Orders = () => {
       } else {
         console.warn('⚠️ No customer ID found for order:', orderId);
       }
-      
+
       showSuccess(`Order #${orderId} status updated to ${newStatus}`);
       // Refresh to get latest data from server
       await fetchOrders();
@@ -177,10 +178,10 @@ const Orders = () => {
       <AdminHeader title="Order Management" showBack={true} onMenuClick={() => setSidebarOpen(!sidebarOpen)} sidebarOpen={sidebarOpen} />
       <AdminSidebar open={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
 
-      <Box sx={{ 
-        minHeight: '100vh', 
-        background: '#f5f5f5', 
-        paddingTop: { xs: '70px', sm: '80px' }, 
+      <Box sx={{
+        minHeight: '100vh',
+        background: '#f5f5f5',
+        paddingTop: { xs: '70px', sm: '80px' },
         paddingBottom: { xs: '20px', sm: '40px' },
         paddingLeft: { xs: '8px', sm: '16px' },
         paddingRight: { xs: '8px', sm: '16px' },
@@ -192,10 +193,10 @@ const Orders = () => {
           {error && <Alert severity="error" style={{ marginBottom: '20px' }}>{error}</Alert>}
 
           <Paper sx={{ padding: { xs: '12px', sm: '20px' }, borderRadius: '12px', marginBottom: '20px' }}>
-            <Box sx={{ 
-              marginBottom: '20px', 
-              display: 'flex', 
-              justifyContent: 'space-between', 
+            <Box sx={{
+              marginBottom: '20px',
+              display: 'flex',
+              justifyContent: 'space-between',
               alignItems: { xs: 'flex-start', sm: 'center' },
               flexDirection: { xs: 'column', sm: 'row' },
               gap: { xs: '12px', sm: '0' }
@@ -221,7 +222,7 @@ const Orders = () => {
                 {refreshing ? 'Refreshing...' : 'Refresh'}
               </Button>
             </Box>
-            
+
             {/* Search Bar */}
             <Box style={{ marginBottom: '20px', marginTop: '20px' }}>
               <TextField
@@ -250,7 +251,7 @@ const Orders = () => {
                   </Typography>
                 ) : (
                   orders
-                    .filter(order => 
+                    .filter(order =>
                       order.id.toString().includes(searchQuery) ||
                       order.customerName?.toLowerCase().includes(searchQuery.toLowerCase())
                     )
@@ -266,10 +267,10 @@ const Orders = () => {
                                 {new Date(order.orderDate).toLocaleDateString()}
                               </Typography>
                             </Box>
-                            <Chip 
-                              label={order.status} 
-                              color={getStatusColor(order.status)} 
-                              size="small" 
+                            <Chip
+                              label={order.status}
+                              color={getStatusColor(order.status)}
+                              size="small"
                             />
                           </Box>
 
@@ -284,15 +285,15 @@ const Orders = () => {
                             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                               <Typography variant="body2" color="text.secondary">Total Amount:</Typography>
                               <Typography variant="body2" sx={{ fontWeight: 600, color: '#1976d2' }}>
-                                ₹{order.totalAmount?.toFixed(2)}
+                                {formatCurrency(order.totalAmount)}
                               </Typography>
                             </Box>
 
                             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                               <Typography variant="body2" color="text.secondary">Payment:</Typography>
-                              <Chip 
-                                label="Online (Razorpay)" 
-                                size="small" 
+                              <Chip
+                                label="Online (Razorpay)"
+                                size="small"
                                 color="success"
                                 sx={{ fontSize: '0.75rem' }}
                               />
@@ -341,10 +342,10 @@ const Orders = () => {
                                 Delivery Information
                               </Typography>
                               <Typography variant="body2" sx={{ mb: 0.5 }}>
-                                <strong>Address:</strong> {order.deliveryAddress && order.deliveryAddress.startsWith('location,') 
-                                  ? (order.latitude && order.longitude 
-                                      ? `📍 GPS Location: Lat ${order.latitude.toFixed(6)}, Long ${order.longitude.toFixed(6)}` 
-                                      : '📍 Location-based Delivery')
+                                <strong>Address:</strong> {order.deliveryAddress && order.deliveryAddress.startsWith('location,')
+                                  ? (order.latitude && order.longitude
+                                    ? `📍 GPS Location: Lat ${order.latitude.toFixed(6)}, Long ${order.longitude.toFixed(6)}`
+                                    : '📍 Location-based Delivery')
                                   : (order.deliveryAddress || 'N/A')}
                               </Typography>
                               <Typography variant="body2" sx={{ mb: 0.5 }}>
@@ -392,10 +393,10 @@ const Orders = () => {
                                   )}
                                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 0.5 }}>
                                     <Typography variant="caption" color="text.secondary">
-                                      Qty: {item.quantity} × ₹{item.price?.toFixed(2)}
+                                      Qty: {item.quantity} × {formatCurrency(item.price)}
                                     </Typography>
                                     <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                                      ₹{(item.quantity * item.price)?.toFixed(2)}
+                                      {formatCurrency(item.quantity * item.price)}
                                     </Typography>
                                   </Box>
                                 </Box>
@@ -430,236 +431,236 @@ const Orders = () => {
                       </TableRow>
                     ) : (
                       orders
-                        .filter(order => 
+                        .filter(order =>
                           order.id.toString().includes(searchQuery) ||
                           order.customerName?.toLowerCase().includes(searchQuery.toLowerCase())
                         )
                         .map((order) => (
-                        <React.Fragment key={order.id}>
-                          <TableRow hover>
-                            <TableCell>#{order.id}</TableCell>
-                            <TableCell>
-                              {new Date(order.orderDate).toLocaleDateString()}
-                            </TableCell>
-                            <TableCell>₹{order.totalAmount?.toFixed(2)}</TableCell>
-                            <TableCell>
-                              <Chip 
-                                label={order.status} 
-                                color={getStatusColor(order.status)} 
-                                size="small" 
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <FormControl size="small" style={{ minWidth: 120 }}>
-                                <Select
-                                  value={order.status}
-                                  onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                                  disabled={updatingOrderId === order.id}
-                                  style={{ 
-                                    opacity: updatingOrderId === order.id ? 0.6 : 1,
-                                    cursor: updatingOrderId === order.id ? 'wait' : 'pointer'
-                                  }}
-                                >
-                                  <MenuItem value="Confirmed">Confirmed</MenuItem>
-                                  <MenuItem value="Packed">Packed</MenuItem>
-                                  <MenuItem value="Out for Delivery">Out for Delivery</MenuItem>
-                                  <MenuItem value="Delivered">Delivered</MenuItem>
-                                </Select>
-                              </FormControl>
-                              {updatingOrderId === order.id && (
-                                <CircularProgress 
-                                  size={16} 
-                                  style={{ marginLeft: '8px', verticalAlign: 'middle' }} 
+                          <React.Fragment key={order.id}>
+                            <TableRow hover>
+                              <TableCell>#{order.id}</TableCell>
+                              <TableCell>
+                                {new Date(order.orderDate).toLocaleDateString()}
+                              </TableCell>
+                              <TableCell>{formatCurrency(order.totalAmount)}</TableCell>
+                              <TableCell>
+                                <Chip
+                                  label={order.status}
+                                  color={getStatusColor(order.status)}
+                                  size="small"
                                 />
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              <IconButton 
-                                size="small" 
-                                onClick={() => toggleOrderDetails(order.id)}
-                                color="primary"
-                              >
-                                {expandedOrder === order.id ? <ExpandLess /> : <ExpandMore />}
-                              </IconButton>
-                            </TableCell>
-                          </TableRow>
-                          <TableRow>
-                            <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
-                              <Collapse in={expandedOrder === order.id} timeout="auto" unmountOnExit>
-                                <Box style={{ margin: '20px 0' }}>
-                                  <Grid container spacing={3}>
-                                    {/* Delivery Details */}
-                                    <Grid item xs={12} md={6}>
-                                      <Paper style={{ padding: '20px', background: '#f5f7fa', borderRadius: '8px' }}>
-                                        <Typography variant="h6" style={{ fontWeight: 600, marginBottom: '15px', display: 'flex', alignItems: 'center' }}>
-                                          <Home style={{ marginRight: '8px', color: '#1976d2' }} />
-                                          Delivery Information
-                                        </Typography>
-                                        <Box style={{ marginBottom: '12px' }}>
-                                          <Typography variant="body2" color="textSecondary" style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-                                            <Person style={{ fontSize: 18, marginRight: '6px', color: '#1976d2' }} />
-                                            Customer Name
+                              </TableCell>
+                              <TableCell>
+                                <FormControl size="small" style={{ minWidth: 120 }}>
+                                  <Select
+                                    value={order.status}
+                                    onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                                    disabled={updatingOrderId === order.id}
+                                    style={{
+                                      opacity: updatingOrderId === order.id ? 0.6 : 1,
+                                      cursor: updatingOrderId === order.id ? 'wait' : 'pointer'
+                                    }}
+                                  >
+                                    <MenuItem value="Confirmed">Confirmed</MenuItem>
+                                    <MenuItem value="Packed">Packed</MenuItem>
+                                    <MenuItem value="Out for Delivery">Out for Delivery</MenuItem>
+                                    <MenuItem value="Delivered">Delivered</MenuItem>
+                                  </Select>
+                                </FormControl>
+                                {updatingOrderId === order.id && (
+                                  <CircularProgress
+                                    size={16}
+                                    style={{ marginLeft: '8px', verticalAlign: 'middle' }}
+                                  />
+                                )}
+                              </TableCell>
+                              <TableCell>
+                                <IconButton
+                                  size="small"
+                                  onClick={() => toggleOrderDetails(order.id)}
+                                  color="primary"
+                                >
+                                  {expandedOrder === order.id ? <ExpandLess /> : <ExpandMore />}
+                                </IconButton>
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+                                <Collapse in={expandedOrder === order.id} timeout="auto" unmountOnExit>
+                                  <Box style={{ margin: '20px 0' }}>
+                                    <Grid container spacing={3}>
+                                      {/* Delivery Details */}
+                                      <Grid item xs={12} md={6}>
+                                        <Paper style={{ padding: '20px', background: '#f5f7fa', borderRadius: '8px' }}>
+                                          <Typography variant="h6" style={{ fontWeight: 600, marginBottom: '15px', display: 'flex', alignItems: 'center' }}>
+                                            <Home style={{ marginRight: '8px', color: '#1976d2' }} />
+                                            Delivery Information
                                           </Typography>
-                                          <Typography variant="body1" style={{ fontWeight: 500, marginLeft: '24px' }}>
-                                            {order.customerName || 'N/A'}
-                                          </Typography>
-                                        </Box>
-                                        <Box style={{ marginBottom: '12px' }}>
-                                          <Typography variant="body2" color="textSecondary" style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-                                            <Phone style={{ fontSize: 18, marginRight: '6px', color: '#1976d2' }} />
-                                            Phone Number
-                                          </Typography>
-                                          <Typography variant="body1" style={{ fontWeight: 500, marginLeft: '24px' }}>
-                                            {order.deliveryPhone || 'N/A'}
-                                          </Typography>
-                                        </Box>
-                                        <Box style={{ marginBottom: '12px' }}>
-                                          <Typography variant="body2" color="textSecondary" style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-                                            <Home style={{ fontSize: 18, marginRight: '6px', color: '#1976d2' }} />
-                                            Delivery Address
-                                          </Typography>
-                                          <Typography variant="body1" style={{ fontWeight: 500, marginLeft: '24px', wordBreak: 'break-word' }}>
-                                            {order.deliveryAddress && order.deliveryAddress.startsWith('location,') 
-                                              ? (order.latitude && order.longitude 
-                                                  ? `📍 GPS Location: Lat ${order.latitude.toFixed(6)}, Long ${order.longitude.toFixed(6)}` 
-                                                  : '📍 Location-based Delivery')
-                                              : (order.deliveryAddress || 'N/A')}
-                                          </Typography>
-                                          {order.latitude && order.longitude && !order.deliveryAddress?.startsWith('location,') && (
-                                            <Typography variant="caption" color="primary" style={{ marginLeft: '24px', marginTop: '4px', display: 'block', fontWeight: 600 }}>
-                                              📍 GPS: {order.latitude.toFixed(6)}, {order.longitude.toFixed(6)}
-                                            </Typography>
-                                          )}
-                                        </Box>
-                                        {order.deliveryNotes && (
                                           <Box style={{ marginBottom: '12px' }}>
                                             <Typography variant="body2" color="textSecondary" style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-                                              <Notes style={{ fontSize: 18, marginRight: '6px', color: '#1976d2' }} />
-                                              Delivery Notes
+                                              <Person style={{ fontSize: 18, marginRight: '6px', color: '#1976d2' }} />
+                                              Customer Name
                                             </Typography>
-                                            <Typography variant="body1" style={{ fontWeight: 500, marginLeft: '24px', fontStyle: 'italic' }}>
-                                              {order.deliveryNotes}
+                                            <Typography variant="body1" style={{ fontWeight: 500, marginLeft: '24px' }}>
+                                              {order.customerName || 'N/A'}
                                             </Typography>
                                           </Box>
-                                        )}
-                                        <Box style={{ marginBottom: '12px' }}>
-                                          <Typography variant="body2" color="textSecondary" style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-                                            <Payment style={{ fontSize: 18, marginRight: '6px', color: '#1976d2' }} />
-                                            Payment Method
-                                          </Typography>
-                                          <Typography variant="body1" style={{ fontWeight: 500, marginLeft: '24px' }}>
-                                            💳 Online Payment (Razorpay)
-                                          </Typography>
-                                          {order.paymentId && (
-                                            <Typography variant="caption" style={{ marginLeft: '24px', marginTop: '4px', display: 'block', color: '#666' }}>
-                                              Payment ID: {order.paymentId}
+                                          <Box style={{ marginBottom: '12px' }}>
+                                            <Typography variant="body2" color="textSecondary" style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                                              <Phone style={{ fontSize: 18, marginRight: '6px', color: '#1976d2' }} />
+                                              Phone Number
                                             </Typography>
-                                          )}
-                                          {order.paymentVerified && (
-                                            <Typography variant="caption" style={{ marginLeft: '24px', marginTop: '2px', display: 'block', color: '#28a745', fontWeight: 600 }}>
-                                              ✓ Payment Verified
+                                            <Typography variant="body1" style={{ fontWeight: 500, marginLeft: '24px' }}>
+                                              {order.deliveryPhone || 'N/A'}
                                             </Typography>
-                                          )}
-                                        </Box>
-                                      </Paper>
-                                    </Grid>
-
-                                    {/* Order Items */}
-                                    <Grid item xs={12} md={6}>
-                                      <Paper style={{ padding: '20px', background: '#fff', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
-                                        <Typography variant="h6" style={{ fontWeight: 600, marginBottom: '15px', display: 'flex', alignItems: 'center' }}>
-                                          <ShoppingBag style={{ marginRight: '8px', color: '#1976d2' }} />
-                                          Order Items
-                                        </Typography>
-                                        {order.orderItems && order.orderItems.length > 0 ? (
-                                          <>
-                                            {order.orderItems.map((item, index) => (
-                                              <Box key={index} style={{ marginBottom: '12px', padding: '12px', background: '#f9f9f9', borderRadius: '8px' }}>
-                                                <Box style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
-                                                  <Box style={{ flex: 1 }}>
-                                                    <Typography variant="body1" style={{ fontWeight: 600, color: '#333' }}>
-                                                      {item.item?.name || item.itemName || 'Unknown Item'}
-                                                      {!item.item && item.itemName && (
-                                                        <Chip 
-                                                          label="Deleted" 
-                                                          size="small" 
-                                                          color="error"
-                                                          style={{ marginLeft: '8px', height: '20px', fontSize: '11px' }}
-                                                        />
-                                                      )}
-                                                    </Typography>
-                                                    <Box style={{ display: 'flex', gap: '8px', marginTop: '6px', flexWrap: 'wrap' }}>
-                                                      {item.selectedWeight && (
-                                                        <Chip 
-                                                          label={`${item.selectedWeight} Kg`}
-                                                          size="small"
-                                                          style={{ 
-                                                            background: '#fff3e0',
-                                                            color: '#e65100',
-                                                            fontSize: '10px',
-                                                            height: '20px'
-                                                          }}
-                                                        />
-                                                      )}
-                                                      {item.eggType === 'EGGLESS' && (
-                                                        <Chip 
-                                                          label="🌱 Eggless"
-                                                          size="small"
-                                                          style={{ 
-                                                            background: '#e8f5e9',
-                                                            color: '#2e7d32',
-                                                            fontSize: '10px',
-                                                            height: '20px'
-                                                          }}
-                                                        />
-                                                      )}
-                                                      {item.eggType === 'EGG' && (
-                                                        <Chip 
-                                                          label="🥚 Egg"
-                                                          size="small"
-                                                          style={{ 
-                                                            background: '#fff9c4',
-                                                            color: '#f57f17',
-                                                            fontSize: '10px',
-                                                            height: '20px'
-                                                          }}
-                                                        />
-                                                      )}
-                                                    </Box>
-                                                    <Typography variant="caption" color="textSecondary" style={{ display: 'block', marginTop: '4px' }}>
-                                                      Quantity: {item.quantity} × ₹{item.price?.toFixed(2)}
-                                                    </Typography>
-                                                  </Box>
-                                                  <Typography variant="h6" style={{ fontWeight: 700, color: '#000000', marginLeft: '16px' }}>
-                                                    ₹{(item.price * item.quantity).toFixed(2)}
-                                                  </Typography>
-                                                </Box>
-                                              </Box>
-                                            ))}
-                                            <Divider style={{ margin: '16px 0' }} />
-                                            <Box style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: '#e3f2fd', borderRadius: '8px' }}>
-                                              <Typography variant="h6" style={{ fontWeight: 700 }}>
-                                                Order Total
+                                          </Box>
+                                          <Box style={{ marginBottom: '12px' }}>
+                                            <Typography variant="body2" color="textSecondary" style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                                              <Home style={{ fontSize: 18, marginRight: '6px', color: '#1976d2' }} />
+                                              Delivery Address
+                                            </Typography>
+                                            <Typography variant="body1" style={{ fontWeight: 500, marginLeft: '24px', wordBreak: 'break-word' }}>
+                                              {order.deliveryAddress && order.deliveryAddress.startsWith('location,')
+                                                ? (order.latitude && order.longitude
+                                                  ? `📍 GPS Location: Lat ${order.latitude.toFixed(6)}, Long ${order.longitude.toFixed(6)}`
+                                                  : '📍 Location-based Delivery')
+                                                : (order.deliveryAddress || 'N/A')}
+                                            </Typography>
+                                            {order.latitude && order.longitude && !order.deliveryAddress?.startsWith('location,') && (
+                                              <Typography variant="caption" color="primary" style={{ marginLeft: '24px', marginTop: '4px', display: 'block', fontWeight: 600 }}>
+                                                📍 GPS: {order.latitude.toFixed(6)}, {order.longitude.toFixed(6)}
                                               </Typography>
-                                              <Typography variant="h5" style={{ fontWeight: 700, color: '#000000' }}>
-                                                ₹{order.totalAmount?.toFixed(2)}
+                                            )}
+                                          </Box>
+                                          {order.deliveryNotes && (
+                                            <Box style={{ marginBottom: '12px' }}>
+                                              <Typography variant="body2" color="textSecondary" style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                                                <Notes style={{ fontSize: 18, marginRight: '6px', color: '#1976d2' }} />
+                                                Delivery Notes
+                                              </Typography>
+                                              <Typography variant="body1" style={{ fontWeight: 500, marginLeft: '24px', fontStyle: 'italic' }}>
+                                                {order.deliveryNotes}
                                               </Typography>
                                             </Box>
-                                          </>
-                                        ) : (
-                                          <Typography variant="body2" color="textSecondary">
-                                            No items found
+                                          )}
+                                          <Box style={{ marginBottom: '12px' }}>
+                                            <Typography variant="body2" color="textSecondary" style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                                              <Payment style={{ fontSize: 18, marginRight: '6px', color: '#1976d2' }} />
+                                              Payment Method
+                                            </Typography>
+                                            <Typography variant="body1" style={{ fontWeight: 500, marginLeft: '24px' }}>
+                                              💳 Online Payment (Razorpay)
+                                            </Typography>
+                                            {order.paymentId && (
+                                              <Typography variant="caption" style={{ marginLeft: '24px', marginTop: '4px', display: 'block', color: '#666' }}>
+                                                Payment ID: {order.paymentId}
+                                              </Typography>
+                                            )}
+                                            {order.paymentVerified && (
+                                              <Typography variant="caption" style={{ marginLeft: '24px', marginTop: '2px', display: 'block', color: '#28a745', fontWeight: 600 }}>
+                                                ✓ Payment Verified
+                                              </Typography>
+                                            )}
+                                          </Box>
+                                        </Paper>
+                                      </Grid>
+
+                                      {/* Order Items */}
+                                      <Grid item xs={12} md={6}>
+                                        <Paper style={{ padding: '20px', background: '#fff', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+                                          <Typography variant="h6" style={{ fontWeight: 600, marginBottom: '15px', display: 'flex', alignItems: 'center' }}>
+                                            <ShoppingBag style={{ marginRight: '8px', color: '#1976d2' }} />
+                                            Order Items
                                           </Typography>
-                                        )}
-                                      </Paper>
+                                          {order.orderItems && order.orderItems.length > 0 ? (
+                                            <>
+                                              {order.orderItems.map((item, index) => (
+                                                <Box key={index} style={{ marginBottom: '12px', padding: '12px', background: '#f9f9f9', borderRadius: '8px' }}>
+                                                  <Box style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
+                                                    <Box style={{ flex: 1 }}>
+                                                      <Typography variant="body1" style={{ fontWeight: 600, color: '#333' }}>
+                                                        {item.item?.name || item.itemName || 'Unknown Item'}
+                                                        {!item.item && item.itemName && (
+                                                          <Chip
+                                                            label="Deleted"
+                                                            size="small"
+                                                            color="error"
+                                                            style={{ marginLeft: '8px', height: '20px', fontSize: '11px' }}
+                                                          />
+                                                        )}
+                                                      </Typography>
+                                                      <Box style={{ display: 'flex', gap: '8px', marginTop: '6px', flexWrap: 'wrap' }}>
+                                                        {item.selectedWeight && (
+                                                          <Chip
+                                                            label={`${item.selectedWeight} Kg`}
+                                                            size="small"
+                                                            style={{
+                                                              background: '#fff3e0',
+                                                              color: '#e65100',
+                                                              fontSize: '10px',
+                                                              height: '20px'
+                                                            }}
+                                                          />
+                                                        )}
+                                                        {item.eggType === 'EGGLESS' && (
+                                                          <Chip
+                                                            label="🌱 Eggless"
+                                                            size="small"
+                                                            style={{
+                                                              background: '#e8f5e9',
+                                                              color: '#2e7d32',
+                                                              fontSize: '10px',
+                                                              height: '20px'
+                                                            }}
+                                                          />
+                                                        )}
+                                                        {item.eggType === 'EGG' && (
+                                                          <Chip
+                                                            label="🥚 Egg"
+                                                            size="small"
+                                                            style={{
+                                                              background: '#fff9c4',
+                                                              color: '#f57f17',
+                                                              fontSize: '10px',
+                                                              height: '20px'
+                                                            }}
+                                                          />
+                                                        )}
+                                                      </Box>
+                                                      <Typography variant="caption" color="textSecondary" style={{ display: 'block', marginTop: '4px' }}>
+                                                        Quantity: {item.quantity} × {formatCurrency(item.price)}
+                                                      </Typography>
+                                                    </Box>
+                                                    <Typography variant="h6" style={{ fontWeight: 700, color: '#000000', marginLeft: '16px' }}>
+                                                      {formatCurrency(item.price * item.quantity)}
+                                                    </Typography>
+                                                  </Box>
+                                                </Box>
+                                              ))}
+                                              <Divider style={{ margin: '16px 0' }} />
+                                              <Box style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: '#e3f2fd', borderRadius: '8px' }}>
+                                                <Typography variant="h6" style={{ fontWeight: 700 }}>
+                                                  Order Total
+                                                </Typography>
+                                                <Typography variant="h5" style={{ fontWeight: 700, color: '#000000' }}>
+                                                  {formatCurrency(order.totalAmount)}
+                                                </Typography>
+                                              </Box>
+                                            </>
+                                          ) : (
+                                            <Typography variant="body2" color="textSecondary">
+                                              No items found
+                                            </Typography>
+                                          )}
+                                        </Paper>
+                                      </Grid>
                                     </Grid>
-                                  </Grid>
-                                </Box>
-                              </Collapse>
-                            </TableCell>
-                          </TableRow>
-                        </React.Fragment>
-                      ))
+                                  </Box>
+                                </Collapse>
+                              </TableCell>
+                            </TableRow>
+                          </React.Fragment>
+                        ))
                     )}
                   </TableBody>
                 </Table>

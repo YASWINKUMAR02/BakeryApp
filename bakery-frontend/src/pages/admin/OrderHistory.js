@@ -46,6 +46,7 @@ import { useAuth } from '../../context/AuthContext';
 import AdminHeader from '../../components/AdminHeader';
 import AdminSidebar from '../../components/AdminSidebar';
 import { showSuccess, showError } from '../../utils/toast';
+import { formatCurrency } from '../../utils/currencyUtils';
 
 const OrderHistory = () => {
   const navigate = useNavigate();
@@ -70,7 +71,7 @@ const OrderHistory = () => {
       const response = await orderHistoryAPI.getAll();
       if (response.data) {
         // Sort by most recent first
-        const sortedHistory = (response.data || []).sort((a, b) => 
+        const sortedHistory = (response.data || []).sort((a, b) =>
           new Date(b.deliveredDate) - new Date(a.deliveredDate)
         );
         setOrderHistory(sortedHistory);
@@ -125,9 +126,9 @@ const OrderHistory = () => {
 
   const filterOrders = (order) => {
     if (!searchQuery) return true;
-    
+
     const query = searchQuery.toLowerCase();
-    
+
     switch (filterType) {
       case 'orderId':
         return order.id?.toString().includes(query);
@@ -136,7 +137,7 @@ const OrderHistory = () => {
       case 'address':
         return order.deliveryAddress?.toLowerCase().includes(query);
       case 'item':
-        return order.orderItems?.some(item => 
+        return order.orderItems?.some(item =>
           item.itemName?.toLowerCase().includes(query)
         );
       case 'all':
@@ -146,7 +147,7 @@ const OrderHistory = () => {
           order.customerName?.toLowerCase().includes(query) ||
           order.customerPhone?.toLowerCase().includes(query) ||
           order.deliveryAddress?.toLowerCase().includes(query) ||
-          order.orderItems?.some(item => 
+          order.orderItems?.some(item =>
             item.itemName?.toLowerCase().includes(query)
           )
         );
@@ -170,10 +171,10 @@ const OrderHistory = () => {
       <AdminHeader title="Order History" showBack={true} onMenuClick={() => setSidebarOpen(!sidebarOpen)} sidebarOpen={sidebarOpen} />
       <AdminSidebar open={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
 
-      <Box sx={{ 
-        minHeight: '100vh', 
-        background: '#f5f5f5', 
-        paddingTop: { xs: '70px', sm: '80px' }, 
+      <Box sx={{
+        minHeight: '100vh',
+        background: '#f5f5f5',
+        paddingTop: { xs: '70px', sm: '80px' },
         paddingBottom: { xs: '20px', sm: '40px' },
         paddingLeft: { xs: '8px', sm: '16px' },
         paddingRight: { xs: '8px', sm: '16px' },
@@ -204,7 +205,7 @@ const OrderHistory = () => {
             </Box>
 
             <Alert severity="info" style={{ marginBottom: '20px' }}>
-              This page shows all delivered orders that have been moved to the history table. 
+              This page shows all delivered orders that have been moved to the history table.
               These orders are archived and cannot be modified.
             </Alert>
 
@@ -309,128 +310,128 @@ const OrderHistory = () => {
                       </TableRow>
                     ) : (
                       currentOrders.map((order) => (
-                          <React.Fragment key={order.id}>
-                            <TableRow hover>
-                              <TableCell style={{ fontWeight: 600 }}>#{order.id}</TableCell>
-                              <TableCell>{order.customerName}</TableCell>
-                              <TableCell>
-                                {new Date(order.orderDate).toLocaleDateString()}
-                              </TableCell>
-                              <TableCell>
-                                {new Date(order.deliveredDate).toLocaleDateString()}
-                              </TableCell>
-                              <TableCell style={{ fontWeight: 600, color: '#000000' }}>
-                                ₹{order.totalAmount?.toFixed(2)}
-                              </TableCell>
-                              <TableCell>
-                                <IconButton 
-                                  size="small" 
-                                  onClick={() => toggleOrderDetails(order.id)}
-                                  color="primary"
-                                >
-                                  {expandedOrder === order.id ? <ExpandLess /> : <ExpandMore />}
-                                </IconButton>
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
-                                <Collapse in={expandedOrder === order.id} timeout="auto" unmountOnExit>
-                                  <Box style={{ margin: '20px 0' }}>
-                                    <Grid container spacing={3}>
-                                      {/* Delivery Details */}
-                                      <Grid item xs={12} md={6}>
-                                        <Paper style={{ padding: '20px', background: '#f5f7fa', borderRadius: '8px' }}>
-                                          <Typography variant="h6" style={{ fontWeight: 600, marginBottom: '15px', display: 'flex', alignItems: 'center' }}>
-                                            <Home style={{ marginRight: '8px', color: '#1976d2' }} />
-                                            Delivery Information
+                        <React.Fragment key={order.id}>
+                          <TableRow hover>
+                            <TableCell style={{ fontWeight: 600 }}>#{order.id}</TableCell>
+                            <TableCell>{order.customerName}</TableCell>
+                            <TableCell>
+                              {new Date(order.orderDate).toLocaleDateString()}
+                            </TableCell>
+                            <TableCell>
+                              {new Date(order.deliveredDate).toLocaleDateString()}
+                            </TableCell>
+                            <TableCell style={{ fontWeight: 600, color: '#000000' }}>
+                              {formatCurrency(order.totalAmount)}
+                            </TableCell>
+                            <TableCell>
+                              <IconButton
+                                size="small"
+                                onClick={() => toggleOrderDetails(order.id)}
+                                color="primary"
+                              >
+                                {expandedOrder === order.id ? <ExpandLess /> : <ExpandMore />}
+                              </IconButton>
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+                              <Collapse in={expandedOrder === order.id} timeout="auto" unmountOnExit>
+                                <Box style={{ margin: '20px 0' }}>
+                                  <Grid container spacing={3}>
+                                    {/* Delivery Details */}
+                                    <Grid item xs={12} md={6}>
+                                      <Paper style={{ padding: '20px', background: '#f5f7fa', borderRadius: '8px' }}>
+                                        <Typography variant="h6" style={{ fontWeight: 600, marginBottom: '15px', display: 'flex', alignItems: 'center' }}>
+                                          <Home style={{ marginRight: '8px', color: '#1976d2' }} />
+                                          Delivery Information
+                                        </Typography>
+                                        <Box style={{ marginBottom: '12px' }}>
+                                          <Typography variant="body2" color="textSecondary" style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                                            <Person style={{ fontSize: 18, marginRight: '6px', color: '#1976d2' }} />
+                                            Customer Name
                                           </Typography>
-                                          <Box style={{ marginBottom: '12px' }}>
-                                            <Typography variant="body2" color="textSecondary" style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-                                              <Person style={{ fontSize: 18, marginRight: '6px', color: '#1976d2' }} />
-                                              Customer Name
+                                          <Typography variant="body1" style={{ fontWeight: 500, marginLeft: '24px' }}>
+                                            {order.customerName || 'N/A'}
+                                          </Typography>
+                                        </Box>
+                                        <Box style={{ marginBottom: '12px' }}>
+                                          <Typography variant="body2" color="textSecondary" style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                                            <Phone style={{ fontSize: 18, marginRight: '6px', color: '#1976d2' }} />
+                                            Phone Number
+                                          </Typography>
+                                          <Typography variant="body1" style={{ fontWeight: 500, marginLeft: '24px' }}>
+                                            {order.deliveryPhone || 'N/A'}
+                                          </Typography>
+                                        </Box>
+                                        <Box style={{ marginBottom: '12px' }}>
+                                          <Typography variant="body2" color="textSecondary" style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                                            <Home style={{ fontSize: 18, marginRight: '6px', color: '#1976d2' }} />
+                                            Delivery Address
+                                          </Typography>
+                                          <Typography variant="body1" style={{ fontWeight: 500, marginLeft: '24px', wordBreak: 'break-word' }}>
+                                            {order.deliveryAddress || 'N/A'}
+                                          </Typography>
+                                          {order.latitude && order.longitude && (
+                                            <Typography variant="caption" color="primary" style={{ marginLeft: '24px', marginTop: '4px', display: 'block', fontWeight: 600 }}>
+                                              📍 GPS Coordinates: Lat {order.latitude.toFixed(6)}, Long {order.longitude.toFixed(6)}
                                             </Typography>
-                                            <Typography variant="body1" style={{ fontWeight: 500, marginLeft: '24px' }}>
-                                              {order.customerName || 'N/A'}
-                                            </Typography>
-                                          </Box>
-                                          <Box style={{ marginBottom: '12px' }}>
-                                            <Typography variant="body2" color="textSecondary" style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-                                              <Phone style={{ fontSize: 18, marginRight: '6px', color: '#1976d2' }} />
-                                              Phone Number
-                                            </Typography>
-                                            <Typography variant="body1" style={{ fontWeight: 500, marginLeft: '24px' }}>
-                                              {order.deliveryPhone || 'N/A'}
-                                            </Typography>
-                                          </Box>
-                                          <Box style={{ marginBottom: '12px' }}>
-                                            <Typography variant="body2" color="textSecondary" style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-                                              <Home style={{ fontSize: 18, marginRight: '6px', color: '#1976d2' }} />
-                                              Delivery Address
-                                            </Typography>
-                                            <Typography variant="body1" style={{ fontWeight: 500, marginLeft: '24px', wordBreak: 'break-word' }}>
-                                              {order.deliveryAddress || 'N/A'}
-                                            </Typography>
-                                            {order.latitude && order.longitude && (
-                                              <Typography variant="caption" color="primary" style={{ marginLeft: '24px', marginTop: '4px', display: 'block', fontWeight: 600 }}>
-                                                📍 GPS Coordinates: Lat {order.latitude.toFixed(6)}, Long {order.longitude.toFixed(6)}
-                                              </Typography>
-                                            )}
-                                          </Box>
-                                          {order.deliveryNotes && (
-                                            <Box style={{ marginBottom: '12px' }}>
-                                              <Typography variant="body2" color="textSecondary" style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-                                                <Notes style={{ fontSize: 18, marginRight: '6px', color: '#1976d2' }} />
-                                                Delivery Notes
-                                              </Typography>
-                                              <Typography variant="body1" style={{ fontWeight: 500, marginLeft: '24px', fontStyle: 'italic' }}>
-                                                {order.deliveryNotes}
-                                              </Typography>
-                                            </Box>
                                           )}
+                                        </Box>
+                                        {order.deliveryNotes && (
                                           <Box style={{ marginBottom: '12px' }}>
                                             <Typography variant="body2" color="textSecondary" style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-                                              <Payment style={{ fontSize: 18, marginRight: '6px', color: '#1976d2' }} />
-                                              Payment Method
+                                              <Notes style={{ fontSize: 18, marginRight: '6px', color: '#1976d2' }} />
+                                              Delivery Notes
                                             </Typography>
-                                            <Typography variant="body1" style={{ fontWeight: 500, marginLeft: '24px' }}>
-                                              💳 Online Payment (Razorpay)
-                                            </Typography>
-                                            {order.paymentId && (
-                                              <Typography variant="caption" style={{ marginLeft: '24px', marginTop: '4px', display: 'block', color: '#666' }}>
-                                                Payment ID: {order.paymentId}
-                                              </Typography>
-                                            )}
-                                            {order.paymentVerified && (
-                                              <Typography variant="caption" style={{ marginLeft: '24px', marginTop: '2px', display: 'block', color: '#28a745', fontWeight: 600 }}>
-                                                ✓ Payment Verified
-                                              </Typography>
-                                            )}
-                                          </Box>
-                                          <Divider style={{ margin: '15px 0' }} />
-                                          <Box>
-                                            <Typography variant="body2" color="textSecondary" style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-                                              <CalendarToday style={{ fontSize: 18, marginRight: '6px', color: '#1976d2' }} />
-                                              Delivered On
-                                            </Typography>
-                                            <Typography variant="body1" style={{ fontWeight: 500, marginLeft: '24px' }}>
-                                              {new Date(order.deliveredDate).toLocaleString()}
+                                            <Typography variant="body1" style={{ fontWeight: 500, marginLeft: '24px', fontStyle: 'italic' }}>
+                                              {order.deliveryNotes}
                                             </Typography>
                                           </Box>
-                                        </Paper>
-                                      </Grid>
-
-                                      {/* Order Items */}
-                                      <Grid item xs={12} md={6}>
-                                        <Paper style={{ padding: '20px', background: '#fff', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
-                                          <Typography variant="h6" style={{ fontWeight: 600, marginBottom: '15px', display: 'flex', alignItems: 'center' }}>
-                                            <ShoppingBag style={{ marginRight: '8px', color: '#1976d2' }} />
-                                            Order Items
+                                        )}
+                                        <Box style={{ marginBottom: '12px' }}>
+                                          <Typography variant="body2" color="textSecondary" style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                                            <Payment style={{ fontSize: 18, marginRight: '6px', color: '#1976d2' }} />
+                                            Payment Method
                                           </Typography>
-                                          {order.orderItems && order.orderItems.length > 0 ? (
-                                            <>
-                                              {order.orderItems.map((item, index) => {
-                                                console.log('Order History Item:', item.itemName, 'eggType:', item.eggType, 'selectedWeight:', item.selectedWeight);
-                                                return (
+                                          <Typography variant="body1" style={{ fontWeight: 500, marginLeft: '24px' }}>
+                                            💳 Online Payment (Razorpay)
+                                          </Typography>
+                                          {order.paymentId && (
+                                            <Typography variant="caption" style={{ marginLeft: '24px', marginTop: '4px', display: 'block', color: '#666' }}>
+                                              Payment ID: {order.paymentId}
+                                            </Typography>
+                                          )}
+                                          {order.paymentVerified && (
+                                            <Typography variant="caption" style={{ marginLeft: '24px', marginTop: '2px', display: 'block', color: '#28a745', fontWeight: 600 }}>
+                                              ✓ Payment Verified
+                                            </Typography>
+                                          )}
+                                        </Box>
+                                        <Divider style={{ margin: '15px 0' }} />
+                                        <Box>
+                                          <Typography variant="body2" color="textSecondary" style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
+                                            <CalendarToday style={{ fontSize: 18, marginRight: '6px', color: '#1976d2' }} />
+                                            Delivered On
+                                          </Typography>
+                                          <Typography variant="body1" style={{ fontWeight: 500, marginLeft: '24px' }}>
+                                            {new Date(order.deliveredDate).toLocaleString()}
+                                          </Typography>
+                                        </Box>
+                                      </Paper>
+                                    </Grid>
+
+                                    {/* Order Items */}
+                                    <Grid item xs={12} md={6}>
+                                      <Paper style={{ padding: '20px', background: '#fff', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+                                        <Typography variant="h6" style={{ fontWeight: 600, marginBottom: '15px', display: 'flex', alignItems: 'center' }}>
+                                          <ShoppingBag style={{ marginRight: '8px', color: '#1976d2' }} />
+                                          Order Items
+                                        </Typography>
+                                        {order.orderItems && order.orderItems.length > 0 ? (
+                                          <>
+                                            {order.orderItems.map((item, index) => {
+                                              console.log('Order History Item:', item.itemName, 'eggType:', item.eggType, 'selectedWeight:', item.selectedWeight);
+                                              return (
                                                 <Box key={index} style={{ marginBottom: '12px', padding: '12px', background: '#f9f9f9', borderRadius: '8px' }}>
                                                   <Box style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
                                                     <Box style={{ flex: 1 }}>
@@ -440,10 +441,10 @@ const OrderHistory = () => {
                                                       {(item.selectedWeight || item.eggType) && (
                                                         <Box style={{ display: 'flex', gap: '8px', marginTop: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
                                                           {item.selectedWeight && (
-                                                            <Chip 
+                                                            <Chip
                                                               label={`${item.selectedWeight} Kg`}
                                                               size="small"
-                                                              style={{ 
+                                                              style={{
                                                                 background: '#fff3e0',
                                                                 color: '#e65100',
                                                                 fontSize: '10px',
@@ -452,10 +453,10 @@ const OrderHistory = () => {
                                                             />
                                                           )}
                                                           {item.eggType === 'EGGLESS' && (
-                                                            <Chip 
+                                                            <Chip
                                                               label="🌱 Eggless"
                                                               size="small"
-                                                              style={{ 
+                                                              style={{
                                                                 background: '#e8f5e9',
                                                                 color: '#2e7d32',
                                                                 fontSize: '10px',
@@ -466,52 +467,52 @@ const OrderHistory = () => {
                                                         </Box>
                                                       )}
                                                       <Typography variant="caption" color="textSecondary" style={{ display: 'block', marginTop: '6px' }}>
-                                                        Quantity: {item.quantity} × ₹{item.price?.toFixed(2)}
+                                                        Quantity: {item.quantity} × {formatCurrency(item.price)}
                                                       </Typography>
                                                     </Box>
                                                     <Typography variant="h6" style={{ fontWeight: 700, color: '#000000', marginLeft: '16px' }}>
-                                                      ₹{(item.price * item.quantity).toFixed(2)}
+                                                      {formatCurrency(item.price * item.quantity)}
                                                     </Typography>
                                                   </Box>
                                                 </Box>
-                                                );
-                                              })}
-                                              <Divider style={{ margin: '16px 0' }} />
-                                              <Box style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: '#e3f2fd', borderRadius: '8px' }}>
-                                                <Typography variant="h6" style={{ fontWeight: 700 }}>
-                                                  Order Total
-                                                </Typography>
-                                                <Typography variant="h5" style={{ fontWeight: 700, color: '#000000' }}>
-                                                  ₹{order.totalAmount?.toFixed(2)}
-                                                </Typography>
-                                              </Box>
-                                            </>
-                                          ) : (
-                                            <Typography variant="body2" color="textSecondary">
-                                              No items found
-                                            </Typography>
-                                          )}
-                                        </Paper>
-                                      </Grid>
+                                              );
+                                            })}
+                                            <Divider style={{ margin: '16px 0' }} />
+                                            <Box style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: '#e3f2fd', borderRadius: '8px' }}>
+                                              <Typography variant="h6" style={{ fontWeight: 700 }}>
+                                                Order Total
+                                              </Typography>
+                                              <Typography variant="h5" style={{ fontWeight: 700, color: '#000000' }}>
+                                                {formatCurrency(order.totalAmount)}
+                                              </Typography>
+                                            </Box>
+                                          </>
+                                        ) : (
+                                          <Typography variant="body2" color="textSecondary">
+                                            No items found
+                                          </Typography>
+                                        )}
+                                      </Paper>
                                     </Grid>
-                                  </Box>
-                                </Collapse>
-                              </TableCell>
-                            </TableRow>
-                          </React.Fragment>
-                        ))
+                                  </Grid>
+                                </Box>
+                              </Collapse>
+                            </TableCell>
+                          </TableRow>
+                        </React.Fragment>
+                      ))
                     )}
                   </TableBody>
                 </Table>
               </TableContainer>
             )}
-            
+
             {/* Pagination */}
             {!loading && totalPages > 1 && (
               <Box style={{ display: 'flex', justifyContent: 'center', marginTop: '24px' }}>
-                <Pagination 
-                  count={totalPages} 
-                  page={currentPage} 
+                <Pagination
+                  count={totalPages}
+                  page={currentPage}
                   onChange={handlePageChange}
                   color="primary"
                   size="large"

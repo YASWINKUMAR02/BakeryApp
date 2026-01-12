@@ -27,6 +27,7 @@ import AdminHeader from '../../components/AdminHeader';
 import AdminSidebar from '../../components/AdminSidebar';
 import { orderAPI, orderHistoryAPI } from '../../services/api';
 import { showError } from '../../utils/toast';
+import { formatCurrency } from '../../utils/currencyUtils';
 
 const Analytics = () => {
   const navigate = useNavigate();
@@ -47,7 +48,7 @@ const Analytics = () => {
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
-      
+
       // Fetch all orders and order history
       const [ordersResponse, historyResponse] = await Promise.all([
         orderAPI.getAll(),
@@ -120,7 +121,7 @@ const Analytics = () => {
     },
     {
       title: 'Total Revenue',
-      value: `₹${stats.totalRevenue.toFixed(2)}`,
+      value: formatCurrency(stats.totalRevenue),
       icon: <CurrencyRupee style={{ fontSize: '40px', color: '#fff' }} />,
       color: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
       bgColor: '#f5576c',
@@ -146,10 +147,10 @@ const Analytics = () => {
       <AdminHeader title="Sales Analytics" showBack={true} onMenuClick={() => setSidebarOpen(!sidebarOpen)} sidebarOpen={sidebarOpen} />
       <AdminSidebar open={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
 
-      <Box sx={{ 
-        minHeight: '100vh', 
-        background: '#f5f5f5', 
-        paddingTop: { xs: '70px', sm: '80px' }, 
+      <Box sx={{
+        minHeight: '100vh',
+        background: '#f5f5f5',
+        paddingTop: { xs: '70px', sm: '80px' },
         paddingBottom: { xs: '20px', sm: '40px' },
         paddingLeft: { xs: '8px', sm: '16px' },
         paddingRight: { xs: '8px', sm: '16px' },
@@ -163,8 +164,8 @@ const Analytics = () => {
           <Grid container spacing={3} style={{ marginBottom: '30px' }}>
             {statCards.map((card, index) => (
               <Grid item xs={12} sm={6} md={3} key={index}>
-                <Card style={{ 
-                  padding: '20px', 
+                <Card style={{
+                  padding: '20px',
                   borderRadius: '12px',
                   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
                   position: 'relative',
@@ -279,7 +280,7 @@ const Analytics = () => {
                           {item.orderCount}
                         </TableCell>
                         <TableCell align="right" style={{ fontWeight: 600, color: '#4caf50' }}>
-                          ₹{item.totalRevenue.toFixed(2)}
+                          {formatCurrency(item.totalRevenue)}
                         </TableCell>
                         <TableCell align="right" style={{ color: '#666' }}>
                           {(item.totalQuantity / item.orderCount).toFixed(1)}
