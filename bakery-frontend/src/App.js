@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider, createTheme, alpha } from '@mui/material/styles';
 import { Box, CircularProgress } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
 import { AnimatePresence } from 'framer-motion';
@@ -49,55 +49,136 @@ import FAQ from './pages/FAQ';
 import Gallery from './pages/Gallery';
 import PageLoader from './components/PageLoader';
 import useSwipeGesture from './hooks/useSwipeGesture';
+import designTokens from './theme/designTokens';
+
+const { colors, gradients, shadows, transitions } = designTokens;
 
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#e91e63', // Signature Pink
-      light: '#f06292',
-      dark: '#ad1457',
+      main: colors.brandPink,
+      light: '#f8bbd0',
+      dark: colors.brandBurgundy,
     },
     secondary: {
-      main: '#121212', // Richer Dark Charcoal
+      main: colors.brandDark, // Richer Dark Charcoal
       light: '#2d2d2d',
       dark: '#000000',
     },
     accent: {
-      main: '#D4AF37', // Professional Metallic Gold
+      main: colors.accentGold, // Professional Metallic Gold
+    },
+    success: {
+      main: colors.success,
+    },
+    warning: {
+      main: colors.warning,
+    },
+    error: {
+      main: colors.danger,
     },
     background: {
-      default: '#fcfcfc', // Slightly off-white for a warmer, richer feel
-      paper: '#ffffff',
+      default: colors.cloud, // Slightly off-white for a warmer, richer feel
+      paper: colors.paper,
     },
     text: {
-      primary: '#121212',
-      secondary: '#555555',
+      primary: colors.brandInk,
+      secondary: colors.stone,
     }
   },
+  typography: {
+    fontFamily: "'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
+    h1: {
+      fontFamily: "'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
+      fontWeight: 700,
+      letterSpacing: '-0.02em',
+    },
+    h2: {
+      fontFamily: "'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
+      fontWeight: 600,
+      letterSpacing: '-0.015em',
+    },
+    h3: {
+      fontFamily: "'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
+      fontWeight: 600,
+      letterSpacing: '-0.01em',
+    },
+    h4: {
+      fontFamily: "'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
+      fontWeight: 600,
+    },
+    h5: {
+      fontFamily: "'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
+      fontWeight: 600,
+    },
+    h6: {
+      fontFamily: "'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
+      fontWeight: 600,
+    },
+    button: {
+      fontFamily: "'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
+      fontWeight: 600,
+      letterSpacing: '0.04em',
+    },
+    subtitle1: {
+      fontFamily: "'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
+      fontWeight: 600,
+    },
+    body1: {
+      fontFamily: "'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
+    },
+    body2: {
+      fontFamily: "'Inter', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
+    },
+  },
   shape: {
-    borderRadius: 16, // More modern, elegant rounded corners
+    borderRadius: 0,
   },
   components: {
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: '50px', // Circular pills for a modern look
-          padding: '10px 24px',
+          borderRadius: 0,
+          padding: '10px 20px',
           boxShadow: 'none',
+          transition: transitions.standard,
+          letterSpacing: '0.04em',
+          '&:focus-visible': {
+            outline: `2px solid ${alpha(colors.brandPink, 0.6)}`,
+            outlineOffset: '2px',
+          },
+          '&.Mui-disabled': {
+            opacity: 0.6,
+            boxShadow: 'none',
+          },
           '&:hover': {
-            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            boxShadow: shadows.resting,
+            transform: 'translateY(-1px)',
           },
         },
         containedPrimary: {
-          background: 'linear-gradient(135deg, #e91e63 0%, #ad1457 100%)',
+          background: gradients.primary,
+          color: colors.paper,
+          boxShadow: '0 10px 30px rgba(233, 30, 99, 0.25)',
+          '&:hover': {
+            background: gradients.primary,
+            transform: 'translateY(-1px)',
+            boxShadow: shadows.hover,
+          }
         }
+      },
+    },
+    MuiButtonBase: {
+      defaultProps: {
+        disableRipple: true,
       },
     },
     MuiPaper: {
       styleOverrides: {
         root: {
-          boxShadow: '0 10px 40px rgba(0,0,0,0.04)',
-          border: '1px solid rgba(0,0,0,0.02)',
+          boxShadow: shadows.resting,
+          border: `1px solid ${alpha(colors.brandInk, 0.04)}`,
+          borderRadius: 0,
         },
       },
     },
@@ -105,9 +186,47 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           '& .MuiOutlinedInput-root': {
-            borderRadius: 12,
-            backgroundColor: '#fff',
+            borderRadius: 0,
+            backgroundColor: colors.paper,
+            '& fieldset': {
+              borderColor: alpha(colors.brandInk, 0.12),
+            },
+            '&:hover fieldset': {
+              borderColor: colors.brandPink,
+            },
+            '&.Mui-focused fieldset': {
+              borderColor: colors.brandPink,
+            },
           },
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          borderRadius: 0,
+          fontWeight: 600,
+        },
+      },
+    },
+    MuiPaginationItem: {
+      styleOverrides: {
+        root: {
+          borderRadius: 0,
+          transition: transitions.standard,
+          '&:hover': {
+            backgroundColor: alpha(colors.brandPink, 0.08),
+          },
+          '&.Mui-selected': {
+            borderRadius: 0,
+          },
+        },
+      },
+    },
+    MuiDialog: {
+      styleOverrides: {
+        paper: {
+          borderRadius: 0,
         },
       },
     },
@@ -356,8 +475,9 @@ const AnimatedRoutes = () => {
 
 const GlobalHeader = () => {
   const location = useLocation();
-  // Don't show header on admin pages
-  if (location.pathname.startsWith('/admin')) {
+  // Don't show header on admin pages, login, and register pages
+  const noHeaderRoutes = ['/login', '/register', '/admin/login', '/admin/register'];
+  if (location.pathname.startsWith('/admin') || noHeaderRoutes.includes(location.pathname)) {
     return null;
   }
   return <CustomerHeader />;

@@ -3,11 +3,14 @@ import {
   Container,
   Box,
   Typography,
-  Paper,
   Grid,
-  Card,
-  CardContent,
+  Paper,
+  Chip,
+  Stack,
+  Button,
+  Divider,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import {
   Cake,
   LocalShipping,
@@ -16,213 +19,253 @@ import {
   Schedule,
   VerifiedUser,
 } from '@mui/icons-material';
-import CustomerHeader from '../../components/CustomerHeader';
+import { motion } from 'framer-motion';
+import designTokens from '../../theme/designTokens';
+import SectionHeader from '../../components/SectionHeader';
+
+const { colors, gradients, shadows, transitions } = designTokens;
+
+const featureIcons = {
+  fresh: <Cake sx={{ fontSize: 40, color: colors.brandPink }} />,
+  delivery: <LocalShipping sx={{ fontSize: 40, color: colors.success }} />,
+  awards: <EmojiEvents sx={{ fontSize: 40, color: colors.warning }} />,
+  love: <Favorite sx={{ fontSize: 40, color: colors.brandBurgundy }} />,
+  schedule: <Schedule sx={{ fontSize: 40, color: colors.brandInk }} />,
+  quality: <VerifiedUser sx={{ fontSize: 40, color: colors.brandPink }} />,
+};
+
+const team = [
+  { name: 'Akira Dsouza', role: 'Executive Pastry Chef', specialty: 'Seasonal tasting menus', avatar: 'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?w=280&h=280&fit=facearea&facepad=3' },
+  { name: 'Mira Kapur', role: 'Head Chocolatier', specialty: 'Bean-to-bar couverture', avatar: 'https://images.unsplash.com/photo-1544723795-432537ff3e6b?w=280&h=280&fit=facearea&facepad=3' },
+  { name: 'Daniel Fernandes', role: 'Production Lead', specialty: 'Sourdough & viennoiserie', avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=280&h=280&fit=facearea&facepad=3' },
+];
+
+const testimonials = [
+  {
+    quote: '“Their Black Forest Gateau was the showstopper at our wedding—layers of nostalgia and perfection.”',
+    name: 'Tanvi & Rahul',
+    role: 'Couple, bespoke celebration',
+  },
+  {
+    quote: '“Midnight drops for our product launches always arrive pristine. They’re our go-to for corporate gifting.”',
+    name: 'Leena Sharma',
+    role: 'Head of Events, Lumos Tech',
+  },
+  {
+    quote: '“I’ve been celiac for 12 years: their seasonal gluten-free box is the highlight of every festival.”',
+    name: 'Prateek Jain',
+    role: 'Community Member',
+  },
+];
+
+const featureList = [
+  {
+    key: 'fresh',
+    title: 'Baked at dawn',
+    description: 'Zero preservatives. Every batch baked between 3–6 am, plated by 7 am.',
+  },
+  {
+    key: 'delivery',
+    title: 'Citywide temperature control',
+    description: 'Insulated logistics keep entremets pristine within 60 minutes door-to-door.',
+  },
+  {
+    key: 'awards',
+    title: 'SCA & ICA laurels',
+    description: 'Recognised for best boutique bakery three years running with 4.9★ community rating.',
+  },
+  {
+    key: 'love',
+    title: 'Zero waste kitchens',
+    description: 'Surplus pastries go to neighbourhood shelters daily via our Sweet Circles initiative.',
+  },
+  {
+    key: 'schedule',
+    title: 'Weeklong service',
+    description: 'Walk-ins, catering, custom tastings—seven days a week, from breakfast to late nights.',
+  },
+  {
+    key: 'quality',
+    title: 'Traceable ingredients',
+    description: 'Single-origin cacao, grass-fed dairy, native grains—fully traceable supply chains.',
+  },
+];
+
+const timeline = [
+  {
+    year: '2010',
+    title: 'Founding',
+    description: 'Frost & Crinkle was founded by two passionate bakers who wanted to bring people together through the joy of handcrafted pastries.',
+  },
+  {
+    year: '2012',
+    title: 'First Bakery',
+    description: 'We opened our first bakery in the heart of the city, offering a wide range of artisanal breads and pastries.',
+  },
+  {
+    year: '2015',
+    title: 'Expansion',
+    description: 'We expanded our operations to include a second bakery and a team of skilled bakers.',
+  },
+  {
+    year: '2018',
+    title: 'Awards and Recognition',
+    description: 'We were recognized as one of the best boutique bakeries in the city, with a 4.9★ community rating.',
+  },
+];
 
 const AboutUs = () => {
-  const features = [
-    {
-      icon: <Cake style={{ fontSize: 48, color: '#ff69b4' }} />,
-      title: 'Fresh Daily',
-      description: 'All our products are baked fresh every morning using the finest ingredients and traditional recipes.',
-    },
-    {
-      icon: <LocalShipping style={{ fontSize: 48, color: '#4caf50' }} />,
-      title: 'Fast Delivery',
-      description: 'Quick and reliable delivery service to ensure your treats arrive fresh at your doorstep.',
-    },
-    {
-      icon: <EmojiEvents style={{ fontSize: 48, color: '#ff9800' }} />,
-      title: 'Award Winning',
-      description: 'Recognized for excellence in baking with multiple awards for quality and taste.',
-    },
-    {
-      icon: <Favorite style={{ fontSize: 48, color: '#e91e63' }} />,
-      title: 'Made with Love',
-      description: 'Every item is crafted with passion and attention to detail by our expert bakers.',
-    },
-    {
-      icon: <Schedule style={{ fontSize: 48, color: '#2196f3' }} />,
-      title: 'Open 7 Days',
-      description: 'We are open every day to serve you the best baked goods whenever you need them.',
-    },
-    {
-      icon: <VerifiedUser style={{ fontSize: 48, color: '#9c27b0' }} />,
-      title: 'Quality Assured',
-      description: 'We maintain the highest standards of hygiene and quality in all our products.',
-    },
-  ];
+  const cardVariants = {
+    hidden: { opacity: 0, y: 24 },
+    visible: (i = 1) => ({
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] },
+    }),
+  };
 
   return (
-    <>
-
-      <Box style={{ minHeight: '100vh', background: '#f5f5f5', paddingTop: '100px' }}>
-        {/* Hero Section */}
-        <Box
-          style={{
-            background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%), url("https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=1600&h=400&fit=crop")',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundBlendMode: 'overlay',
-            color: '#fff',
-            padding: '80px 0',
-            textAlign: 'center',
-          }}
-        >
-          <Container maxWidth="lg">
-            <Typography variant="h2" style={{ fontWeight: 800, marginBottom: '16px', textShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}>
-              About Frost & Crinkle
+    <motion.div initial="hidden" animate="visible" style={{ background: colors.cloud, minHeight: '100vh', paddingTop: '100px' }}>
+      <Box
+        component={motion.section}
+        variants={{ hidden: { opacity: 0, y: 32 }, visible: { opacity: 1, y: 0, transition: { duration: 0.8 } } }}
+        sx={{
+          backgroundImage: `linear-gradient(110deg, ${gradients.primary}), url(https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=1600&h=600&fit=crop)`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundBlendMode: 'multiply',
+          color: colors.paper,
+          py: { xs: 8, md: 10 },
+          textAlign: 'center',
+        }}
+      >
+        <Container maxWidth="lg">
+          <Stack spacing={2} alignItems="center">
+            <Chip label="Crafting Since 2010" sx={{ backgroundColor: alpha(colors.paper, 0.15), color: colors.paper, borderRadius: 0, letterSpacing: '0.12em', fontWeight: 700 }} />
+            <Typography variant="h2" sx={{ fontWeight: 800, maxWidth: 680, lineHeight: 1.1 }}>
+              Frost &amp; Crinkle • Bakers of Shared Memories
             </Typography>
-            <Typography variant="h5" style={{ opacity: 0.95, maxWidth: '800px', margin: '0 auto', textShadow: '1px 1px 3px rgba(0,0,0,0.3)' }}>
-              Crafting Sweet Memories Since Our Beginning
+            <Typography variant="h5" sx={{ maxWidth: 780, opacity: 0.92, lineHeight: 1.5 }}>
+              From dawn bakes to midnight drops, we elevate every celebration with handcrafted layers 
             </Typography>
-          </Container>
-        </Box>
+          </Stack>
+        </Container>
+      </Box>
 
-        {/* Story Section */}
-        <Container maxWidth="lg" style={{ padding: '60px 20px' }}>
-          <Grid container spacing={4} alignItems="center">
+      {/* Story Section */}
+      <Box component={motion.section} variants={cardVariants} sx={{ py: 8, backgroundColor: colors.cloud }}>
+        <Container maxWidth="lg">
+          <SectionHeader title="Our Story" subtitle="From humble beginnings to a beloved bakery" />
+          <Grid container spacing={4}>
             <Grid item xs={12} md={6}>
-              <Box
-                style={{
-                  height: '400px',
-                  borderRadius: '12px',
-                  overflow: 'hidden',
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-                }}
-              >
-                <img
-                  src="https://images.unsplash.com/photo-1517433670267-08bbd4be890f?w=800&h=600&fit=crop"
-                  alt="Frost & Crinkle Bakery"
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                  }}
-                />
-              </Box>
+              <Typography variant="body1" sx={{ opacity: 0.8, lineHeight: 1.7 }}>
+                Frost & Crinkle was founded in 2010 by two passionate bakers who wanted to bring people together through the joy of handcrafted pastries. Today, we're proud to be a part of countless celebrations and everyday moments.
+              </Typography>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Typography variant="h3" style={{ fontWeight: 700, marginBottom: '24px', color: '#1a1a1a' }}>
-                Our Story
-              </Typography>
-              <Typography variant="body1" style={{ fontSize: '18px', lineHeight: 1.8, color: '#666', marginBottom: '16px' }}>
-                Frost & Crinkle was born from a passion for creating delightful baked goods that bring joy to every occasion.
-                What started as a small family bakery has grown into a beloved destination for quality pastries, cakes, and breads.
-              </Typography>
-              <Typography variant="body1" style={{ fontSize: '18px', lineHeight: 1.8, color: '#666', marginBottom: '16px' }}>
-                Our commitment to using premium ingredients, time-honored techniques, and innovative recipes has made us
-                a trusted name in the community. Every product that leaves our kitchen is a testament to our dedication
-                to excellence and our love for the art of baking.
-              </Typography>
-              <Typography variant="body1" style={{ fontSize: '18px', lineHeight: 1.8, color: '#666' }}>
-                We believe that great food brings people together, and we're honored to be part of your special moments,
-                celebrations, and everyday pleasures.
+              <Typography variant="body1" sx={{ opacity: 0.8, lineHeight: 1.7 }}>
+                Our commitment to quality, community, and sustainability has earned us recognition as one of the best boutique bakeries in the city. We're grateful for the trust our customers have placed in us and look forward to many more years of baking memories together.
               </Typography>
             </Grid>
           </Grid>
         </Container>
-
-        {/* Features Section */}
-        <Box style={{ background: '#fff', padding: '60px 0' }}>
-          <Container maxWidth="lg">
-            <Typography variant="h3" style={{ fontWeight: 700, textAlign: 'center', marginBottom: '48px', color: '#1a1a1a' }}>
-              Why Choose Us
-            </Typography>
-            <Grid container spacing={4}>
-              {features.map((feature, index) => (
-                <Grid item xs={12} sm={6} md={4} key={index}>
-                  <Card
-                    style={{
-                      height: '100%',
-                      textAlign: 'center',
-                      padding: '24px',
-                      transition: 'all 0.3s ease',
-                      cursor: 'pointer',
-                    }}
-                    elevation={2}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-8px)';
-                      e.currentTarget.style.boxShadow = '0 12px 32px rgba(0,0,0,0.15)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-                    }}
-                  >
-                    <CardContent>
-                      <Box style={{ marginBottom: '16px' }}>
-                        {feature.icon}
-                      </Box>
-                      <Typography variant="h6" style={{ fontWeight: 600, marginBottom: '12px', color: '#1a1a1a' }}>
-                        {feature.title}
-                      </Typography>
-                      <Typography variant="body2" color="textSecondary" style={{ lineHeight: 1.6 }}>
-                        {feature.description}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-          </Container>
-        </Box>
-
-        {/* Mission Section */}
-        <Container maxWidth="lg" style={{ padding: '60px 20px' }}>
-          <Paper style={{ padding: '48px', textAlign: 'center', background: 'linear-gradient(135deg, #fef6ee 0%, #fdecd7 100%)' }}>
-            <Typography variant="h3" style={{ fontWeight: 700, marginBottom: '24px', color: '#1a1a1a' }}>
-              Our Mission
-            </Typography>
-            <Typography variant="h6" style={{ lineHeight: 1.8, color: '#666', maxWidth: '900px', margin: '0 auto' }}>
-              To create exceptional baked goods that delight our customers and bring sweetness to their lives.
-              We strive to maintain the highest standards of quality, freshness, and service while fostering a
-              warm and welcoming environment for our community.
-            </Typography>
-          </Paper>
-        </Container>
-
-        {/* Values Section */}
-        <Box style={{ background: '#fff', padding: '60px 0' }}>
-          <Container maxWidth="lg">
-            <Typography variant="h3" style={{ fontWeight: 700, textAlign: 'center', marginBottom: '48px', color: '#1a1a1a' }}>
-              Our Values
-            </Typography>
-            <Grid container spacing={4}>
-              <Grid item xs={12} md={4}>
-                <Paper style={{ padding: '32px', textAlign: 'center', height: '100%' }} elevation={2}>
-                  <Typography variant="h5" style={{ fontWeight: 600, marginBottom: '16px', color: '#ff69b4' }}>
-                    Quality First
-                  </Typography>
-                  <Typography variant="body1" color="textSecondary" style={{ lineHeight: 1.7 }}>
-                    We never compromise on the quality of our ingredients or the care we put into every product.
-                  </Typography>
-                </Paper>
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <Paper style={{ padding: '32px', textAlign: 'center', height: '100%' }} elevation={2}>
-                  <Typography variant="h5" style={{ fontWeight: 600, marginBottom: '16px', color: '#4caf50' }}>
-                    Customer Satisfaction
-                  </Typography>
-                  <Typography variant="body1" color="textSecondary" style={{ lineHeight: 1.7 }}>
-                    Your happiness is our priority. We go above and beyond to ensure every experience is memorable.
-                  </Typography>
-                </Paper>
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <Paper style={{ padding: '32px', textAlign: 'center', height: '100%' }} elevation={2}>
-                  <Typography variant="h5" style={{ fontWeight: 600, marginBottom: '16px', color: '#ff9800' }}>
-                    Innovation
-                  </Typography>
-                  <Typography variant="body1" color="textSecondary" style={{ lineHeight: 1.7 }}>
-                    While respecting tradition, we continuously innovate to bring you exciting new flavors and creations.
-                  </Typography>
-                </Paper>
-              </Grid>
-            </Grid>
-          </Container>
-        </Box>
       </Box>
-    </>
+
+      {/* Features Section */}
+      <Box component={motion.section} variants={cardVariants} sx={{ py: 8, backgroundColor: colors.cloud }}>
+        <Container maxWidth="lg">
+          <SectionHeader title="What Sets Us Apart" subtitle="Our features" />
+          <Grid container spacing={4}>
+            {featureList.map((feature, index) => (
+              <Grid item key={feature.key} xs={12} md={4}>
+                <Paper elevation={2} sx={{ p: 4, backgroundColor: colors.paper, borderRadius: 2 }}>
+                  {featureIcons[feature.key]}
+                  <Typography variant="h6" sx={{ fontWeight: 700, mt: 2 }}>
+                    {feature.title}
+                  </Typography>
+                  <Typography variant="body1" sx={{ opacity: 0.8, lineHeight: 1.7 }}>
+                    {feature.description}
+                  </Typography>
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
+        </Container>
+      </Box>
+
+      {/* Timeline Section */}
+      <Box component={motion.section} variants={cardVariants} sx={{ py: 8, backgroundColor: colors.cloud }}>
+        <Container maxWidth="lg">
+          <SectionHeader title="Our Journey" subtitle="Milestones and achievements" />
+          <Grid container spacing={4}>
+            {timeline.map((event, index) => (
+              <Grid item key={event.year} xs={12} md={6}>
+                <Paper elevation={2} sx={{ p: 4, backgroundColor: colors.paper, borderRadius: 2 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                    {event.year}
+                  </Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 700, mt: 1 }}>
+                    {event.title}
+                  </Typography>
+                  <Typography variant="body1" sx={{ opacity: 0.8, lineHeight: 1.7, mt: 2 }}>
+                    {event.description}
+                  </Typography>
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
+        </Container>
+      </Box>
+
+      {/* Team Section */}
+      <Box component={motion.section} variants={cardVariants} sx={{ py: 8, backgroundColor: colors.cloud }}>
+        <Container maxWidth="lg">
+          <SectionHeader title="Meet Our Team" subtitle="The people behind the pastries" />
+          <Grid container spacing={4}>
+            {team.map((member, index) => (
+              <Grid item key={member.name} xs={12} md={4}>
+                <Paper elevation={2} sx={{ p: 4, backgroundColor: colors.paper, borderRadius: 2 }}>
+                  <img src={member.avatar} alt={member.name} style={{ width: '100%', height: 200, objectFit: 'cover', borderRadius: 2 }} />
+                  <Typography variant="h6" sx={{ fontWeight: 700, mt: 2 }}>
+                    {member.name}
+                  </Typography>
+                  <Typography variant="body1" sx={{ opacity: 0.8, lineHeight: 1.7 }}>
+                    {member.role}
+                  </Typography>
+                  <Typography variant="body1" sx={{ opacity: 0.8, lineHeight: 1.7, mt: 1 }}>
+                    {member.specialty}
+                  </Typography>
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
+        </Container>
+      </Box>
+
+      {/* Testimonials Section */}
+      <Box component={motion.section} variants={cardVariants} sx={{ py: 8, backgroundColor: colors.cloud }}>
+        <Container maxWidth="lg">
+          <SectionHeader title="What Our Customers Say" subtitle="Testimonials" />
+          <Grid container spacing={4}>
+            {testimonials.map((testimonial, index) => (
+              <Grid item key={testimonial.quote} xs={12} md={6}>
+                <Paper elevation={2} sx={{ p: 4, backgroundColor: colors.paper, borderRadius: 2 }}>
+                  <Typography variant="body1" sx={{ opacity: 0.8, lineHeight: 1.7, fontStyle: 'italic' }}>
+                    {testimonial.quote}
+                  </Typography>
+                  <Typography variant="body1" sx={{ opacity: 0.8, lineHeight: 1.7, mt: 2 }}>
+                    {testimonial.name}
+                  </Typography>
+                  <Typography variant="body1" sx={{ opacity: 0.8, lineHeight: 1.7 }}>
+                    {testimonial.role}
+                  </Typography>
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
+        </Container>
+      </Box>
+    </motion.div>
   );
 };
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -27,6 +27,7 @@ import {
   IconButton,
   Breadcrumbs,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import {
   ShoppingBag,
   ShoppingCart,
@@ -45,10 +46,14 @@ import { optimizeImageUrl } from '../../utils/imageOptimization';
 import { pageTransitions } from '../../utils/pageTransitions';
 import ProductCard from '../../components/ProductCard';
 import { formatCurrency } from '../../utils/currencyUtils';
+import designTokens from '../../theme/designTokens';
+import LoadingOverlay from '../../components/LoadingOverlay';
+import { useLoadingState } from '../../hooks/useLoadingState';
 
 const Shop = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { colors, gradients, shadows, spacing, radii, transitions } = designTokens;
   const [searchParams] = useSearchParams();
   const [items, setItems] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -57,6 +62,14 @@ const Shop = () => {
   const [itemReviews, setItemReviews] = useState({});
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [showAllCategories, setShowAllCategories] = useState(false);
+  const [lastFilterChange, setLastFilterChange] = useState('');
+  
+  // Loading state management
+  const { setLoading: setOperationLoading, isLoading, isAnyLoading } = useLoadingState({
+    initial: false,
+    filtering: false,
+    sorting: false
+  });
 
   // Filter and sort states
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -67,7 +80,7 @@ const Shop = () => {
 
   // Pagination state
   const [page, setPage] = useState(1);
-  const itemsPerPage = 6;
+  const itemsPerPage = 9;
 
   useEffect(() => {
     fetchItems();
@@ -221,17 +234,33 @@ const Shop = () => {
     return filtered;
   };
 
-  const filteredItems = getFilteredAndSortedItems();
+  const filteredItems = useMemo(() => getFilteredAndSortedItems(), [items, searchQuery, selectedCategories, priceRange, minRating, sortBy]);
 
   // Pagination logic
-  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
-  const paginatedItems = filteredItems.slice(
-    (page - 1) * itemsPerPage,
-    page * itemsPerPage
-  );
+  const totalPages = useMemo(() => Math.ceil(filteredItems.length / itemsPerPage), [filteredItems, itemsPerPage]);
+  const paginatedItems = useMemo(() => (
+    filteredItems.slice(
+      (page - 1) * itemsPerPage,
+      page * itemsPerPage
+    )
+  ), [filteredItems, page, itemsPerPage]);
 
   const paginationStart = (page - 1) * itemsPerPage + 1;
   const paginationEnd = page * itemsPerPage;
+
+  useEffect(() => {
+    const activeFilters = [];
+    if (searchQuery.trim()) activeFilters.push(`search term “${searchQuery}”`);
+    if (selectedCategories.length) activeFilters.push(`${selectedCategories.length} categories`);
+    if (priceRange[0] > 0 || priceRange[1] < 1000) activeFilters.push(`price between ${formatCurrency(priceRange[0])} and ${formatCurrency(priceRange[1])}`);
+    if (minRating > 0) activeFilters.push(`${minRating} stars and above`);
+    if (sortBy !== 'featured') activeFilters.push(`sorted by ${sortBy.replace('-', ' ')}`);
+
+    const summary = activeFilters.length > 0
+      ? `Filters updated: ${activeFilters.join(', ')}. ${filteredItems.length} products available.`
+      : `${filteredItems.length} products available.`;
+    setLastFilterChange(summary);
+  }, [searchQuery, selectedCategories, priceRange, minRating, sortBy, filteredItems.length]);
 
   const handlePageChange = (event, value) => {
     setPage(value);
@@ -239,25 +268,36 @@ const Shop = () => {
   };
 
   const handleCategoryToggle = (categoryName) => {
+    setOperationLoading('filtering', true);
     setPage(1); // Reset to first page when filter changes
     setSelectedCategories(prev =>
       prev.includes(categoryName)
         ? prev.filter(name => name !== categoryName)
         : [...prev, categoryName]
     );
+    setTimeout(() => setOperationLoading('filtering', false), 500);
   };
 
   const handleClearFilters = () => {
+    setOperationLoading('filtering', true);
     setSelectedCategories([]);
     setPriceRange([0, 1000]);
     setMinRating(0);
     setSearchQuery('');
     setPage(1);
+    setTimeout(() => setOperationLoading('filtering', false), 500);
   };
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
     setPage(1);
+  };
+
+  const handleSortChange = (newSortBy) => {
+    setOperationLoading('sorting', true);
+    setSortBy(newSortBy);
+    setPage(1);
+    setTimeout(() => setOperationLoading('sorting', false), 300);
   };
 
   // Animation variants from basic-frontend
@@ -327,18 +367,20 @@ const Shop = () => {
                 variant="outlined"
                 startIcon={<FilterList />}
                 onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
+                aria-expanded={mobileFilterOpen}
+                aria-controls="mobile-filter-panel"
                 sx={{
-                  borderColor: 'rgba(0,0,0,0.1)',
-                  color: '#1a1a1a',
-                  background: '#fff',
+                  borderColor: alpha(colors.brandInk, 0.12),
+                  color: colors.brandInk,
+                  background: colors.paper,
                   textTransform: 'none',
-                  padding: '12px',
+                  padding: spacing(3),
                   justifyContent: 'space-between',
-                  borderRadius: '12px',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                  borderRadius: 0,
+                  boxShadow: shadows.subtle,
                   '&:hover': {
-                    borderColor: '#e91e63',
-                    backgroundColor: 'rgba(233, 30, 99, 0.02)',
+                    borderColor: alpha(colors.brandPink, 0.4),
+                    backgroundColor: alpha(colors.brandPink, 0.05),
                   },
                 }}
               >
@@ -346,21 +388,31 @@ const Shop = () => {
                   <span>Filters & Sorting</span>
                 </Box>
                 {(selectedCategories.length > 0 || priceRange[0] !== 0 || priceRange[1] !== 1000 || minRating > 0) &&
-                  <Chip size="small" label={selectedCategories.length + (priceRange[0] !== 0 || priceRange[1] !== 1000 ? 1 : 0) + (minRating > 0 ? 1 : 0)} sx={{ height: 22, bgcolor: '#e91e63', color: '#fff', fontWeight: 600 }} />
+                  <Chip
+                    size="small"
+                    label={selectedCategories.length + (priceRange[0] !== 0 || priceRange[1] !== 1000 ? 1 : 0) + (minRating > 0 ? 1 : 0)}
+                    sx={{
+                      height: 22,
+                      bgcolor: colors.brandPink,
+                      color: colors.paper,
+                      fontWeight: 600,
+                      borderRadius: 0,
+                    }}
+                  />
                 }
               </Button>
             </Box>
 
             {/* Mobile Filters Content (Collapsible) */}
             {mobileFilterOpen && (
-              <Box sx={{ display: { xs: 'block', sm: 'none' }, mb: 3 }}>
+              <Box id="mobile-filter-panel" sx={{ display: { xs: 'block', sm: 'none' }, mb: 3 }}>
                 <Paper
                   elevation={0}
                   sx={{
                     p: 3,
-                    borderRadius: '12px',
-                    border: '1px solid #eee',
-                    background: '#fff',
+                    borderRadius: 0,
+                    border: `1px solid ${alpha(colors.brandInk, 0.08)}`,
+                    background: colors.paper,
                   }}
                 >
                   {/* Filter content for mobile */}
@@ -376,10 +428,10 @@ const Shop = () => {
                         }}
                         renderValue={(selected) => selected.join(', ')}
                         sx={{
-                          borderRadius: '8px',
-                          '& .MuiOutlinedInput-notchedOutline': { borderColor: '#e0e0e0' },
-                          '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#e91e63' },
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#e91e63' },
+                          borderRadius: 0,
+                          '& .MuiOutlinedInput-notchedOutline': { borderColor: alpha(colors.brandInk, 0.12) },
+                          '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: colors.brandPink },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: colors.brandPink },
                         }}
                       >
                         {categories.map((category) => (
@@ -435,9 +487,9 @@ const Shop = () => {
                     elevation={0}
                     sx={{
                       p: 3,
-                      borderRadius: '16px',
-                      border: '1px solid rgba(0,0,0,0.08)',
-                      background: '#fff',
+                      borderRadius: 0,
+                      border: `1px solid ${alpha(colors.brandInk, 0.08)}`,
+                      background: colors.paper,
                       position: 'sticky',
                       top: '100px',
                     }}
@@ -464,8 +516,8 @@ const Shop = () => {
                                   onChange={() => handleCategoryToggle(category.name)}
                                   size="small"
                                   sx={{
-                                    color: '#ccc',
-                                    '&.Mui-checked': { color: '#e91e63' },
+                                    color: alpha(colors.brandInk, 0.25),
+                                    '&.Mui-checked': { color: colors.brandPink },
                                     padding: '4px 8px',
                                   }}
                                 />
@@ -478,7 +530,7 @@ const Shop = () => {
                               sx={{
                                 margin: 0,
                                 py: 0.2,
-                                '&:hover': { bgcolor: 'rgba(0,0,0,0.02)', borderRadius: '4px' }
+                                '&:hover': { bgcolor: alpha(colors.brandInk, 0.04), borderRadius: 0 }
                               }}
                             />
                           );
@@ -489,7 +541,7 @@ const Shop = () => {
                             onClick={() => setShowAllCategories(!showAllCategories)}
                             sx={{
                               mt: 0.5,
-                              color: '#e91e63',
+                              color: colors.brandPink,
                               textTransform: 'none',
                               fontSize: '0.75rem',
                               fontWeight: 700,
@@ -510,26 +562,30 @@ const Shop = () => {
                       <Box sx={{ px: 1 }}>
                         <Slider
                           value={priceRange}
-                          onChange={(e, newValue) => setPriceRange(newValue)}
+                          onChange={(e, newValue) => {
+                            setPriceRange(newValue);
+                            setOperationLoading('filtering', true);
+                            setTimeout(() => setOperationLoading('filtering', false), 300);
+                          }}
                           valueLabelDisplay="auto"
                           min={0}
                           max={1000}
                           sx={{
-                            color: '#e91e63',
+                            color: colors.brandPink,
                             height: 6,
                             '& .MuiSlider-thumb': {
                               width: 18,
                               height: 18,
-                              backgroundColor: '#fff',
-                              boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
-                              border: '2px solid #e91e63',
+                              backgroundColor: colors.paper,
+                              boxShadow: shadows.subtle,
+                              border: `2px solid ${colors.brandPink}`,
                               '&:focus, &:hover, &.Mui-active, &.Mui-focusVisible': {
-                                boxShadow: '0 0 0 8px rgba(233, 30, 99, 0.1)',
+                                boxShadow: `0 0 0 8px ${alpha(colors.brandPink, 0.12)}`,
                               },
                             },
                             '& .MuiSlider-rail': {
                               opacity: 0.2,
-                              bgcolor: '#ccc'
+                              bgcolor: alpha(colors.brandInk, 0.2)
                             }
                           }}
                         />
@@ -546,13 +602,17 @@ const Shop = () => {
                       <FormControl fullWidth size="small">
                         <Select
                           value={minRating}
-                          onChange={(e) => setMinRating(e.target.value)}
+                          onChange={(e) => {
+                            setMinRating(e.target.value);
+                            setOperationLoading('filtering', true);
+                            setTimeout(() => setOperationLoading('filtering', false), 300);
+                          }}
                           sx={{
-                            borderRadius: '10px',
-                            backgroundColor: '#f8f9fa',
-                            '& .MuiOutlinedInput-notchedOutline': { border: '1px solid #eee' },
-                            '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#e91e63' },
-                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#e91e63' },
+                            borderRadius: 0,
+                            backgroundColor: alpha(colors.brandInk, 0.02),
+                            '& .MuiOutlinedInput-notchedOutline': { border: `1px solid ${alpha(colors.brandInk, 0.12)}` },
+                            '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: colors.brandPink },
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: colors.brandPink },
                             fontSize: '0.85rem',
                             fontWeight: 600
                           }}
@@ -577,9 +637,9 @@ const Shop = () => {
                     sx={{
                       p: 1.5,
                       mb: 2,
-                      borderRadius: '16px',
-                      border: '1px solid rgba(0,0,0,0.08)',
-                      background: '#fff',
+                      borderRadius: 0,
+                      border: `1px solid ${alpha(colors.brandInk, 0.08)}`,
+                      background: colors.paper,
                       display: 'flex',
                       flexDirection: { xs: 'column', md: 'row' },
                       alignItems: { xs: 'stretch', md: 'center' },
@@ -595,14 +655,18 @@ const Shop = () => {
                         value={searchQuery}
                         onChange={handleSearchChange}
                         size="small"
+                        inputProps={{ 'aria-label': 'Search products' }}
                         InputProps={{
                           startAdornment: <Search sx={{ ml: 1, mr: 1, color: '#e91e63', fontSize: '20px' }} />,
                           sx: {
-                            borderRadius: '12px',
-                            backgroundColor: '#f8f9fa',
+                            borderRadius: 0,
+                            backgroundColor: alpha(colors.brandInk, 0.02),
                             '& fieldset': { border: 'none' },
-                            '&:hover': { backgroundColor: '#f1f3f5' },
-                            '&.Mui-focused': { backgroundColor: '#fff', boxShadow: '0 0 0 2px rgba(233, 30, 99, 0.15)' },
+                            '&:hover': { backgroundColor: alpha(colors.brandInk, 0.04) },
+                            '&.Mui-focused': {
+                              backgroundColor: colors.paper,
+                              boxShadow: `0 0 0 2px ${alpha(colors.brandPink, 0.18)}`,
+                            },
                             fontSize: '0.9rem'
                           }
                         }}
@@ -613,16 +677,16 @@ const Shop = () => {
                       <FormControl size="small" sx={{ minWidth: 160 }}>
                         <Select
                           value={sortBy}
-                          onChange={(e) => setSortBy(e.target.value)}
+                          onChange={(e) => handleSortChange(e.target.value)}
                           displayEmpty
                           sx={{
-                            borderRadius: '12px',
-                            backgroundColor: '#f8f9fa',
+                            borderRadius: 0,
+                            backgroundColor: alpha(colors.brandInk, 0.02),
                             '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
                             fontSize: '0.85rem',
                             fontWeight: 600,
                             color: '#495057',
-                            '&:hover': { backgroundColor: '#f1f3f5' }
+                            '&:hover': { backgroundColor: alpha(colors.brandInk, 0.04) }
                           }}
                         >
                           <MenuItem value="featured">Sort: Featured</MenuItem>
@@ -645,7 +709,7 @@ const Shop = () => {
                           label={cat}
                           size="small"
                           onDelete={() => handleCategoryToggle(cat)}
-                          sx={{ borderRadius: '6px', bgcolor: 'rgba(233, 30, 99, 0.08)', color: '#e91e63', fontWeight: 600, border: '1px solid rgba(233, 30, 99, 0.1)' }}
+                          sx={{ borderRadius: 0, bgcolor: alpha(colors.brandPink, 0.12), color: colors.brandPink, fontWeight: 600, border: `1px solid ${alpha(colors.brandPink, 0.2)}` }}
                         />
                       ))}
                       {minRating > 0 && (
@@ -653,7 +717,7 @@ const Shop = () => {
                           label={`${minRating}★ & above`}
                           size="small"
                           onDelete={() => setMinRating(0)}
-                          sx={{ borderRadius: '6px', bgcolor: 'rgba(233, 30, 99, 0.08)', color: '#e91e63', fontWeight: 600, border: '1px solid rgba(233, 30, 99, 0.1)' }}
+                          sx={{ borderRadius: 0, bgcolor: alpha(colors.brandPink, 0.12), color: colors.brandPink, fontWeight: 600, border: `1px solid ${alpha(colors.brandPink, 0.2)}` }}
                         />
                       )}
                       {(priceRange[0] > 0 || priceRange[1] < 1000) && (
@@ -661,7 +725,7 @@ const Shop = () => {
                           label={`${formatCurrency(priceRange[0])} - ${formatCurrency(priceRange[1])}`}
                           size="small"
                           onDelete={() => setPriceRange([0, 1000])}
-                          sx={{ borderRadius: '6px', bgcolor: 'rgba(233, 30, 99, 0.08)', color: '#e91e63', fontWeight: 600, border: '1px solid rgba(233, 30, 99, 0.1)' }}
+                          sx={{ borderRadius: 0, bgcolor: alpha(colors.brandPink, 0.12), color: colors.brandPink, fontWeight: 600, border: `1px solid ${alpha(colors.brandPink, 0.2)}` }}
                         />
                       )}
                       <Button
@@ -677,7 +741,16 @@ const Shop = () => {
 
                 {/* Products or Empty State */}
                 {loading ? (
-                  <ProductGridSkeleton count={itemsPerPage} />
+                  <>
+                    <ProductGridSkeleton count={itemsPerPage} />
+                    <LoadingOverlay 
+                      visible={true} 
+                      message="Loading products..." 
+                      size={60}
+                      backdrop={false}
+                      transparent={true}
+                    />
+                  </>
                 ) : filteredItems.length === 0 ? (
                   <Box
                     component={motion.div}
@@ -686,18 +759,18 @@ const Shop = () => {
                     sx={{
                       padding: { xs: 6, md: 10 },
                       textAlign: 'center',
-                      background: '#fff',
-                      borderRadius: '24px',
-                      border: '1px solid rgba(0,0,0,0.06)',
-                      boxShadow: '0 10px 30px rgba(0,0,0,0.03)',
+                      background: colors.paper,
+                      borderRadius: 0,
+                      border: `1px solid ${alpha(colors.brandInk, 0.08)}`,
+                      boxShadow: shadows.subtle,
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center'
                     }}
                   >
                     <Box sx={{
-                      width: 80, height: 80, borderRadius: '20px',
-                      bgcolor: 'rgba(233, 30, 99, 0.05)', display: 'flex',
+                      width: 80, height: 80, borderRadius: 0,
+                      bgcolor: alpha(colors.brandPink, 0.08), display: 'flex',
                       alignItems: 'center', justifyContent: 'center', mb: 3
                     }}>
                       <ShoppingBag sx={{ fontSize: 40, color: '#e91e63' }} />
@@ -712,18 +785,18 @@ const Shop = () => {
                       variant="contained"
                       onClick={handleClearFilters}
                       sx={{
-                        background: '#e91e63',
-                        color: '#fff',
+                        background: colors.brandPink,
+                        color: colors.paper,
                         textTransform: 'none',
                         px: 4,
                         py: 1.2,
-                        borderRadius: '50px',
+                        borderRadius: 0,
                         fontWeight: 700,
-                        boxShadow: '0 8px 20px rgba(233, 30, 99, 0.2)',
+                        boxShadow: shadows.hover,
                         '&:hover': {
-                          background: '#d81b60',
+                          background: colors.brandBurgundy,
                           transform: 'translateY(-2px)',
-                          boxShadow: '0 12px 25px rgba(233, 30, 99, 0.3)',
+                          boxShadow: '0 12px 25px rgba(173, 20, 87, 0.3)',
                         }
                       }}
                     >
@@ -731,34 +804,50 @@ const Shop = () => {
                     </Button>
                   </Box>
                 ) : (
-                  <AnimatePresence mode="wait">
-                    <Box
-                      component={motion.div}
-                      variants={containerVariants}
-                      initial="hidden"
-                      animate="visible"
-                      exit="exit"
-                      sx={{
-                        display: 'grid',
-                        gridTemplateColumns: {
-                          xs: 'repeat(2, 1fr)',
-                          sm: 'repeat(2, 1fr)',
-                          md: 'repeat(3, 1fr)',
-                        },
-                        gap: { xs: 1.5, sm: 2.5, md: 3 },
-                        width: '100%',
-                      }}
-                    >
+                  <>
+                    <LoadingOverlay 
+                      visible={isAnyLoading()} 
+                      message={
+                        isLoading('filtering') ? 'Applying filters...' :
+                        isLoading('sorting') ? 'Sorting...' :
+                        'Updating...'
+                      } 
+                      size={50}
+                      backdrop={true}
+                      transparent={false}
+                    />
+                    <AnimatePresence mode="wait">
+                      <Box
+                        component={motion.div}
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        role="region"
+                        aria-label="Filtered products"
+                        sx={{
+                          display: 'grid',
+                          gridTemplateColumns: {
+                            xs: 'repeat(2, 1fr)',
+                            sm: 'repeat(2, 1fr)',
+                            md: 'repeat(3, 1fr)',
+                          },
+                          gap: { xs: 1.5, sm: 2.5, md: 3 },
+                          width: '100%',
+                        }}
+                      >
                       {paginatedItems.map((item, index) => (
                         <ProductCard
                           key={item.id}
                           item={item}
                           ratingData={getItemRatingData(item.id)}
                           index={index}
+                          compact
                         />
                       ))}
                     </Box>
                   </AnimatePresence>
+                  </>
                 )}
 
                 {/* Pagination */}
@@ -791,6 +880,23 @@ const Shop = () => {
           </Container>
         </Box>
         <Footer />
+        <Box
+          component="p"
+          sx={{
+            position: 'absolute',
+            width: '1px',
+            height: '1px',
+            margin: '-1px',
+            padding: 0,
+            overflow: 'hidden',
+            clip: 'rect(0 0 0 0)',
+            whiteSpace: 'nowrap',
+            border: 0,
+          }}
+          aria-live="polite"
+        >
+          {lastFilterChange}
+        </Box>
       </Box>
     </motion.div>
   );

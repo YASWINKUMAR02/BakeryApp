@@ -55,8 +55,6 @@ import { OrderCardSkeleton } from '../../components/LoadingSkeleton';
 import OrderStatusStepper from '../../components/OrderStatusStepper';
 import { formatCurrency } from '../../utils/currencyUtils';
 import designTokens from '../../theme/designTokens';
-import LoadingOverlay from '../../components/LoadingOverlay';
-import { useLoadingState } from '../../hooks/useLoadingState';
 
 const defaultEditForm = {
   doorNo: '',
@@ -91,14 +89,6 @@ const Orders = () => {
   const [editLocationCoordinates, setEditLocationCoordinates] = useState(null);
   const [updating, setUpdating] = useState(false);
   const [editFormData, setEditFormData] = useState(defaultEditForm);
-  
-  // Loading state management
-  const { setLoading: setOperationLoading, isLoading, isAnyLoading } = useLoadingState({
-    initial: false,
-    fetching: false,
-    updating: false,
-    filtering: false
-  });
 
   useEffect(() => {
     if (!user) return;
@@ -120,7 +110,6 @@ const Orders = () => {
 
   const fetchOrders = async () => {
     if (!user) return;
-    setOperationLoading('fetching', true);
     try {
       const response = await orderAPI.getByCustomer(user.id);
       if (response.data?.success) {
@@ -143,7 +132,6 @@ const Orders = () => {
         setError(err.response?.data?.message || 'Something went wrong');
       }
     } finally {
-      setOperationLoading('fetching', false);
       setLoading(false);
     }
   };

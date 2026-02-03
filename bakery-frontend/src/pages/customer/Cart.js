@@ -6,73 +6,128 @@ import {
   Typography,
   Button,
   Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  AppBar,
-  Toolbar,
-  CircularProgress,
-  Alert,
+  Stack,
+  Chip,
   IconButton,
   TextField,
-  Chip,
+  Grid,
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions,
   DialogContentText,
-  Card,
-  CardContent,
+  DialogActions,
   Divider,
+  CircularProgress,
   useMediaQuery,
   useTheme,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import {
   Delete,
-  ShoppingCart,
-  Cake,
   ArrowBack,
+  ShoppingCart,
+  ShoppingBag,
+  LocalShipping,
+  CreditScore,
+  Discount,
+  ShieldOutlined,
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
+import designTokens from '../../theme/designTokens';
 import { cartAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import Footer from '../../components/Footer';
 import { showSuccess, showError } from '../../utils/toast';
 import QuantitySelector from '../../components/QuantitySelector';
-import { formatCurrency } from '../../utils/currencyUtils';
 import PriceDisplay from '../../components/PriceDisplay';
+
+const { colors, gradients, shadows, transitions } = designTokens;
+
+const progressSteps = [
+  {
+    label: 'Cart',
+    description: 'Review your selection',
+    icon: ShoppingBag,
+    status: 'current',
+  },
+  {
+    label: 'Delivery',
+    description: 'Schedule & address',
+    icon: LocalShipping,
+    status: 'upcoming',
+  },
+  {
+    label: 'Payment',
+    description: 'Secure checkout',
+    icon: CreditScore,
+    status: 'upcoming',
+  },
+];
+
+const assurancePoints = [
+  {
+    icon: ShieldOutlined,
+    title: 'Secure checkout',
+    description: '256-bit encryption with UPI, card, and wallet support.',
+  },
+  {
+    icon: Discount,
+    title: 'Reward-ready',
+    description: 'Apply loyalty perks and seasonal vouchers at payment.',
+  },
+  {
+    icon: LocalShipping,
+    title: 'Scheduled delivery',
+    description: 'Choose preferred delivery slots with live status updates.',
+  },
+];
+
+const containerVariants = {
+  hidden: { opacity: 0, y: 14 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
+  },
+  exit: { opacity: 0, y: -18, scale: 0.96 },
+};
 
 const Cart = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const userId = user?.id;
+
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
   const [updatingItems, setUpdatingItems] = useState(new Set());
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
+  const [promoCode, setPromoCode] = useState('');
 
   const fetchCart = useCallback(async () => {
+    if (!userId) return;
     try {
-      console.log('Fetching cart for user:', user.id);
-      const response = await cartAPI.get(user.id);
-      console.log('Cart response:', response.data);
+      const response = await cartAPI.get(userId);
       if (response.data.success) {
         setCart(response.data.data);
-        console.log('Cart updated with items:', response.data.data.items?.length || 0);
       }
     } catch (err) {
-      console.error('Failed to fetch cart:', err);
-      showError('Something went wrong');
+      showError('Could not load your cart. Please try again.');
     } finally {
       setLoading(false);
     }
-  }, [user.id]);
+  }, [userId]);
 
   useEffect(() => {
     fetchCart();
@@ -110,29 +165,19 @@ const Cart = () => {
   const handleRemoveItem = async () => {
     if (!itemToDelete) return;
 
-    console.log('Attempting to remove cart item with ID:', itemToDelete);
-
     try {
       const response = await cartAPI.removeItem(itemToDelete);
-      console.log('Remove item response:', response);
-
       if (response.data.success) {
-        // Immediately update the cart state by filtering out the removed item
         setCart(prevCart => ({
           ...prevCart,
-          items: prevCart.items.filter(item => item.id !== itemToDelete)
+          items: prevCart.items.filter(item => item.id !== itemToDelete),
         }));
-
-        showSuccess('Item removed from cart!');
-
-        // Fetch fresh cart data from server
+        showSuccess('Item removed from cart');
         await fetchCart();
       } else {
         showError('Failed to remove item from cart');
       }
     } catch (err) {
-      console.error('Remove item error:', err);
-      console.error('Error response:', err.response);
       const errorMessage = err.response?.data?.message || 'Failed to remove item from cart';
       showError(errorMessage);
     } finally {
@@ -148,369 +193,677 @@ const Cart = () => {
     navigate('/checkout');
   };
 
+  const handleApplyPromo = () => {
+    if (!promoCode.trim()) {
+      showError('Enter a promo code to apply.');
+      return;
+    }
+    showError('Promo code support is coming soon.');
+  };
+
   const getItemPrice = (cartItem) => {
-    // Use stored price if available (for cakes with weight pricing)
     if (cartItem.priceAtAddition && cartItem.priceAtAddition > 0) {
       return cartItem.priceAtAddition;
     }
 
-    // For regular items, calculate price
     if (cartItem.eggType === 'EGGLESS') {
-      return cartItem.item.price + 30; // Add ₹30 for eggless
+      return cartItem.item.price + 30;
     }
     return cartItem.item.price;
   };
 
   const calculateTotal = () => {
     if (!cart?.items) return 0;
-    return cart.items.reduce((total, cartItem) => total + (getItemPrice(cartItem) * cartItem.quantity), 0);
+    return cart.items.reduce((total, cartItem) => total + getItemPrice(cartItem) * cartItem.quantity, 0);
   };
 
-  return (
-    <Box style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+  const itemCount = cart?.items?.reduce((sum, cartItem) => sum + cartItem.quantity, 0) ?? 0;
 
-      <Box sx={{ flex: 1, background: '#f5f5f5', paddingTop: { xs: '80px', md: '100px' }, paddingBottom: { xs: '20px', md: '40px' }, paddingLeft: { xs: '4px', md: '8px' }, paddingRight: { xs: '4px', md: '8px' } }}>
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: colors.cloud }}>
+      <Box sx={{ flex: 1, pt: { xs: 12, md: 14 }, pb: { xs: 10, md: 12 } }}>
         <Container maxWidth="lg">
-          <Paper sx={{ padding: { xs: '12px', md: '20px' }, borderRadius: '0', marginBottom: { xs: '12px', md: '20px' } }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: { xs: '12px', md: '20px' }, flexWrap: 'wrap', gap: { xs: '8px', md: '0' } }}>
-              <Typography variant="h5" sx={{ fontWeight: 600, fontSize: { xs: '1rem', md: '1.5rem' } }}>
-                Your Cart
-              </Typography>
+          <Stack spacing={4}>
+            <Stack
+              direction={{ xs: 'column', md: 'row' }}
+              justifyContent="space-between"
+              alignItems={{ xs: 'flex-start', md: 'center' }}
+              spacing={3}
+            >
+              <Stack spacing={1.5} alignItems="flex-start">
+                <Chip
+                  label={loading ? 'Loading cart…' : `${itemCount} ${itemCount === 1 ? 'item' : 'items'} in cart`}
+                  sx={{
+                    borderRadius: 0,
+                    backgroundColor: alpha(colors.brandPink, 0.12),
+                    color: colors.brandPink,
+                    letterSpacing: '0.08em',
+                    fontWeight: 700,
+                  }}
+                />
+                <Typography
+                  variant="h3"
+                  sx={{
+                    fontWeight: 700,
+                    letterSpacing: '-0.02em',
+                    color: colors.brandInk,
+                    maxWidth: 620,
+                  }}
+                >
+                  Review & finalise your order
+                </Typography>
+                <Typography variant="body1" sx={{ color: colors.stone, maxWidth: 520, lineHeight: 1.6 }}>
+                  Double-check quantities, personalise preferences, and pick up where you left off before heading to checkout.
+                </Typography>
+              </Stack>
+
               <Button
                 variant="outlined"
                 startIcon={<ArrowBack />}
                 onClick={() => navigate('/shop')}
                 sx={{
-                  borderColor: '#e91e63',
-                  color: '#e91e63',
-                  textTransform: 'none',
+                  borderRadius: 0,
+                  borderColor: colors.brandPink,
+                  color: colors.brandPink,
                   fontWeight: 600,
-                  borderRadius: '12px',
-                  fontSize: { xs: '0.75rem', md: '0.875rem' },
-                  padding: { xs: '4px 12px', md: '6px 20px' },
-                  '&:hover': { borderColor: '#d81b60', background: 'rgba(233, 30, 99, 0.04)' }
+                  textTransform: 'none',
+                  px: 3,
+                  py: 1.25,
+                  alignSelf: { xs: 'stretch', md: 'center' },
+                  '&:hover': {
+                    borderColor: colors.brandBurgundy,
+                    backgroundColor: alpha(colors.brandPink, 0.08),
+                  },
                 }}
               >
-                Continue Shopping
+                Continue shopping
               </Button>
-            </Box>
+            </Stack>
+
+            <Paper
+              component={motion.div}
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              sx={{
+                borderRadius: 0,
+                border: `1px solid ${alpha(colors.brandInk, 0.08)}`,
+                background: alpha(colors.paper, 0.95),
+                boxShadow: shadows.subtle,
+                px: { xs: 3, md: 4 },
+                py: { xs: 3, md: 3.5 },
+              }}
+            >
+              <Stack
+                direction={{ xs: 'column', md: 'row' }}
+                spacing={{ xs: 3, md: 4 }}
+                divider={<Divider flexItem sx={{ borderColor: alpha(colors.brandInk, 0.08) }} />}
+              >
+                {progressSteps.map((step) => {
+                  const StepIcon = step.icon;
+                  const isCurrent = step.status === 'current';
+                  return (
+                    <Stack key={step.label} direction="row" spacing={2} alignItems="center">
+                      <Box
+                        sx={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: 0,
+                          display: 'grid',
+                          placeItems: 'center',
+                          backgroundColor: isCurrent ? colors.brandPink : alpha(colors.brandInk, 0.05),
+                          color: isCurrent ? colors.paper : colors.brandInk,
+                          transition: transitions.micro,
+                        }}
+                      >
+                        <StepIcon fontSize="small" />
+                      </Box>
+                      <Box>
+                        <Typography
+                          variant="subtitle2"
+                          sx={{
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.12em',
+                            fontWeight: 700,
+                            color: isCurrent ? colors.brandPink : colors.brandInk,
+                          }}
+                        >
+                          {step.label}
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: colors.stone }}>
+                          {step.description}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  );
+                })}
+              </Stack>
+            </Paper>
 
             {loading ? (
-              <Box sx={{ textAlign: 'center', padding: { xs: '30px 20px', md: '40px' } }}>
-                <CircularProgress style={{ color: '#ff69b4' }} />
-              </Box>
+              <Paper
+                sx={{
+                  borderRadius: 0,
+                  border: `1px solid ${alpha(colors.brandInk, 0.08)}`,
+                  backgroundColor: colors.paper,
+                  py: { xs: 6, md: 8 },
+                  px: { xs: 3, md: 6 },
+                  textAlign: 'center',
+                }}
+              >
+                <Stack spacing={2} alignItems="center">
+                  <CircularProgress sx={{ color: colors.brandPink }} />
+                  <Typography variant="body1" sx={{ color: colors.stone }}>
+                    Fetching the latest cart updates…
+                  </Typography>
+                </Stack>
+              </Paper>
             ) : !cart?.items || cart.items.length === 0 ? (
-              <Box sx={{ textAlign: 'center', padding: { xs: '40px 20px', md: '60px' } }}>
-                <ShoppingCart sx={{ fontSize: { xs: 60, md: 80 }, color: '#ccc', marginBottom: { xs: '12px', md: '20px' } }} />
-                <Typography variant="h6" color="textSecondary" gutterBottom sx={{ fontSize: { xs: '1rem', md: '1.25rem' } }}>
-                  Your cart is empty
-                </Typography>
-                <Button
-                  variant="contained"
-                  onClick={() => navigate('/shop')}
-                  style={{ marginTop: '20px', background: '#e91e63', color: '#fff', textTransform: 'none', borderRadius: '0' }}
-                >
-                  Start Shopping
-                </Button>
-              </Box>
+              <Paper
+                sx={{
+                  borderRadius: 0,
+                  border: `1px solid ${alpha(colors.brandInk, 0.08)}`,
+                  backgroundColor: colors.paper,
+                  px: { xs: 3, md: 6 },
+                  py: { xs: 6, md: 8 },
+                  textAlign: 'center',
+                }}
+              >
+                <Stack spacing={3} alignItems="center">
+                  <ShoppingCart sx={{ fontSize: 56, color: alpha(colors.brandInk, 0.2) }} />
+                  <Typography variant="h5" sx={{ fontWeight: 700, color: colors.brandInk }}>
+                    Your cart is empty
+                  </Typography>
+                  <Typography variant="body1" sx={{ color: colors.stone, maxWidth: 420, lineHeight: 1.6 }}>
+                    Discover signature cakes, seasonal hampers, and chef-curated pairings in the shop to start building your order.
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    onClick={() => navigate('/shop')}
+                    sx={{
+                      borderRadius: 0,
+                      fontWeight: 700,
+                      textTransform: 'none',
+                      px: 4,
+                      py: 1.5,
+                      background: gradients.primary,
+                      boxShadow: shadows.resting,
+                      '&:hover': {
+                        boxShadow: shadows.hover,
+                        background: gradients.primary,
+                      },
+                    }}
+                  >
+                    Browse the shop
+                  </Button>
+                </Stack>
+              </Paper>
             ) : (
-              <>
-                {/* Mobile Card Layout */}
-                {isMobile ? (
-                  <Box>
+              <Grid container spacing={4}>
+                <Grid item xs={12} md={8}>
+                  <Paper
+                    sx={{
+                      borderRadius: 0,
+                      border: `1px solid ${alpha(colors.brandInk, 0.08)}`,
+                      backgroundColor: colors.paper,
+                      boxShadow: shadows.subtle,
+                    }}
+                  >
                     <AnimatePresence>
-                      {cart.items.map((cartItem, index) => (
-                        <motion.div
-                          key={cartItem.id || `cart-item-${index}`}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, x: -20 }}
-                          layout
-                          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                        >
-                          <Card sx={{ marginBottom: { xs: '12px', md: '16px' }, borderRadius: '16px', border: '1px solid #eee', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
-                            <CardContent sx={{ padding: { xs: '12px', md: '16px' } }}>
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: { xs: '8px', md: '12px' } }}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: '6px', md: '8px' }, flex: 1 }}>
-                                  <Box>
-                                    <Typography variant="body1" sx={{ fontWeight: 600, fontSize: { xs: '0.85rem', md: '1rem' } }}>
-                                      {cartItem.item.name}
-                                    </Typography>
-                                    <Box sx={{ display: 'flex', gap: { xs: '4px', md: '6px' }, marginTop: { xs: '4px', md: '6px' }, flexWrap: 'wrap', alignItems: 'center' }}>
-                                      {cartItem.selectedWeight && (
-                                        <Chip
-                                          label={`${cartItem.selectedWeight} Kg`}
-                                          size="small"
-                                          sx={{
-                                            background: '#fff3e0',
-                                            color: '#e65100',
-                                            fontWeight: 600,
-                                            fontSize: { xs: '0.6rem', md: '10px' },
-                                            height: { xs: '18px', md: '20px' }
-                                          }}
-                                        />
-                                      )}
-                                      {cartItem.eggType === 'EGGLESS' && (
-                                        <Chip
-                                          label='🌱 Eggless'
-                                          size="small"
-                                          sx={{
-                                            background: '#e8f5e9',
-                                            color: '#2e7d32',
-                                            fontWeight: 600,
-                                            fontSize: { xs: '0.6rem', md: '10px' },
-                                            height: { xs: '18px', md: '20px' }
-                                          }}
-                                        />
-                                      )}
-                                      {cartItem.item.stock < 10 && cartItem.item.stock > 0 && (
-                                        <Typography variant="caption" sx={{ color: '#ed6c02', fontWeight: 700, fontSize: '10px', ml: 0.5 }}>
-                                          Only {cartItem.item.stock} left
-                                        </Typography>
-                                      )}
-                                    </Box>
-                                  </Box>
-                                </Box>
-                                <IconButton
-                                  color="error"
-                                  size="small"
-                                  onClick={() => handleOpenDeleteDialog(cartItem.id)}
-                                  sx={{ '&:hover': { background: 'rgba(211, 47, 47, 0.04)' } }}
+                      {cart.items.map((cartItem, index) => {
+                        const key = cartItem.id ?? `cart-item-${index}`;
+                        const imageUrl = cartItem.item?.imageUrl;
+                        return (
+                          <Box
+                            key={key}
+                            component={motion.div}
+                            variants={itemVariants}
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                            layout
+                            sx={{
+                              display: 'grid',
+                              gridTemplateColumns: {
+                                xs: '1fr',
+                                md: '120px minmax(0,1fr) 140px 150px 48px',
+                              },
+                              alignItems: { md: 'start' },
+                              gap: { xs: 2.5, md: 3 },
+                              px: { xs: 3, md: 4 },
+                              py: { xs: 3, md: 4 },
+                              borderBottom:
+                                index === cart.items.length - 1
+                                  ? 'none'
+                                  : `1px solid ${alpha(colors.brandInk, 0.06)}`,
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                width: { xs: '100%', md: 112 },
+                                aspectRatio: { xs: '5 / 3', md: '1' },
+                                borderRadius: 0,
+                                overflow: 'hidden',
+                                background: alpha(colors.brandInk, 0.04),
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}
+                            >
+                              {imageUrl ? (
+                                <Box
+                                  component="img"
+                                  src={imageUrl}
+                                  alt={`${cartItem.item.name} preview`}
+                                  sx={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover',
+                                  }}
+                                />
+                              ) : (
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    color: colors.muted,
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.08em',
+                                    fontWeight: 600,
+                                  }}
                                 >
-                                  <Delete fontSize="small" />
-                                </IconButton>
-                              </Box>
-
-                              <Divider sx={{ margin: { xs: '8px 0', md: '12px 0' } }} />
-
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: { xs: '6px', md: '8px' } }}>
-                                <Typography variant="body2" color="textSecondary" sx={{ fontSize: { xs: '0.75rem', md: '0.875rem' } }}>
-                                  Price:
+                                  No image
                                 </Typography>
-                                <PriceDisplay
-                                  amount={getItemPrice(cartItem)}
-                                  fontSize="0.9rem"
-                                  fontWeight={600}
-                                />
-                              </Box>
+                              )}
+                            </Box>
 
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: { xs: '6px', md: '8px' } }}>
-                                <Typography variant="body2" color="textSecondary" sx={{ fontSize: { xs: '0.75rem', md: '0.875rem' } }}>
-                                  Quantity:
-                                </Typography>
-                                <QuantitySelector
-                                  value={cartItem.quantity}
-                                  onIncrement={() => handleUpdateQuantity(cartItem.id, cartItem.quantity + 1)}
-                                  onDecrement={() => handleUpdateQuantity(cartItem.id, cartItem.quantity - 1)}
-                                  loading={updatingItems.has(cartItem.id)}
-                                  size="small"
-                                />
-                              </Box>
+                            <Stack spacing={1.5}>
+                              <Typography
+                                variant="h6"
+                                sx={{
+                                  fontWeight: 700,
+                                  color: colors.brandInk,
+                                  fontSize: { xs: '1.05rem', md: '1.15rem' },
+                                }}
+                              >
+                                {cartItem.item.name}
+                              </Typography>
+                              <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                                {cartItem.selectedWeight && (
+                                  <Chip
+                                    label={`${cartItem.selectedWeight} Kg`}
+                                    size="small"
+                                    sx={{
+                                      borderRadius: 0,
+                                      fontWeight: 600,
+                                    }}
+                                  />
+                                )}
+                                {cartItem.item.stock < 10 && cartItem.item.stock > 0 && (
+                                  <Chip
+                                    label={`Only ${cartItem.item.stock} left`}
+                                    size="small"
+                                    sx={{
+                                      borderRadius: 0,
+                                      backgroundColor: alpha(colors.warning, 0.12),
+                                      color: colors.warning,
+                                      fontWeight: 600,
+                                    }}
+                                  />
+                                )}
+                                {cartItem.eggType === 'EGGLESS' && (
+                                  <Chip
+                                    label="Eggless"
+                                    size="small"
+                                    sx={{
+                                      borderRadius: 0,
+                                      backgroundColor: alpha(colors.success, 0.12),
+                                      color: colors.success,
+                                      fontWeight: 600,
+                                      fontSize: { xs: '0.6rem', md: '10px' },
+                                      height: { xs: '18px', md: '20px' },
+                                      letterSpacing: '0.04em',
+                                      textTransform: 'uppercase',
+                                    }}
+                                  />
+                                )}
+                              </Stack>
+                            </Stack>
 
-                              <Divider sx={{ margin: { xs: '8px 0', md: '12px 0' } }} />
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: { xs: 'flex-start', md: 'flex-end' },
+                                gap: 0.5,
+                              }}
+                            >
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.12em',
+                                  color: colors.muted,
+                                  fontWeight: 600,
+                                }}
+                              >
+                                Unit price
+                              </Typography>
+                              <PriceDisplay
+                                amount={getItemPrice(cartItem)}
+                                fontSize={isMobile ? '1rem' : '1.05rem'}
+                                fontWeight={600}
+                              />
+                            </Box>
 
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <Typography variant="body1" sx={{ fontWeight: 700, fontSize: { xs: '0.8rem', md: '1rem' } }}>
-                                  Subtotal:
+                            <Stack
+                              direction={{ xs: 'row', md: 'column' }}
+                              spacing={1}
+                              alignItems={{ xs: 'center', md: 'flex-start' }}
+                              justifyContent={{ xs: 'space-between', md: 'flex-start' }}
+                            >
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.12em',
+                                  color: colors.muted,
+                                  fontWeight: 600,
+                                }}
+                              >
+                                Quantity
+                              </Typography>
+                              <QuantitySelector
+                                value={cartItem.quantity}
+                                onIncrement={() => handleUpdateQuantity(cartItem.id, cartItem.quantity + 1)}
+                                onDecrement={() => handleUpdateQuantity(cartItem.id, cartItem.quantity - 1)}
+                                loading={updatingItems.has(cartItem.id)}
+                                size="compact"
+                              />
+                            </Stack>
+
+                            <Stack
+                              direction="row"
+                              spacing={1.5}
+                              justifyContent={{ xs: 'space-between', md: 'flex-end' }}
+                              alignItems="center"
+                            >
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  alignItems: { xs: 'flex-start', md: 'flex-end' },
+                                  gap: 0.5,
+                                }}
+                              >
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.12em',
+                                    color: colors.muted,
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  Subtotal
                                 </Typography>
                                 <PriceDisplay
                                   amount={getItemPrice(cartItem) * cartItem.quantity}
-                                  fontSize="1rem"
-                                  fontWeight={800}
+                                  fontSize={isMobile ? '1.05rem' : '1.15rem'}
+                                  fontWeight={700}
                                   color="primary.main"
                                 />
                               </Box>
-                            </CardContent>
-                          </Card>
-                        </motion.div>
-                      ))}
+                              <IconButton
+                                color="error"
+                                onClick={() => handleOpenDeleteDialog(cartItem.id)}
+                                sx={{
+                                  borderRadius: 0,
+                                  '&:hover': {
+                                    backgroundColor: alpha(colors.danger, 0.08),
+                                  },
+                                }}
+                              >
+                                <Delete />
+                              </IconButton>
+                            </Stack>
+                          </Box>
+                        );
+                      })}
                     </AnimatePresence>
-                  </Box>
-                ) : (
-                  /* Desktop Table Layout */
-                  <TableContainer>
-                    <Table>
-                      <TableHead>
-                        <TableRow style={{ background: '#fef6ee' }}>
-                          <TableCell style={{ fontWeight: 600 }}>Item</TableCell>
-                          <TableCell style={{ fontWeight: 600 }}>Price</TableCell>
-                          <TableCell style={{ fontWeight: 600 }}>Quantity</TableCell>
-                          <TableCell style={{ fontWeight: 600 }}>Subtotal</TableCell>
-                          <TableCell align="right" style={{ fontWeight: 600 }}>Actions</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        <AnimatePresence>
-                          {cart.items.map((cartItem) => (
-                            <TableRow
-                              key={cartItem.id}
-                              component={motion.tr}
-                              initial={{ opacity: 0, x: -10 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              exit={{ opacity: 0, x: 20, backgroundColor: 'rgba(233, 30, 99, 0.05)' }}
-                              layout
-                              hover
-                            >
-                              <TableCell>
-                                <Box style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                  <Box>
-                                    <Typography sx={{ fontWeight: 600 }}>{cartItem.item.name}</Typography>
-                                    <Box style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
-                                      {cartItem.selectedWeight && (
-                                        <Chip
-                                          label={`${cartItem.selectedWeight} Kg`}
-                                          size="small"
-                                          style={{
-                                            background: '#fff3e0',
-                                            color: '#e65100',
-                                            fontWeight: 600,
-                                            fontSize: '11px'
-                                          }}
-                                        />
-                                      )}
-                                      {cartItem.eggType === 'EGGLESS' && (
-                                        <Chip
-                                          label='🌱 Eggless'
-                                          size="small"
-                                          style={{
-                                            background: '#e8f5e9',
-                                            color: '#2e7d32',
-                                            fontWeight: 600,
-                                            fontSize: '11px'
-                                          }}
-                                        />
-                                      )}
-                                      {cartItem.item.stock < 10 && cartItem.item.stock > 0 && (
-                                        <Typography variant="caption" sx={{ color: '#ed6c02', fontWeight: 700, fontSize: '11px', display: 'flex', alignItems: 'center' }}>
-                                          Only {cartItem.item.stock} left
-                                        </Typography>
-                                      )}
-                                    </Box>
-                                  </Box>
-                                </Box>
-                              </TableCell>
-                              <TableCell sx={{ fontWeight: 500 }}>
-                                <PriceDisplay amount={getItemPrice(cartItem)} fontSize="1rem" fontWeight={500} />
-                              </TableCell>
-                              <TableCell>
-                                <QuantitySelector
-                                  value={cartItem.quantity}
-                                  onIncrement={() => handleUpdateQuantity(cartItem.id, cartItem.quantity + 1)}
-                                  onDecrement={() => handleUpdateQuantity(cartItem.id, cartItem.quantity - 1)}
-                                  loading={updatingItems.has(cartItem.id)}
-                                />
-                              </TableCell>
-                              <TableCell>
-                                <PriceDisplay amount={getItemPrice(cartItem) * cartItem.quantity} fontSize="1.1rem" fontWeight={700} color="primary.main" />
-                              </TableCell>
-                              <TableCell align="right">
-                                <IconButton
-                                  color="error"
-                                  onClick={() => handleOpenDeleteDialog(cartItem.id)}
-                                  sx={{ '&:hover': { background: 'rgba(211, 47, 47, 0.04)' } }}
-                                >
-                                  <Delete />
-                                </IconButton>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </AnimatePresence>
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                )}
+                  </Paper>
+                </Grid>
 
-                <Box sx={{ marginTop: { xs: '20px', md: '30px' }, padding: { xs: '12px', md: '20px' }, background: '#fef6ee', borderRadius: '0' }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="h5" sx={{ fontWeight: 700, fontSize: { xs: '1rem', md: '1.5rem' } }}>
-                      Total:
-                    </Typography>
-                    <PriceDisplay
-                      amount={calculateTotal()}
-                      fontSize={isMobile ? "1.4rem" : "2.2rem"}
-                      fontWeight={800}
-                    />
-                  </Box>
-                  <Button
-                    fullWidth
-                    variant="contained"
-                    size="large"
-                    onClick={handleProceedToCheckout}
-                    sx={{
-                      marginTop: { xs: '12px', md: '20px' },
-                      background: '#e91e63',
-                      color: '#fff',
-                      padding: { xs: '10px', md: '14px' },
-                      fontSize: { xs: '0.875rem', md: '16px' },
-                      fontWeight: 700,
-                      textTransform: 'none',
-                      borderRadius: '50px',
-                      boxShadow: '0 8px 24px rgba(233, 30, 99, 0.25)',
-                      '&:hover': { background: '#d81b60', boxShadow: '0 12px 32px rgba(233, 30, 99, 0.35)' }
-                    }}
-                  >
-                    Proceed to Checkout
-                  </Button>
-                  <Button
-                    fullWidth
-                    variant="text"
-                    onClick={() => navigate('/shop')}
-                    sx={{
-                      marginTop: '10px',
-                      color: '#666',
-                      fontWeight: 600,
-                      textTransform: 'none',
-                      '&:hover': { background: 'transparent', textDecoration: 'underline', color: '#e91e63' }
-                    }}
-                  >
-                    Continue Shopping
-                  </Button>
-                </Box>
-              </>
+                <Grid item xs={12} md={4}>
+                  <Stack spacing={3}>
+                    <Paper
+                      sx={{
+                        borderRadius: 0,
+                        border: `1px solid ${alpha(colors.brandInk, 0.08)}`,
+                        backgroundColor: colors.paper,
+                        boxShadow: shadows.subtle,
+                        p: { xs: 3, md: 4 },
+                      }}
+                    >
+                      <Stack spacing={3}>
+                        <Box>
+                          <Typography variant="h5" sx={{ fontWeight: 700, color: colors.brandInk }}>
+                            Order summary
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: colors.stone }}>
+                            Express delivery slots open daily at 7 AM.
+                          </Typography>
+                        </Box>
+
+                        <Stack spacing={1.5}>
+                          <Stack direction="row" justifyContent="space-between">
+                            <Typography variant="body2" sx={{ color: colors.stone }}>
+                              Subtotal
+                            </Typography>
+                            <PriceDisplay amount={calculateTotal()} fontSize="1rem" fontWeight={600} />
+                          </Stack>
+                          <Stack direction="row" justifyContent="space-between">
+                            <Typography variant="body2" sx={{ color: colors.stone }}>
+                              Delivery
+                            </Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                              Complimentary
+                            </Typography>
+                          </Stack>
+                          <Stack direction="row" justifyContent="space-between">
+                            <Typography variant="body2" sx={{ color: colors.stone }}>
+                              Savings
+                            </Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 600, color: colors.brandPink }}>
+                              Apply code
+                            </Typography>
+                          </Stack>
+                        </Stack>
+
+                        <Divider />
+
+                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                            Total
+                          </Typography>
+                          <PriceDisplay amount={calculateTotal()} fontSize="1.8rem" fontWeight={800} />
+                        </Stack>
+
+                        <Stack spacing={1.5}>
+                          <TextField
+                            label="Promo code"
+                            value={promoCode}
+                            placeholder="SWEET10"
+                            onChange={(event) => setPromoCode(event.target.value.toUpperCase())}
+                            InputLabelProps={{ shrink: true }}
+                            sx={{
+                              '& .MuiOutlinedInput-root': {
+                                borderRadius: 0,
+                                backgroundColor: alpha(colors.brandInk, 0.02),
+                                '& fieldset': {
+                                  borderColor: alpha(colors.brandInk, 0.12),
+                                },
+                                '&:hover fieldset': {
+                                  borderColor: colors.brandPink,
+                                },
+                                '&.Mui-focused fieldset': {
+                                  borderColor: colors.brandPink,
+                                },
+                              },
+                            }}
+                          />
+                          <Button
+                            variant="outlined"
+                            startIcon={<Discount />}
+                            onClick={handleApplyPromo}
+                            sx={{
+                              borderRadius: 0,
+                              borderColor: colors.brandPink,
+                              color: colors.brandPink,
+                              fontWeight: 600,
+                              textTransform: 'none',
+                              '&:hover': {
+                                borderColor: colors.brandBurgundy,
+                                color: colors.brandBurgundy,
+                              },
+                            }}
+                          >
+                            Apply code
+                          </Button>
+                        </Stack>
+
+                        <Button
+                          variant="contained"
+                          size="large"
+                          onClick={handleProceedToCheckout}
+                          sx={{
+                            borderRadius: 0,
+                            fontWeight: 700,
+                            textTransform: 'none',
+                            py: 1.6,
+                            background: gradients.primary,
+                            boxShadow: shadows.resting,
+                            '&:hover': {
+                              boxShadow: shadows.hover,
+                              background: gradients.primary,
+                            },
+                          }}
+                        >
+                          Proceed to checkout
+                        </Button>
+                        <Button
+                          variant="text"
+                          onClick={() => navigate('/shop')}
+                          sx={{
+                            borderRadius: 0,
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            color: colors.stone,
+                            '&:hover': {
+                              color: colors.brandPink,
+                              backgroundColor: 'transparent',
+                              textDecoration: 'underline',
+                            },
+                          }}
+                        >
+                          Continue shopping
+                        </Button>
+                      </Stack>
+                    </Paper>
+
+                    <Paper
+                      sx={{
+                        borderRadius: 0,
+                        border: `1px solid ${alpha(colors.brandInk, 0.08)}`,
+                        backgroundColor: alpha(colors.paper, 0.95),
+                        boxShadow: shadows.subtle,
+                        p: { xs: 3, md: 4 },
+                      }}
+                    >
+                      <Stack spacing={2}>
+                        {assurancePoints.map((point) => {
+                          const AssuranceIcon = point.icon;
+                          return (
+                            <Stack key={point.title} direction="row" spacing={2} alignItems="flex-start">
+                              <Box
+                                sx={{
+                                  width: 36,
+                                  height: 36,
+                                  borderRadius: 0,
+                                  display: 'grid',
+                                  placeItems: 'center',
+                                  backgroundColor: alpha(colors.brandPink, 0.08),
+                                  color: colors.brandPink,
+                                }}
+                              >
+                                <AssuranceIcon fontSize="small" />
+                              </Box>
+                              <Box>
+                                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                                  {point.title}
+                                </Typography>
+                                <Typography variant="body2" sx={{ color: colors.stone }}>
+                                  {point.description}
+                                </Typography>
+                              </Box>
+                            </Stack>
+                          );
+                        })}
+                      </Stack>
+                    </Paper>
+                  </Stack>
+                </Grid>
+              </Grid>
             )}
-          </Paper>
+          </Stack>
         </Container>
       </Box>
 
-      {/* Delete Confirmation Dialog */}
       <Dialog
         open={deleteDialogOpen}
         onClose={handleCloseDeleteDialog}
         PaperProps={{
           sx: {
-            borderRadius: '0',
-            padding: { xs: '4px', md: '8px' },
-          }
+            borderRadius: 0,
+            border: `1px solid ${alpha(colors.brandInk, 0.08)}`,
+            px: { xs: 2, md: 3 },
+            py: { xs: 1.5, md: 2 },
+          },
         }}
       >
-        <DialogTitle sx={{ fontWeight: 600, fontSize: { xs: '1rem', md: '20px' }, padding: { xs: '12px', md: '16px' } }}>
-          Remove Item from Cart?
+        <DialogTitle sx={{ fontWeight: 700, fontSize: { xs: '1rem', md: '1.15rem' } }}>
+          Remove item from cart?
         </DialogTitle>
         <DialogContent>
-          <DialogContentText sx={{ fontSize: { xs: '0.875rem', md: '16px' }, color: '#666' }}>
-            Are you sure you want to remove this item from your cart?
+          <DialogContentText sx={{ color: colors.stone }}>
+            Are you sure you want to remove this item? You can always add it back from the shop later.
           </DialogContentText>
         </DialogContent>
-        <DialogActions sx={{ padding: { xs: '12px 16px', md: '16px 24px' } }}>
+        <DialogActions sx={{ gap: 1.5 }}>
           <Button
             onClick={handleCloseDeleteDialog}
-            sx={{ textTransform: 'none', color: '#666', fontSize: { xs: '0.8rem', md: '0.875rem' } }}
+            sx={{
+              borderRadius: 0,
+              textTransform: 'none',
+              fontWeight: 600,
+              color: colors.stone,
+            }}
           >
-            Cancel
+            Keep it
           </Button>
           <Button
             onClick={handleRemoveItem}
             variant="contained"
             sx={{
-              background: '#e91e63',
-              color: '#fff',
+              borderRadius: 0,
+              background: gradients.primary,
               textTransform: 'none',
-              borderRadius: '0',
-              fontWeight: 600,
-              fontSize: { xs: '0.8rem', md: '0.875rem' }
+              fontWeight: 700,
+              '&:hover': {
+                background: gradients.primary,
+              },
             }}
           >
-            Remove
+            Remove item
           </Button>
         </DialogActions>
       </Dialog>

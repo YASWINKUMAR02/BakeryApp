@@ -22,6 +22,7 @@ import {
   VisibilityOff,
   Email,
   Lock,
+  ArrowBack,
 } from '@mui/icons-material';
 import { customerAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -185,6 +186,20 @@ const Login = () => {
                 marginBottom: '16px',
               }}
             />
+            <Button
+              startIcon={<ArrowBack />}
+              onClick={() => navigate('/')}
+              style={{
+                textTransform: 'none',
+                fontWeight: 500,
+                color: '#666',
+                borderColor: '#ddd',
+                marginBottom: '16px',
+              }}
+              variant="outlined"
+            >
+              Go back to Home
+            </Button>
           </Box>
 
           <Typography 

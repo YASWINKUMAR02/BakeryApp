@@ -8,6 +8,33 @@ import { motion, AnimatePresence } from 'framer-motion';
  * A High-End, Professional Quantity Selector.
  * Design Philosophy: Modern Minimalism, Glassmorphism, and Fluid Motion.
  */
+const SIZE_PRESETS = {
+    medium: {
+        minWidth: '135px',
+        height: '46px',
+        button: 38,
+        fontSize: '1.15rem',
+        loader: 18,
+        iconFontSize: '1.3rem',
+    },
+    small: {
+        minWidth: '105px',
+        height: '38px',
+        button: 32,
+        fontSize: '1rem',
+        loader: 16,
+        iconFontSize: '1.15rem',
+    },
+    compact: {
+        minWidth: '92px',
+        height: '34px',
+        button: 28,
+        fontSize: '0.95rem',
+        loader: 14,
+        iconFontSize: '1.05rem',
+    },
+};
+
 const QuantitySelector = ({
     value,
     onIncrement,
@@ -17,7 +44,7 @@ const QuantitySelector = ({
     max = 100,
     size = 'medium'
 }) => {
-    const isSmall = size === 'small';
+    const preset = SIZE_PRESETS[size] || SIZE_PRESETS.medium;
     const brandColor = '#e91e63';
 
     return (
@@ -31,8 +58,8 @@ const QuantitySelector = ({
                 padding: '3px',
                 border: '1px solid rgba(0, 0, 0, 0.08)',
                 boxShadow: '0 4px 15px rgba(0, 0, 0, 0.04)',
-                minWidth: isSmall ? '105px' : '135px',
-                height: isSmall ? '38px' : '46px',
+                minWidth: preset.minWidth,
+                height: preset.height,
                 justifyContent: 'space-between',
                 transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
                 '&:hover': {
@@ -51,8 +78,8 @@ const QuantitySelector = ({
                 disabled={loading || value <= min}
                 sx={{
                     borderRadius: '8px',
-                    width: isSmall ? '32px' : '38px',
-                    height: isSmall ? '32px' : '38px',
+                    width: preset.button,
+                    height: preset.button,
                     color: value <= min ? alpha('#000', 0.2) : '#1a1a1a',
                     transition: 'all 0.2s ease',
                     '&:hover': {
@@ -65,7 +92,7 @@ const QuantitySelector = ({
                     }
                 }}
             >
-                <Remove sx={{ fontSize: isSmall ? '1.1rem' : '1.3rem' }} />
+                <Remove sx={{ fontSize: preset.iconFontSize }} />
             </IconButton>
 
             {/* Value Display */}
@@ -88,7 +115,7 @@ const QuantitySelector = ({
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.8 }}
                         >
-                            <CircularProgress size={18} thickness={6} sx={{ color: brandColor }} />
+                            <CircularProgress size={preset.loader} thickness={6} sx={{ color: brandColor }} />
                         </motion.div>
                     ) : (
                         <motion.div
@@ -105,7 +132,7 @@ const QuantitySelector = ({
                             <Typography
                                 sx={{
                                     fontWeight: 600, // Refined weight
-                                    fontSize: isSmall ? '1rem' : '1.15rem',
+                                    fontSize: preset.fontSize,
                                     color: '#121212',
                                     letterSpacing: '-0.01em'
                                 }}
@@ -126,8 +153,8 @@ const QuantitySelector = ({
                 disabled={loading || (max && value >= max)}
                 sx={{
                     borderRadius: '8px',
-                    width: isSmall ? '32px' : '38px',
-                    height: isSmall ? '32px' : '38px',
+                    width: preset.button,
+                    height: preset.button,
                     color: (max && value >= max) ? alpha('#000', 0.2) : '#1a1a1a',
                     transition: 'all 0.2s ease',
                     '&:hover': {
@@ -140,7 +167,7 @@ const QuantitySelector = ({
                     }
                 }}
             >
-                <Add sx={{ fontSize: isSmall ? '1.1rem' : '1.3rem' }} />
+                <Add sx={{ fontSize: preset.iconFontSize }} />
             </IconButton>
 
             {/* Background Micro-Glow Effect */}

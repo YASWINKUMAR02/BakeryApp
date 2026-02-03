@@ -12,6 +12,11 @@ import {
   Alert,
   Divider,
   Chip,
+  Stack,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import {
   ShoppingCart,
@@ -57,10 +62,102 @@ const Checkout = () => {
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [locationCoordinates, setLocationCoordinates] = useState(null);
   const [addressMethod, setAddressMethod] = useState(null); // 'location' or 'manual'
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [selectedSavedAddressId, setSelectedSavedAddressId] = useState(null);
+  const [usingSavedAddress, setUsingSavedAddress] = useState(false);
+  const [prefillApplied, setPrefillApplied] = useState(false);
+  const [manualAddressMode, setManualAddressMode] = useState('new'); // 'saved' | 'new'
+
+  const storageKey = user?.id ? `profile_meta_${user.id}` : null;
 
   useEffect(() => {
     fetchCart();
   }, []);
+
+  useEffect(() => {
+    if (!storageKey) {
+      setSavedAddresses([]);
+      return;
+    }
+
+    try {
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setSavedAddresses(parsed.addresses || []);
+      } else {
+        setSavedAddresses([]);
+      }
+    } catch (error) {
+      console.error('Failed to load saved addresses from profile storage', error);
+      setSavedAddresses([]);
+    }
+  }, [storageKey]);
+
+  useEffect(() => {
+    if (prefillApplied) return;
+    if (!savedAddresses.length) return;
+
+    const defaultAddress = savedAddresses.find((item) => item.isDefault) || savedAddresses[0];
+    if (!defaultAddress) return;
+
+    applySavedAddress(defaultAddress);
+    setPrefillApplied(true);
+  }, [savedAddresses, prefillApplied]);
+
+  const applySavedAddress = (address) => {
+    if (!address) return;
+    setFormData((prev) => ({
+      ...prev,
+      customerName: address.contactName || prev.customerName || user?.name || '',
+      deliveryPhone: address.phone || prev.deliveryPhone || user?.phone || '',
+      doorNo: address.line1 || '',
+      street: address.line2 || '',
+      area: address.city ? `${address.city}${address.state ? `, ${address.state}` : ''}` : address.area || '',
+      city: 'Coimbatore',
+      pincode: address.postalCode || '',
+      deliveryNotes: address.instructions || prev.deliveryNotes,
+    }));
+    setAddressMethod('manual');
+    setManualAddressMode('saved');
+    setLocationCoordinates(null);
+    setUsingSavedAddress(true);
+    setSelectedSavedAddressId(address.id || null);
+  };
+
+  const handleSelectSavedAddress = (address) => {
+    applySavedAddress(address);
+    showSuccess('Saved address applied to checkout');
+  };
+
+  const resetManualAddressFields = () => {
+    setFormData((prev) => ({
+      ...prev,
+      doorNo: '',
+      street: '',
+      area: '',
+      pincode: '',
+    }));
+  };
+
+  const beginManualWithSaved = () => {
+    if (!savedAddresses.length) {
+      beginManualNew();
+      return;
+    }
+    setAddressMethod('manual');
+    setManualAddressMode('saved');
+    const defaultAddress = savedAddresses.find((item) => item.isDefault) || savedAddresses[0];
+    applySavedAddress(defaultAddress);
+  };
+
+  const beginManualNew = () => {
+    setAddressMethod('manual');
+    setManualAddressMode('new');
+    setUsingSavedAddress(false);
+    setSelectedSavedAddressId(null);
+    resetManualAddressFields();
+  };
 
   const fetchCart = async () => {
     try {
@@ -148,6 +245,10 @@ const Checkout = () => {
       ...prev,
       [name]: value
     }));
+    if (usingSavedAddress && ['doorNo', 'street', 'area', 'pincode'].includes(name)) {
+      setUsingSavedAddress(false);
+      setSelectedSavedAddressId(null);
+    }
     // Clear error for this field
     if (formErrors[name]) {
       setFormErrors(prev => ({
@@ -337,6 +438,30 @@ const Checkout = () => {
                     </Typography>
 
                     <Grid container spacing={2}>
+                      {savedAddresses.length > 0 && (
+                        <Grid item xs={12} sm={6} md={4}>
+                          <Button
+                            fullWidth
+                            variant="outlined"
+                            startIcon={<Home />}
+                            onClick={beginManualWithSaved}
+                            style={{
+                              borderColor: '#e91e63',
+                              color: '#e91e63',
+                              padding: '20px',
+                              textTransform: 'none',
+                              fontWeight: 600,
+                              fontSize: '16px',
+                              borderRadius: '0',
+                            }}
+                          >
+                            Use Saved Address
+                          </Button>
+                          <Typography variant="caption" color="textSecondary" style={{ display: 'block', textAlign: 'center', marginTop: '8px' }}>
+                            Choose from your profile
+                          </Typography>
+                        </Grid>
+                      )}
                       <Grid item xs={12} sm={6}>
                         <Button
                           fullWidth
@@ -360,12 +485,12 @@ const Checkout = () => {
                         </Typography>
                       </Grid>
 
-                      <Grid item xs={12} sm={6}>
+                      <Grid item xs={12} sm={savedAddresses.length > 0 ? 6 : 6} md={savedAddresses.length > 0 ? 4 : 6}>
                         <Button
                           fullWidth
                           variant="outlined"
                           startIcon={<Edit />}
-                          onClick={() => setAddressMethod('manual')}
+                          onClick={beginManualNew}
                           style={{
                             borderColor: '#e91e63',
                             color: '#e91e63',
@@ -418,6 +543,123 @@ const Checkout = () => {
                         Use Location Instead
                       </Button>
                     </Box>
+
+                    {savedAddresses.length > 0 && (
+                      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} style={{ marginBottom: '20px' }}>
+                        <Button
+                          variant={manualAddressMode === 'saved' ? 'contained' : 'outlined'}
+                          onClick={() => {
+                            if (!savedAddresses.length) return;
+                            setManualAddressMode('saved');
+                            if (!usingSavedAddress) {
+                              const defaultAddress = savedAddresses.find((item) => item.isDefault) || savedAddresses[0];
+                              applySavedAddress(defaultAddress);
+                            }
+                          }}
+                          disabled={!savedAddresses.length}
+                          style={{
+                            borderRadius: '0',
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            padding: '10px 18px',
+                          }}
+                        >
+                          Use saved address
+                        </Button>
+                        <Button
+                          variant={manualAddressMode === 'new' ? 'contained' : 'outlined'}
+                          onClick={() => {
+                            setManualAddressMode('new');
+                            setUsingSavedAddress(false);
+                            setSelectedSavedAddressId(null);
+                            resetManualAddressFields();
+                          }}
+                          style={{
+                            borderRadius: '0',
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            padding: '10px 18px',
+                          }}
+                        >
+                          Enter new address
+                        </Button>
+                      </Stack>
+                    )}
+
+                    {savedAddresses.length > 0 && manualAddressMode === 'saved' && (
+                      <Stack spacing={2.5} style={{ marginBottom: '24px' }}>
+                        <Typography variant="subtitle1" style={{ fontWeight: 600 }}>
+                          Saved addresses
+                        </Typography>
+                        {savedAddresses.map((address) => {
+                          const isActive = selectedSavedAddressId === address.id && usingSavedAddress;
+                          return (
+                            <Paper
+                              key={address.id}
+                              style={{
+                                borderRadius: '0',
+                                border: `1px solid ${isActive ? '#e91e63' : 'rgba(0,0,0,0.12)'}`,
+                                background: isActive ? 'rgba(233, 30, 99, 0.05)' : '#fafafa',
+                                padding: '16px 20px',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'flex-start',
+                                gap: '16px',
+                              }}
+                            >
+                              <Box>
+                                <Stack direction="row" spacing={1} alignItems="center" style={{ marginBottom: '8px' }}>
+                                  <Home style={{ fontSize: 20, color: '#e91e63' }} />
+                                  <Typography variant="subtitle1" style={{ fontWeight: 600 }}>
+                                    {address.label || 'Saved address'}
+                                  </Typography>
+                                  {address.isDefault && (
+                                    <Chip label="Default" size="small" style={{ background: '#e8f5e9', color: '#2e7d32', fontWeight: 600 }} />
+                                  )}
+                                </Stack>
+                                <Typography variant="body2" color="textSecondary">
+                                  {[address.line1, address.line2, address.city, address.state, address.postalCode]
+                                    .filter(Boolean)
+                                    .join(', ')}
+                                </Typography>
+                                {(address.contactName || address.phone) && (
+                                  <Typography variant="body2" color="textSecondary" style={{ marginTop: '6px' }}>
+                                    {address.contactName}
+                                    {address.contactName && address.phone ? ' • ' : ''}
+                                    {address.phone}
+                                  </Typography>
+                                )}
+                                {address.instructions && (
+                                  <Typography variant="caption" color="textSecondary" style={{ display: 'block', marginTop: '6px' }}>
+                                    Note: {address.instructions}
+                                  </Typography>
+                                )}
+                              </Box>
+                              <Stack spacing={1} alignItems="flex-end">
+                                {isActive && (
+                                  <Chip label="In use" size="small" style={{ background: '#e91e63', color: '#fff', fontWeight: 600 }} />
+                                )}
+                                <Button
+                                  variant={isActive ? 'outlined' : 'contained'}
+                                  size="small"
+                                  onClick={() => handleSelectSavedAddress(address)}
+                                  style={{
+                                    borderRadius: '0',
+                                    textTransform: 'none',
+                                    fontWeight: 600,
+                                    background: isActive ? '#fff' : '#e91e63',
+                                    color: isActive ? '#e91e63' : '#fff',
+                                    borderColor: '#e91e63',
+                                  }}
+                                >
+                                  {isActive ? 'Selected' : 'Use this'}
+                                </Button>
+                              </Stack>
+                            </Paper>
+                          );
+                        })}
+                      </Stack>
+                    )}
                   </Box>
                 )}
 
@@ -456,7 +698,7 @@ const Checkout = () => {
                         />
                       </Grid>
 
-                      {addressMethod === 'manual' && (
+                      {addressMethod === 'manual' && manualAddressMode === 'new' && (
                         <>
                           <Grid item xs={12} sm={6}>
                             <TextField
@@ -663,7 +905,7 @@ const Checkout = () => {
                     fontWeight: 700,
                     textTransform: 'none',
                     marginBottom: '10px',
-                    borderRadius: '50px', // More suitabe rounded look
+                    borderRadius: 0,
                     boxShadow: '0 8px 25px rgba(233, 30, 99, 0.25)',
                   }}
                 >

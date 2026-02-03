@@ -19,6 +19,7 @@ import {
   Lock,
   Person,
   Phone,
+  ArrowBack,
 } from '@mui/icons-material';
 import { customerAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -146,6 +147,20 @@ const Register = () => {
                 marginBottom: '8px',
               }}
             />
+            <Button
+              startIcon={<ArrowBack />}
+              onClick={() => navigate('/')}
+              style={{
+                textTransform: 'none',
+                fontWeight: 500,
+                color: '#666',
+                borderColor: '#ddd',
+                marginBottom: '8px',
+              }}
+              variant="outlined"
+            >
+              Go back to Home
+            </Button>
           </Box>
 
           <Typography 

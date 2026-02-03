@@ -55,11 +55,91 @@ const ItemDetail = () => {
   const [openReviewDialog, setOpenReviewDialog] = useState(false);
   const [reviewData, setReviewData] = useState({ rating: 5, comment: '' });
 
+  // Sample items data for fallback
+  const sampleItems = {
+    1: {
+      id: 1,
+      name: 'Classic Red Velvet Cake',
+      description: 'Moist red velvet layers with cream cheese frosting',
+      price: 450,
+      imageUrl: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&q=80',
+      category: 'Cakes',
+      isBestSeller: true,
+      isNew: false,
+      rating: 4.8,
+      stock: 10,
+      isSample: true,
+    },
+    2: {
+      id: 2,
+      name: 'Chocolate Croissant',
+      description: 'Buttery, flaky croissant with rich chocolate filling',
+      price: 120,
+      imageUrl: 'https://images.unsplash.com/photo-1559707953-8b1cba1b6b71?w=400&q=80',
+      category: 'Pastries',
+      isBestSeller: true,
+      isNew: false,
+      rating: 4.7,
+      stock: 15,
+      isSample: true,
+    },
+    3: {
+      id: 3,
+      name: 'Strawberry Cheesecake',
+      description: 'Creamy cheesecake with fresh strawberry topping',
+      price: 380,
+      imageUrl: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400&q=80',
+      category: 'Desserts',
+      isBestSeller: true,
+      isNew: false,
+      rating: 4.9,
+      stock: 8,
+      isSample: true,
+    },
+    4: {
+      id: 4,
+      name: 'French Macarons',
+      description: 'Assorted flavors of delicate French macarons',
+      price: 280,
+      imageUrl: 'https://images.unsplash.com/photo-1569864358642-9d1684040f43?w=400&q=80',
+      category: 'Pastries',
+      isBestSeller: true,
+      isNew: true,
+      rating: 4.6,
+      stock: 20,
+      isSample: true,
+    },
+    5: {
+      id: 5,
+      name: 'Tiramisu',
+      description: 'Classic Italian dessert with coffee-soaked ladyfingers',
+      price: 320,
+      imageUrl: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=400&q=80',
+      category: 'Desserts',
+      isBestSeller: true,
+      isNew: true,
+      rating: 4.8,
+      stock: 12,
+      isSample: true,
+    },
+  };
+
   useEffect(() => {
     fetchItemDetails();
   }, [id]);
 
   const fetchItemDetails = async () => {
+    // Check if this is a sample item (IDs 1-5)
+    if (sampleItems[id]) {
+      const sampleItem = sampleItems[id];
+      setItem(sampleItem);
+      setReviews([]); // No reviews for sample items
+      setSimilarProducts([]); // No similar products for sample items
+      setLoading(false);
+      return;
+    }
+
+    // For real items, fetch from API
     try {
       const [itemResponse, reviewResponse] = await Promise.all([
         itemAPI.getById(id),
@@ -76,7 +156,8 @@ const ItemDetail = () => {
       }
       if (reviewResponse.data.success) setReviews(reviewResponse.data.data);
     } catch (err) {
-      showError('Something went wrong');
+      console.error('Error fetching item details:', err);
+      showError('Failed to load product details');
     } finally {
       setLoading(false);
     }

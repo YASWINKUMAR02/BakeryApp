@@ -33,11 +33,12 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Only redirect on 401/403 if it's not a login/register request
+    // Only redirect on 401/403 if it's not a login/register request AND user has a token (was logged in)
     const isAuthRequest = error.config?.url?.includes('/login') || error.config?.url?.includes('/register');
+    const hasToken = localStorage.getItem('token');
     
-    if ((error.response?.status === 401 || error.response?.status === 403) && !isAuthRequest) {
-      // Token expired or unauthorized
+    if ((error.response?.status === 401 || error.response?.status === 403) && !isAuthRequest && hasToken) {
+      // Token expired or unauthorized - clear auth and redirect to login
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';

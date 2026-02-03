@@ -23,9 +23,12 @@ import {
   Help,
   Info,
   Phone,
+  LocalShipping,
+  AccessTime,
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import Notifications from './Notifications';
+import designTokens from '../theme/designTokens';
 
 const CustomerHeader = () => {
   const navigate = useNavigate();
@@ -34,6 +37,7 @@ const CustomerHeader = () => {
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
   const [userMenuAnchorEl, setUserMenuAnchorEl] = useState(null);
   const [extraMenuAnchorEl, setExtraMenuAnchorEl] = useState(null);
+  const { colors } = designTokens;
 
   const handleHomeClick = () => {
     if (location.pathname === '/') {
@@ -99,13 +103,20 @@ const CustomerHeader = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const navLinks = [
+    { label: 'Home', path: '/' },
+    { label: 'Shop', path: '/shop' },
+    { label: 'Gallery', path: '/gallery' },
+    { label: 'Contact', path: '/contact' },
+  ];
+
   const navButtonStyle = {
-    color: '#1a1a1a',
+    color: colors.brandInk,
     textTransform: 'none',
     fontSize: '0.95rem',
     fontWeight: 500,
     padding: '8px 16px',
-    borderRadius: '50px',
+    borderRadius: '0px',
     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
     '&:hover': {
       background: 'rgba(233, 30, 99, 0.05)',
@@ -119,20 +130,61 @@ const CustomerHeader = () => {
       position="fixed"
       elevation={0}
       sx={{
-        background: isScrolled ? 'rgba(255, 255, 255, 0.85)' : 'transparent',
-        backdropFilter: 'blur(12px)',
-        borderBottom: isScrolled ? '1px solid rgba(0, 0, 0, 0.05)' : 'none',
-        boxShadow: isScrolled ? '0 4px 20px rgba(0, 0, 0, 0.03)' : 'none',
+        backgroundColor: colors.paper,
+        borderBottom: isScrolled ? '2px solid rgba(0, 0, 0, 0.12)' : '2px solid rgba(0, 0, 0, 0.08)',
+        borderRadius: 0,
+        boxShadow: isScrolled ? '0 20px 40px rgba(0, 0, 0, 0.04)' : 'none',
         transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-        height: isScrolled ? { xs: '64px', md: '72px' } : { xs: '72px', md: '88px' },
         display: 'flex',
         justifyContent: 'center',
+        paddingX: 0,
       }}
     >
+      <Box
+        sx={{
+          width: '100%',
+          borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          gap: { xs: 1, md: 0 },
+          alignItems: { xs: 'flex-start', md: 'center' },
+          justifyContent: 'space-between',
+          px: { xs: 2, md: 4 },
+          py: 0.5,
+          fontSize: '0.78rem',
+          color: colors.stone,
+        }}
+      >
+        <Typography variant="caption" sx={{ fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: colors.brandInk }}>
+          Frost &amp; Crinkle • Artisan Bakery
+        </Typography>
+        <Box
+          sx={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            gap: { xs: 1.5, md: 3 },
+            color: colors.stone,
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <AccessTime sx={{ fontSize: '1rem', color: colors.brandPink }} />
+            <Typography variant="caption">Fresh batches daily from 6am</Typography>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <LocalShipping sx={{ fontSize: '1rem', color: colors.brandPink }} />
+            <Typography variant="caption">Same-day delivery across city</Typography>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Phone sx={{ fontSize: '1rem', color: colors.brandPink }} />
+            <Typography variant="caption">+91 98765 43210</Typography>
+          </Box>
+        </Box>
+      </Box>
       <Toolbar
         style={{
-          padding: '8px 12px',
-          minHeight: '60px',
+          padding: '6px 12px',
+          minHeight: '54px',
           maxWidth: '1400px',
           width: '100%',
           margin: '0 auto',
@@ -142,11 +194,11 @@ const CustomerHeader = () => {
           justifyContent: 'space-between',
           overflow: 'visible',
           '@media (min-width: 600px)': {
-            padding: '8px 20px',
+            padding: '6px 20px',
           },
           '@media (min-width: 960px)': {
-            padding: '6px 20px',
-            minHeight: '50px',
+            padding: '4px 20px',
+            minHeight: '52px',
           },
         }}
       >
@@ -192,7 +244,7 @@ const CustomerHeader = () => {
               width: 'auto',
               maxWidth: window.innerWidth >= 960 ? '180px' : (window.innerWidth >= 600 ? '165px' : '140px'),
               objectFit: 'contain',
-              borderRadius: '6px',
+              borderRadius: '0px',
             }}
           />
         </Box>
@@ -217,7 +269,7 @@ const CustomerHeader = () => {
               fontWeight: 600,
               px: 2.5,
               py: 1,
-              borderRadius: '50px',
+              borderRadius: '0px',
               '&:hover': {
                 background: 'rgba(233, 30, 99, 0.15)',
                 transform: 'translateY(-1px)',
@@ -290,7 +342,7 @@ const CustomerHeader = () => {
                 fontSize: { xs: '13px', sm: '14px' },
                 fontWeight: 600,
                 padding: { xs: '4px 10px', sm: '6px 16px' },
-                borderRadius: '6px',
+                borderRadius: '0px',
                 ml: 1,
                 '&:hover': {
                   background: 'rgba(233, 30, 99, 0.08)',
