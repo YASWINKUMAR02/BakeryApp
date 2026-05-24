@@ -38,14 +38,18 @@ import { useAuth } from '../../context/AuthContext';
 import CustomerHeader from '../../components/CustomerHeader';
 import ProductCard from '../../components/ProductCard';
 import { showSuccess, showError } from '../../utils/toast';
+import LoginPromptDialog from '../../components/LoginPromptDialog';
 import QuantitySelector from '../../components/QuantitySelector';
 import { formatCurrency } from '../../utils/currencyUtils';
 import PriceDisplay from '../../components/PriceDisplay';
+import ImageGallery from '../../components/ImageGallery';
+import { useGuestCart } from '../../context/GuestCartContext';
 
 const ItemDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { addToGuestCart } = useGuestCart();
   const [item, setItem] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [similarProducts, setSimilarProducts] = useState([]);
@@ -53,7 +57,11 @@ const ItemDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [isEggless, setIsEggless] = useState(false);
   const [openReviewDialog, setOpenReviewDialog] = useState(false);
+  const [openLoginDialog, setOpenLoginDialog] = useState(false);
   const [reviewData, setReviewData] = useState({ rating: 5, comment: '' });
+
+  // Get current URL for return after login
+  const currentUrl = window.location.pathname + window.location.search;
 
   // Sample items data for fallback
   const sampleItems = {
@@ -240,7 +248,18 @@ const ItemDetail = () => {
   };
 
   const handleAddToCart = async () => {
-    if (!user) { navigate('/login'); return; }
+    // Guest: add to localStorage cart and go to cart
+    if (!user) {
+      const opts = {
+        eggType: isEggless ? 'EGGLESS' : null,
+        selectedWeight: isWeightBased() ? quantity : null,
+        priceAtAddition: getCurrentPrice(),
+      };
+      addToGuestCart(item, isWeightBased() ? 1 : quantity, opts);
+      showSuccess(`${item.name} added to cart!`);
+      navigate('/cart');
+      return;
+    }
     try {
       const cartItemData = {
         itemId: item.id,
@@ -270,7 +289,13 @@ const ItemDetail = () => {
   };
 
   // Review handlers
-  const handleOpenReviewDialog = () => { if (!user) navigate('/login'); else setOpenReviewDialog(true); };
+  const handleOpenReviewDialog = () => {
+    if (!user) {
+      setOpenLoginDialog(true);
+    } else {
+      setOpenReviewDialog(true);
+    }
+  };
   const handleCloseReviewDialog = () => { setOpenReviewDialog(false); setReviewData({ rating: 5, comment: '' }); };
   const handleSubmitReview = async () => {
     if (!user) return navigate('/login');
@@ -290,7 +315,7 @@ const ItemDetail = () => {
 
   return (
     <>
-      <Box sx={{ minHeight: '100vh', pt: { xs: '80px', md: '100px' }, pb: 6, background: '#fff' }}>
+      <Box sx={{ minHeight: '100vh', pt: { xs: '80px', md: '100px' }, pb: { xs: '64px', md: 0 }, background: '#fff' }}>
         <Container maxWidth="lg">
           {/* Contextual Nav */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
@@ -300,44 +325,9 @@ const ItemDetail = () => {
           </Box>
 
           <Grid container spacing={4}>
-            {/* Left Column: Product Image */}
+            {/* Left Column: Product Image Gallery */}
             <Grid item xs={12} md={5}>
-              <Box sx={{ position: 'relative', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0,0,0,0.08)' }}>
-                {/* Overlay Actions */}
-                <Box sx={{ position: 'absolute', top: 12, left: 12, zIndex: 10 }}>
-                  <IconButton size="small" sx={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', '&:hover': { background: '#f5f5f5' } }}>
-                    <FavoriteBorder fontSize="small" />
-                  </IconButton>
-                </Box>
-                <Box sx={{ position: 'absolute', top: 12, right: 12, zIndex: 10 }}>
-                  <IconButton size="small" sx={{ background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', '&:hover': { background: '#f5f5f5' } }}>
-                    <Share fontSize="small" />
-                  </IconButton>
-                </Box>
-
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={item.imageUrl}
-                    initial={{ opacity: 0, scale: 1.05 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 1.05 }}
-                    transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                    style={{ height: '100%', width: '100%' }}
-                  >
-                    <Box
-                      component="img"
-                      src={item.imageUrl}
-                      alt={item.name}
-                      sx={{
-                        width: '100%',
-                        height: { xs: '250px', md: '380px' },
-                        objectFit: 'cover',
-                        display: 'block'
-                      }}
-                    />
-                  </motion.div>
-                </AnimatePresence>
-              </Box>
+              <ImageGallery item={item} />
             </Grid>
 
             {/* Right Column: Details */}
@@ -600,7 +590,7 @@ const ItemDetail = () => {
       </Box >
 
       {/* Review Dialog */}
-      < Dialog open={openReviewDialog} onClose={handleCloseReviewDialog} maxWidth="sm" fullWidth >
+      <Dialog open={openReviewDialog} onClose={handleCloseReviewDialog} maxWidth="sm" fullWidth >
         <DialogTitle>Write a Review</DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2 }}>
@@ -618,6 +608,15 @@ const ItemDetail = () => {
           <Button onClick={handleSubmitReview} variant="contained" sx={{ bgcolor: '#e91e63' }}>Submit</Button>
         </DialogActions>
       </Dialog >
+
+      {/* Login Prompt Dialog */}
+      <LoginPromptDialog
+        open={openLoginDialog}
+        onClose={() => setOpenLoginDialog(false)}
+        action="add to cart"
+        itemName={item?.name}
+        returnUrl={currentUrl}
+      />
     </>
   );
 };

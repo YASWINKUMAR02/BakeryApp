@@ -36,6 +36,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import designTokens from '../../theme/designTokens';
 import { cartAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { useGuestCart } from '../../context/GuestCartContext';
 import Footer from '../../components/Footer';
 import { showSuccess, showError } from '../../utils/toast';
 import QuantitySelector from '../../components/QuantitySelector';
@@ -103,10 +104,13 @@ const itemVariants = {
 
 const Cart = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const { guestCart, updateGuestCartItem, removeFromGuestCart } = useGuestCart();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const userId = user?.id;
+  // Only treat as guest once AuthContext has finished loading from localStorage
+  const isGuest = !authLoading && !user;
 
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -114,9 +118,13 @@ const Cart = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
   const [promoCode, setPromoCode] = useState('');
+  const [guestBannerDismissed, setGuestBannerDismissed] = useState(false);
 
   const fetchCart = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
     try {
       const response = await cartAPI.get(userId);
       if (response.data.success) {
@@ -133,9 +141,20 @@ const Cart = () => {
     fetchCart();
   }, [fetchCart]);
 
+  // For guests, build a cart-shaped object from guestCart context.
+  // For logged-in users, use the API cart (or empty fallback while it loads).
+  // NEVER let effectiveCart be null — protects against null.items crashes.
+  const effectiveCart = isGuest
+    ? { items: guestCart }
+    : (cart || { items: [] });
+
   const handleUpdateQuantity = async (cartItemId, newQuantity) => {
     if (newQuantity < 1) return;
-
+    if (isGuest) {
+      updateGuestCartItem(cartItemId, newQuantity);
+      showSuccess('Quantity updated!');
+      return;
+    }
     setUpdatingItems(prev => new Set(prev).add(cartItemId));
     try {
       await cartAPI.updateItem(cartItemId, newQuantity);
@@ -164,7 +183,12 @@ const Cart = () => {
 
   const handleRemoveItem = async () => {
     if (!itemToDelete) return;
-
+    if (isGuest) {
+      removeFromGuestCart(itemToDelete);
+      showSuccess('Item removed from cart');
+      handleCloseDeleteDialog();
+      return;
+    }
     try {
       const response = await cartAPI.removeItem(itemToDelete);
       if (response.data.success) {
@@ -186,7 +210,7 @@ const Cart = () => {
   };
 
   const handleProceedToCheckout = () => {
-    if (!cart?.items || cart.items.length === 0) {
+    if (!effectiveCart?.items || effectiveCart.items.length === 0) {
       showError('Your cart is empty');
       return;
     }
@@ -205,7 +229,6 @@ const Cart = () => {
     if (cartItem.priceAtAddition && cartItem.priceAtAddition > 0) {
       return cartItem.priceAtAddition;
     }
-
     if (cartItem.eggType === 'EGGLESS') {
       return cartItem.item.price + 30;
     }
@@ -213,15 +236,14 @@ const Cart = () => {
   };
 
   const calculateTotal = () => {
-    if (!cart?.items) return 0;
-    return cart.items.reduce((total, cartItem) => total + getItemPrice(cartItem) * cartItem.quantity, 0);
+    return (effectiveCart?.items || []).reduce((total, cartItem) => total + getItemPrice(cartItem) * cartItem.quantity, 0);
   };
 
-  const itemCount = cart?.items?.reduce((sum, cartItem) => sum + cartItem.quantity, 0) ?? 0;
+  const itemCount = (effectiveCart?.items || []).reduce((sum, cartItem) => sum + cartItem.quantity, 0);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: colors.cloud }}>
-      <Box sx={{ flex: 1, pt: { xs: 12, md: 14 }, pb: { xs: 10, md: 12 } }}>
+      <Box sx={{ flex: 1, pt: { xs: 12, md: 14 }, pb: { xs: 16, md: 12 } }}>
         <Container maxWidth="lg">
           <Stack spacing={4}>
             <Stack
@@ -340,7 +362,46 @@ const Cart = () => {
               </Stack>
             </Paper>
 
-            {loading ? (
+            {/* Guest Banner */}
+            {isGuest && !guestBannerDismissed && (
+              <Paper
+                sx={{
+                  borderRadius: 0,
+                  border: `1px solid ${alpha(colors.brandPink, 0.3)}`,
+                  backgroundColor: alpha(colors.brandPink, 0.04),
+                  px: { xs: 2.5, md: 4 },
+                  py: 1.5,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 2,
+                  flexWrap: 'wrap',
+                }}
+              >
+                <Typography variant="body2" sx={{ color: colors.brandInk }}>
+                  🛒 <strong>Your cart is saved locally.</strong> Sign in to keep it across devices and track your orders.
+                </Typography>
+                <Stack direction="row" spacing={1}>
+                  <Button
+                    size="small"
+                    variant="contained"
+                    onClick={() => navigate('/login')}
+                    sx={{ borderRadius: 0, textTransform: 'none', fontWeight: 700, background: gradients.primary }}
+                  >
+                    Sign in
+                  </Button>
+                  <Button
+                    size="small"
+                    onClick={() => setGuestBannerDismissed(true)}
+                    sx={{ borderRadius: 0, textTransform: 'none', color: colors.stone }}
+                  >
+                    Dismiss
+                  </Button>
+                </Stack>
+              </Paper>
+            )}
+
+            {(loading || authLoading) ? (
               <Paper
                 sx={{
                   borderRadius: 0,
@@ -358,7 +419,7 @@ const Cart = () => {
                   </Typography>
                 </Stack>
               </Paper>
-            ) : !cart?.items || cart.items.length === 0 ? (
+            ) : !effectiveCart?.items || effectiveCart.items.length === 0 ? (
               <Paper
                 sx={{
                   borderRadius: 0,
@@ -410,7 +471,7 @@ const Cart = () => {
                     }}
                   >
                     <AnimatePresence>
-                      {cart.items.map((cartItem, index) => {
+                      {(effectiveCart?.items || []).map((cartItem, index) => {
                         const key = cartItem.id ?? `cart-item-${index}`;
                         const imageUrl = cartItem.item?.imageUrl;
                         return (
@@ -423,31 +484,33 @@ const Cart = () => {
                             exit="exit"
                             layout
                             sx={{
-                              display: 'grid',
-                              gridTemplateColumns: {
-                                xs: '1fr',
-                                md: '120px minmax(0,1fr) 140px 150px 48px',
-                              },
-                              alignItems: { md: 'start' },
-                              gap: { xs: 2.5, md: 3 },
-                              px: { xs: 3, md: 4 },
-                              py: { xs: 3, md: 4 },
+                              width: '100%',
+                              minWidth: 0,
+                              overflowX: 'hidden',
+                              display: { xs: 'flex', md: 'grid' },
+                              flexDirection: { xs: 'row', md: 'initial' },
+                              gridTemplateColumns: { md: '120px minmax(0,1fr) 140px 150px 48px' },
+                              alignItems: { xs: 'flex-start', md: 'start' },
+                              gap: { xs: 1.5, md: 3 },
+                              px: { xs: 2, md: 4 },
+                              py: { xs: 2.5, md: 4 },
                               borderBottom:
-                                index === cart.items.length - 1
+                                index === (effectiveCart?.items?.length ?? 0) - 1
                                   ? 'none'
                                   : `1px solid ${alpha(colors.brandInk, 0.06)}`,
                             }}
                           >
                             <Box
                               sx={{
-                                width: { xs: '100%', md: 112 },
-                                aspectRatio: { xs: '5 / 3', md: '1' },
+                                width: { xs: 80, md: 112 },
+                                height: { xs: 80, md: 112 },
                                 borderRadius: 0,
                                 overflow: 'hidden',
                                 background: alpha(colors.brandInk, 0.04),
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
+                                flexShrink: 0,
                               }}
                             >
                               {imageUrl ? (
@@ -476,17 +539,36 @@ const Cart = () => {
                               )}
                             </Box>
 
-                            <Stack spacing={1.5}>
-                              <Typography
-                                variant="h6"
-                                sx={{
-                                  fontWeight: 700,
-                                  color: colors.brandInk,
-                                  fontSize: { xs: '1.05rem', md: '1.15rem' },
-                                }}
+                            <Stack spacing={1} sx={{ minWidth: 0, overflow: 'hidden', flex: 1 }}>
+                              <Stack
+                                direction={{ xs: 'column', sm: 'row' }}
+                                justifyContent="space-between"
+                                alignItems={{ xs: 'flex-start', sm: 'flex-start' }}
+                                spacing={1}
+                                sx={{ flexWrap: 'wrap', gap: 0.5, minWidth: 0 }}
                               >
-                                {cartItem.item.name}
-                              </Typography>
+                                <Typography
+                                  variant="h6"
+                                  sx={{
+                                    fontWeight: 700,
+                                    color: colors.brandInk,
+                                    fontSize: { xs: '0.9rem', md: '1.15rem' },
+                                    flex: 1,
+                                    minWidth: 0,
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                  }}
+                                >
+                                  {cartItem.item.name}
+                                </Typography>
+                                <PriceDisplay
+                                  amount={getItemPrice(cartItem)}
+                                  fontSize={isMobile ? '0.95rem' : '1.05rem'}
+                                  fontWeight={600}
+                                />
+                              </Stack>
+
                               <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
                                 {cartItem.selectedWeight && (
                                   <Chip
@@ -519,112 +601,49 @@ const Cart = () => {
                                       backgroundColor: alpha(colors.success, 0.12),
                                       color: colors.success,
                                       fontWeight: 600,
-                                      fontSize: { xs: '0.6rem', md: '10px' },
-                                      height: { xs: '18px', md: '20px' },
+                                      fontSize: '0.6rem',
+                                      height: '18px',
                                       letterSpacing: '0.04em',
                                       textTransform: 'uppercase',
                                     }}
                                   />
                                 )}
                               </Stack>
-                            </Stack>
 
-                            <Box
-                              sx={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: { xs: 'flex-start', md: 'flex-end' },
-                                gap: 0.5,
-                              }}
-                            >
-                              <Typography
-                                variant="caption"
-                                sx={{
-                                  textTransform: 'uppercase',
-                                  letterSpacing: '0.12em',
-                                  color: colors.muted,
-                                  fontWeight: 600,
-                                }}
-                              >
-                                Unit price
-                              </Typography>
-                              <PriceDisplay
-                                amount={getItemPrice(cartItem)}
-                                fontSize={isMobile ? '1rem' : '1.05rem'}
-                                fontWeight={600}
-                              />
-                            </Box>
-
-                            <Stack
-                              direction={{ xs: 'row', md: 'column' }}
-                              spacing={1}
-                              alignItems={{ xs: 'center', md: 'flex-start' }}
-                              justifyContent={{ xs: 'space-between', md: 'flex-start' }}
-                            >
-                              <Typography
-                                variant="caption"
-                                sx={{
-                                  textTransform: 'uppercase',
-                                  letterSpacing: '0.12em',
-                                  color: colors.muted,
-                                  fontWeight: 600,
-                                }}
-                              >
-                                Quantity
-                              </Typography>
-                              <QuantitySelector
-                                value={cartItem.quantity}
-                                onIncrement={() => handleUpdateQuantity(cartItem.id, cartItem.quantity + 1)}
-                                onDecrement={() => handleUpdateQuantity(cartItem.id, cartItem.quantity - 1)}
-                                loading={updatingItems.has(cartItem.id)}
-                                size="compact"
-                              />
-                            </Stack>
-
-                            <Stack
-                              direction="row"
-                              spacing={1.5}
-                              justifyContent={{ xs: 'space-between', md: 'flex-end' }}
-                              alignItems="center"
-                            >
-                              <Box
-                                sx={{
-                                  display: 'flex',
-                                  flexDirection: 'column',
-                                  alignItems: { xs: 'flex-start', md: 'flex-end' },
-                                  gap: 0.5,
-                                }}
-                              >
-                                <Typography
-                                  variant="caption"
-                                  sx={{
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.12em',
-                                    color: colors.muted,
-                                    fontWeight: 600,
-                                  }}
-                                >
-                                  Subtotal
+                              <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 0.5 }}>
+                                <QuantitySelector
+                                  value={cartItem.quantity}
+                                  onIncrement={() => handleUpdateQuantity(cartItem.id, cartItem.quantity + 1)}
+                                  onDecrement={() => handleUpdateQuantity(cartItem.id, cartItem.quantity - 1)}
+                                  loading={updatingItems.has(cartItem.id)}
+                                  size="compact"
+                                />
+                                <Typography variant="body2" sx={{ color: colors.muted, fontSize: '0.75rem' }}>
+                                  × {getItemPrice(cartItem).toLocaleString('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 })}
                                 </Typography>
+                              </Stack>
+
+                              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 1 }}>
                                 <PriceDisplay
                                   amount={getItemPrice(cartItem) * cartItem.quantity}
-                                  fontSize={isMobile ? '1.05rem' : '1.15rem'}
+                                  fontSize={isMobile ? '1.1rem' : '1.15rem'}
                                   fontWeight={700}
                                   color="primary.main"
                                 />
-                              </Box>
-                              <IconButton
-                                color="error"
-                                onClick={() => handleOpenDeleteDialog(cartItem.id)}
-                                sx={{
-                                  borderRadius: 0,
-                                  '&:hover': {
-                                    backgroundColor: alpha(colors.danger, 0.08),
-                                  },
-                                }}
-                              >
-                                <Delete />
-                              </IconButton>
+                                <IconButton
+                                  color="error"
+                                  onClick={() => handleOpenDeleteDialog(cartItem.id)}
+                                  sx={{
+                                    borderRadius: 0,
+                                    p: 0.5,
+                                    '&:hover': {
+                                      backgroundColor: alpha(colors.danger, 0.08),
+                                    },
+                                  }}
+                                >
+                                  <Delete fontSize="small" />
+                                </IconButton>
+                              </Stack>
                             </Stack>
                           </Box>
                         );

@@ -30,6 +30,7 @@ import {
 } from '@mui/icons-material';
 import { cartAPI, orderAPI, paymentAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { useGuestCart } from '../../context/GuestCartContext';
 import CustomerHeader from '../../components/CustomerHeader';
 import Footer from '../../components/Footer';
 import { showSuccess, showError } from '../../utils/toast';
@@ -43,9 +44,13 @@ import PriceDisplay from '../../components/PriceDisplay';
 const Checkout = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { guestCart, clearGuestCart } = useGuestCart();
+  const isGuest = !user;
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [guestEmail, setGuestEmail] = useState('');
+  const [guestEmailError, setGuestEmailError] = useState('');
 
   const [formData, setFormData] = useState({
     customerName: user?.name || '',
@@ -160,6 +165,14 @@ const Checkout = () => {
   };
 
   const fetchCart = async () => {
+    // Guest: use localStorage cart directly
+    if (isGuest) {
+      if (!guestCart || guestCart.length === 0) {
+        navigate('/cart');
+      }
+      setLoading(false);
+      return;
+    }
     try {
       const response = await cartAPI.get(user.id);
       if (response.data.success) {
@@ -175,66 +188,61 @@ const Checkout = () => {
     }
   };
 
+  // Effective cart items (API for users, localStorage for guests)
+  const effectiveItems = isGuest ? guestCart : (cart?.items || []);
+
   const calculateTotal = () => {
-    if (!cart?.items) return 0;
-    return cart.items.reduce((total, item) => {
-      // Use stored price if available (for cakes with weight pricing)
+    return effectiveItems.reduce((total, item) => {
       let itemPrice = item.priceAtAddition && item.priceAtAddition > 0
         ? item.priceAtAddition
         : item.item.price;
-
-      // Add ₹30 for eggless items (only if not using priceAtAddition)
       if (item.eggType === 'EGGLESS' && (!item.priceAtAddition || item.priceAtAddition === 0)) {
         itemPrice += 30;
       }
-
       return total + (itemPrice * item.quantity);
     }, 0);
   };
 
   const validateForm = () => {
     const errors = {};
-
-    // Validate name
     errors.customerName = validateName(formData.customerName);
-
-    // Check if using location method
     const isLocationBased = addressMethod === 'location';
-
     if (!isLocationBased) {
-      // Only validate address fields for manual entry
       errors.doorNo = validateRequired(formData.doorNo, 'Door number');
       errors.street = validateRequired(formData.street, 'Street');
       errors.area = validateRequired(formData.area, 'Area');
       errors.city = validateRequired(formData.city, 'City');
       errors.pincode = validatePincode(formData.pincode);
     } else {
-      // For location-based, verify coordinates are captured
       if (!locationCoordinates || !locationCoordinates.lat || !locationCoordinates.lng) {
         errors.location = 'Please verify your location first';
         showError('Please verify your location before placing order');
       }
     }
-
-    // Validate phone
     errors.deliveryPhone = validatePhone(formData.deliveryPhone);
 
-    // Check if cart has any weight-based items (occasional/premium/party cakes) - if yes, delivery notes are mandatory
-    const hasWeightBasedItems = cart?.items?.some(item => {
+    // Guest email validation
+    if (isGuest) {
+      if (!guestEmail.trim()) {
+        setGuestEmailError('Email is required for guest checkout');
+        errors.guestEmail = 'required';
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) {
+        setGuestEmailError('Please enter a valid email address');
+        errors.guestEmail = 'invalid';
+      } else {
+        setGuestEmailError('');
+      }
+    }
+
+    const hasWeightBasedItems = effectiveItems.some(item => {
       const catName = item.item?.category?.name?.toLowerCase() || '';
       return catName.includes('occasional') || catName.includes('premium') || catName.includes('party');
     });
-
     if (hasWeightBasedItems && (!formData.deliveryNotes || formData.deliveryNotes.trim() === '')) {
       errors.deliveryNotes = 'Please specify what to write on the cake';
     }
-
-    // Filter out empty errors
     const filteredErrors = {};
-    Object.keys(errors).forEach(key => {
-      if (errors[key]) filteredErrors[key] = errors[key];
-    });
-
+    Object.keys(errors).forEach(key => { if (errors[key]) filteredErrors[key] = errors[key]; });
     setFormErrors(filteredErrors);
     return Object.keys(filteredErrors).length === 0;
   };
@@ -282,6 +290,20 @@ const Checkout = () => {
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
 
+    // Guest users must log in before paying
+    if (isGuest) {
+      showError('Please log in or create an account to complete your order.');
+      setTimeout(() => {
+        navigate('/login', {
+          state: {
+            from: '/checkout',
+            message: 'Please log in to place your order. Your cart has been saved!',
+          },
+        });
+      }, 1200);
+      return;
+    }
+
     if (!validateForm()) {
       showError('Please fill in all required fields correctly');
       return;
@@ -299,7 +321,7 @@ const Checkout = () => {
       const totalAmount = calculateTotal();
 
       // Create Razorpay order
-      const paymentResponse = await paymentAPI.createOrder(totalAmount, user.id);
+      const paymentResponse = await paymentAPI.createOrder(totalAmount, isGuest ? 0 : user.id);
 
       if (!paymentResponse.data.success) {
         throw new Error('Failed to create payment order');
@@ -312,15 +334,13 @@ const Checkout = () => {
         amount: totalAmount,
         orderId: razorpayOrderId,
         customerName: formData.customerName,
-        customerEmail: user.email || 'customer@bakery.com',
+        customerEmail: isGuest ? guestEmail : (user.email || 'customer@bakery.com'),
         customerPhone: formData.deliveryPhone,
         onSuccess: async (paymentData) => {
-          // CRITICAL: This callback ONLY fires when Razorpay confirms payment success
           console.log('✅ Payment confirmed by Razorpay, proceeding to place order...');
           await completeOrder(paymentData);
         },
         onFailure: (error) => {
-          // This fires when payment fails or user cancels
           console.log('❌ Payment failed or cancelled:', error);
           showError(error || 'Payment failed or cancelled. Please try again.');
           setSubmitting(false);
@@ -337,10 +357,8 @@ const Checkout = () => {
     try {
       console.log('Payment successful, placing order with verification...');
 
-      // Combine address fields into a single deliveryAddress string
       const deliveryAddress = `${formData.doorNo}, ${formData.street}, ${formData.area}, ${formData.city} - ${formData.pincode}`;
 
-      // Backend will verify payment before creating order
       const orderData = {
         customerName: formData.customerName,
         deliveryAddress: deliveryAddress,
@@ -351,43 +369,46 @@ const Checkout = () => {
         paymentId: paymentData.razorpayPaymentId,
         paymentOrderId: paymentData.razorpayOrderId,
         paymentSignature: paymentData.razorpaySignature,
+        ...(isGuest && { guestEmail }),
       };
 
-      console.log('Placing order with payment data:', orderData);
-
-      const response = await orderAPI.placeOrder(user.id, orderData);
+      // For guests use customerId=0; backend may handle this as a guest order
+      const customerId = isGuest ? 0 : user.id;
+      const response = await orderAPI.placeOrder(customerId, orderData);
 
       if (response.data.success) {
         const orderId = response.data.data?.id || Math.floor(Math.random() * 10000);
-
         console.log('Order placed successfully with ID:', orderId);
 
-        // Notify customer about order placement
-        notifyCustomerOrderPlaced(user.id, orderId);
+        if (isGuest) {
+          clearGuestCart();
+          showSuccess('Order placed! Create an account to track your orders.');
+          setTimeout(() => navigate('/register'), 2500);
+        } else {
+          // Notify customer about order placement
+          try {
+            const { notifyCustomerOrderPlaced, notifyAdminNewOrder } = await import('../../utils/notificationUtils');
+            notifyCustomerOrderPlaced(user.id, orderId);
+            notifyAdminNewOrder(1, orderId, user.name);
+          } catch (e) { /* notifications are non-critical */ }
 
-        // Notify admin about new order (use admin ID 1 for now)
-        notifyAdminNewOrder(1, orderId, user.name);
+          localStorage.setItem('newOrderNotification', JSON.stringify({
+            orderId,
+            customerName: user.name,
+            timestamp: Date.now(),
+          }));
 
-        // Trigger a custom event for real-time notification across tabs
-        localStorage.setItem('newOrderNotification', JSON.stringify({
-          orderId: orderId,
-          customerName: user.name,
-          timestamp: Date.now()
-        }));
-
-        showSuccess('Payment verified! Order placed successfully.');
-        setTimeout(() => navigate('/orders'), 2000);
+          showSuccess('Payment verified! Order placed successfully.');
+          setTimeout(() => navigate('/orders'), 2000);
+        }
       } else {
         showError('Failed to place order. Please contact support.');
       }
     } catch (err) {
       console.error('Error in completeOrder:', err);
-
-      // Check if it's a payment verification error
       const errorMessage = err.response?.data?.message || '';
-
       if (errorMessage.includes('Payment verification failed') || errorMessage.includes('Invalid signature')) {
-        showError('Payment verification failed. Your payment was processed but order could not be created. Please contact support with payment ID: ' + paymentData.razorpayPaymentId);
+        showError('Payment verification failed. Contact support with payment ID: ' + paymentData.razorpayPaymentId);
       } else if (errorMessage.includes('Insufficient stock')) {
         showError('Some items are out of stock. Your payment will be refunded. ' + errorMessage);
       } else {
@@ -397,6 +418,7 @@ const Checkout = () => {
       setSubmitting(false);
     }
   };
+
 
   if (loading) {
     return (
@@ -666,6 +688,26 @@ const Checkout = () => {
                 {addressMethod && (
                   <form onSubmit={handlePlaceOrder}>
                     <Grid container spacing={3}>
+
+                      {/* Guest Email Field */}
+                      {isGuest && (
+                        <Grid item xs={12}>
+                          <TextField
+                            fullWidth
+                            label="Email Address"
+                            type="email"
+                            value={guestEmail}
+                            onChange={(e) => { setGuestEmail(e.target.value); setGuestEmailError(''); }}
+                            error={!!guestEmailError}
+                            helperText={guestEmailError || 'We\'ll send your order confirmation here'}
+                            required
+                            InputProps={{
+                              startAdornment: <span style={{ color: '#ff69b4', marginRight: '8px', fontSize: '18px' }}>✉</span>,
+                            }}
+                          />
+                        </Grid>
+                      )}
+
                       <Grid item xs={12}>
                         <TextField
                           fullWidth
@@ -831,7 +873,7 @@ const Checkout = () => {
 
                 <Divider style={{ marginBottom: '20px' }} />
 
-                {cart?.items?.map((cartItem) => {
+                {effectiveItems.map((cartItem) => {
                   // Use stored price if available (for cakes with weight pricing)
                   const itemPrice = cartItem.priceAtAddition && cartItem.priceAtAddition > 0
                     ? cartItem.priceAtAddition

@@ -27,6 +27,7 @@ import {
   AccessTime,
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
+import { useGuestCart } from '../context/GuestCartContext';
 import Notifications from './Notifications';
 import designTokens from '../theme/designTokens';
 
@@ -34,10 +35,14 @@ const CustomerHeader = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+  const { totalItems: guestCartCount } = useGuestCart();
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
   const [userMenuAnchorEl, setUserMenuAnchorEl] = useState(null);
   const [extraMenuAnchorEl, setExtraMenuAnchorEl] = useState(null);
   const { colors } = designTokens;
+
+  // Cart badge count: logged-in users have server-side cart; guests use local cart
+  const cartBadgeCount = user ? 0 : guestCartCount;
 
   const handleHomeClick = () => {
     if (location.pathname === '/') {
@@ -144,7 +149,7 @@ const CustomerHeader = () => {
         sx={{
           width: '100%',
           borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
-          display: 'flex',
+          display: { xs: 'none', md: 'flex' },
           flexDirection: { xs: 'column', md: 'row' },
           gap: { xs: 1, md: 0 },
           alignItems: { xs: 'flex-start', md: 'center' },
@@ -229,9 +234,11 @@ const CustomerHeader = () => {
             alignItems: 'center',
             cursor: 'pointer',
             transition: 'opacity 0.2s ease',
-            flexGrow: { xs: 1, md: 0 },
-            justifyContent: { xs: 'center', md: 'flex-start' },
-            marginRight: { xs: '40px', md: '4px' },
+            // Mobile Absolute Centering
+            position: { xs: 'absolute', md: 'static' },
+            left: { xs: '50%', md: 'auto' },
+            transform: { xs: 'translateX(-50%)', md: 'none' },
+            zIndex: { xs: 1, md: 'auto' },
           }}
           onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'}
           onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
@@ -295,7 +302,7 @@ const CustomerHeader = () => {
           <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 0 }}>
           </Box>
 
-          {/* Cart - Always Visible */}
+          {/* Cart - Visible for all users (guests use local cart, logged-in use server cart) */}
           <IconButton
             onClick={() => handleLinkClick('/cart')}
             sx={{
@@ -304,8 +311,19 @@ const CustomerHeader = () => {
               '&:hover': { color: '#e91e63', backgroundColor: 'rgba(233, 30, 99, 0.08)' },
             }}
           >
-            <Badge badgeContent={user ? 0 : 0} color="error" variant="dot">
-              {/* Badge count should ideally come from Context, kept 0/dot for now */}
+            <Badge
+              badgeContent={cartBadgeCount}
+              color="error"
+              sx={{
+                '& .MuiBadge-badge': {
+                  fontWeight: 700,
+                  fontSize: '0.65rem',
+                  minWidth: 18,
+                  height: 18,
+                  borderRadius: '9px',
+                },
+              }}
+            >
               <ShoppingCart sx={{ fontSize: '24px' }} />
             </Badge>
           </IconButton>

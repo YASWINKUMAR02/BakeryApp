@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ThemeProvider, createTheme, alpha } from '@mui/material/styles';
 import { Box, CircularProgress } from '@mui/material';
@@ -11,45 +11,55 @@ import PageTransition from './components/PageTransition';
 import OfflineNotice from './components/OfflineNotice';
 import BackToTop from './components/BackToTop';
 import BottomNav from './components/BottomNav';
+import MobileBottomNav from './components/MobileBottomNav';
 import CustomerHeader from './components/CustomerHeader';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import ResetPassword from './pages/ResetPassword';
-import Home from './pages/customer/Home';
-import Shop from './pages/customer/Shop';
-import ItemDetail from './pages/customer/ItemDetail';
-import Cart from './pages/customer/Cart';
-import Checkout from './pages/customer/Checkout';
-import CustomerOrders from './pages/customer/Orders';
-import Profile from './pages/customer/Profile';
-import AboutUs from './pages/customer/AboutUs';
-import Contact from './pages/customer/Contact';
-import AdminLogin from './pages/AdminLogin';
-import AdminRegister from './pages/AdminRegister';
-import AdminDashboard from './pages/AdminDashboard';
-import Categories from './pages/admin/Categories';
-import Items from './pages/admin/Items';
-import Orders from './pages/admin/Orders';
-import AdminOrderHistory from './pages/admin/OrderHistory';
-import Customers from './pages/admin/Customers';
-import Analytics from './pages/admin/Analytics';
-import AnalyticsDashboard from './pages/admin/AnalyticsDashboard';
-import AdminHome from './pages/admin/AdminHome';
-import CarouselManagement from './pages/admin/CarouselManagement';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import ScrollToTop from './components/ScrollToTop';
-// New pages
-import About from './pages/About';
-import ContactPage from './pages/Contact';
-import Terms from './pages/Terms';
-import Privacy from './pages/Privacy';
-import NotFound from './pages/NotFound';
-import SimpleHome from './pages/SimpleHome';
-import FAQ from './pages/FAQ';
-import Gallery from './pages/Gallery';
 import PageLoader from './components/PageLoader';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { GuestCartProvider } from './context/GuestCartContext';
+import ScrollToTop from './components/ScrollToTop';
 import useSwipeGesture from './hooks/useSwipeGesture';
 import designTokens from './theme/designTokens';
+
+// --- Lazily loaded page components (code-split per route) ---
+// Customer pages
+const Home = lazy(() => import('./pages/customer/Home'));
+const Shop = lazy(() => import('./pages/customer/Shop'));
+const ItemDetail = lazy(() => import('./pages/customer/ItemDetail'));
+const Cart = lazy(() => import('./pages/customer/Cart'));
+const Checkout = lazy(() => import('./pages/customer/Checkout'));
+const CustomerOrders = lazy(() => import('./pages/customer/Orders'));
+const Profile = lazy(() => import('./pages/customer/Profile'));
+const AboutUs = lazy(() => import('./pages/customer/AboutUs'));
+const Contact = lazy(() => import('./pages/customer/Contact'));
+
+// Auth pages
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+
+// Admin pages
+const AdminLogin = lazy(() => import('./pages/AdminLogin'));
+const AdminRegister = lazy(() => import('./pages/AdminRegister'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const Categories = lazy(() => import('./pages/admin/Categories'));
+const Items = lazy(() => import('./pages/admin/Items'));
+const Orders = lazy(() => import('./pages/admin/Orders'));
+const AdminOrderHistory = lazy(() => import('./pages/admin/OrderHistory'));
+const Customers = lazy(() => import('./pages/admin/Customers'));
+const Analytics = lazy(() => import('./pages/admin/Analytics'));
+const AnalyticsDashboard = lazy(() => import('./pages/admin/AnalyticsDashboard'));
+const AdminHome = lazy(() => import('./pages/admin/AdminHome'));
+const CarouselManagement = lazy(() => import('./pages/admin/CarouselManagement'));
+
+// Info / static pages
+const About = lazy(() => import('./pages/About'));
+const ContactPage = lazy(() => import('./pages/Contact'));
+const Terms = lazy(() => import('./pages/Terms'));
+const Privacy = lazy(() => import('./pages/Privacy'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+const SimpleHome = lazy(() => import('./pages/SimpleHome'));
+const FAQ = lazy(() => import('./pages/FAQ'));
+const Gallery = lazy(() => import('./pages/Gallery'));
 
 const { colors, gradients, shadows, transitions } = designTokens;
 
@@ -287,6 +297,26 @@ const AuthRedirect = ({ children }) => {
   return children;
 };
 
+const HomeRoute = () => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <Box style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  // Redirect admins away from the landing page to their dashboard
+  if (user && user.role === 'ADMIN') {
+    return <Navigate to="/admin/dashboard" />;
+  }
+
+  // Guests and customers both see the Home page
+  return <PageTransition variant="home"><Home /></PageTransition>;
+};
+
 const AnimatedRoutes = () => {
   const location = useLocation();
 
@@ -294,182 +324,168 @@ const AnimatedRoutes = () => {
   console.log('🔀 Route changed to:', location.pathname);
 
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<PageTransition variant="home"><Home /></PageTransition>} />
-        <Route path="/home" element={<PageTransition variant="home"><Home /></PageTransition>} />
+    <Suspense fallback={<PageLoader />}>
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<HomeRoute />} />
+          <Route path="/home" element={<HomeRoute />} />
 
-        {/* Customer Routes */}
-        <Route
-          path="/login"
-          element={
-            <PageTransition>
+          {/* Customer Routes */}
+          <Route
+            path="/login"
+            element={
+              <PageTransition>
+                <AuthRedirect>
+                  <Login />
+                </AuthRedirect>
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/register"
+            element={
               <AuthRedirect>
-                <Login />
+                <Register />
               </AuthRedirect>
-            </PageTransition>
-          }
-        />
-        <Route
-          path="/register"
-          element={
-            <AuthRedirect>
-              <Register />
-            </AuthRedirect>
-          }
-        />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/about-us" element={<AboutUs />} />
-        <Route path="/contact-us" element={<Contact />} />
-        <Route path="/about" element={<PageTransition><About /></PageTransition>} />
-        <Route path="/contact" element={<PageTransition><ContactPage /></PageTransition>} />
-        <Route path="/faq" element={<PageTransition><FAQ /></PageTransition>} />
-        <Route path="/terms" element={<PageTransition><Terms /></PageTransition>} />
-        <Route path="/privacy" element={<PageTransition><Privacy /></PageTransition>} />
-        <Route path="/gallery" element={<PageTransition><Gallery /></PageTransition>} />
-        <Route path="/shop" element={<PageTransition variant="shop"><Shop /></PageTransition>} />
-        <Route path="/item/:id" element={<PageTransition variant="detail"><ItemDetail /></PageTransition>} />
-        <Route path="/cart" element={
-          <ProtectedRoute>
-            <PageTransition>
-              <Cart />
-            </PageTransition>
-          </ProtectedRoute>
-        }
-        />
-        <Route
-          path="/checkout"
-          element={
-            <ProtectedRoute>
-              <PageTransition>
-                <Checkout />
-              </PageTransition>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/orders"
-          element={
-            <ProtectedRoute>
-              <PageTransition>
-                <CustomerOrders />
-              </PageTransition>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <PageTransition>
-                <Profile />
-              </PageTransition>
-            </ProtectedRoute>
-          }
-        />
+            }
+          />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/about-us" element={<AboutUs />} />
+          <Route path="/contact-us" element={<Contact />} />
+          <Route path="/about" element={<PageTransition><About /></PageTransition>} />
+          <Route path="/contact" element={<PageTransition><ContactPage /></PageTransition>} />
+          <Route path="/faq" element={<PageTransition><FAQ /></PageTransition>} />
+          <Route path="/terms" element={<PageTransition><Terms /></PageTransition>} />
+          <Route path="/privacy" element={<PageTransition><Privacy /></PageTransition>} />
+          <Route path="/gallery" element={<PageTransition><Gallery /></PageTransition>} />
+          <Route path="/shop" element={<PageTransition variant="shop"><Shop /></PageTransition>} />
+          <Route path="/item/:id" element={<PageTransition variant="detail"><ItemDetail /></PageTransition>} />
+          <Route path="/cart" element={<PageTransition><Cart /></PageTransition>} />
+          <Route path="/checkout" element={<PageTransition><Checkout /></PageTransition>} />
+          <Route
+            path="/orders"
+            element={
+              <ProtectedRoute>
+                <PageTransition>
+                  <CustomerOrders />
+                </PageTransition>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <PageTransition>
+                  <Profile />
+                </PageTransition>
+              </ProtectedRoute>
+            }
+          />
 
-        {/* Admin Routes */}
-        <Route
-          path="/admin/login"
-          element={
-            <AuthRedirect>
-              <AdminLogin />
-            </AuthRedirect>
-          }
-        />
-        <Route
-          path="/admin/register"
-          element={
-            <AuthRedirect>
-              <AdminRegister />
-            </AuthRedirect>
-          }
-        />
-        <Route
-          path="/admin/dashboard"
-          element={
-            <AdminProtectedRoute>
-              <AdminDashboard />
-            </AdminProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/categories"
-          element={
-            <AdminProtectedRoute>
-              <Categories />
-            </AdminProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/items"
-          element={
-            <AdminProtectedRoute>
-              <Items />
-            </AdminProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/orders"
-          element={
-            <AdminProtectedRoute>
-              <Orders />
-            </AdminProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/customers"
-          element={
-            <AdminProtectedRoute>
-              <Customers />
-            </AdminProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/carousel-management"
-          element={
-            <AdminProtectedRoute>
-              <CarouselManagement />
-            </AdminProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/order-history"
-          element={
-            <AdminProtectedRoute>
-              <AdminOrderHistory />
-            </AdminProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/analytics"
-          element={
-            <AdminProtectedRoute>
-              <Analytics />
-            </AdminProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/analytics-dashboard"
-          element={
-            <AdminProtectedRoute>
-              <AnalyticsDashboard />
-            </AdminProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/home"
-          element={
-            <AdminProtectedRoute>
-              <AdminHome />
-            </AdminProtectedRoute>
-          }
-        />
+          {/* Admin Routes */}
+          <Route
+            path="/admin/login"
+            element={
+              <AuthRedirect>
+                <AdminLogin />
+              </AuthRedirect>
+            }
+          />
+          <Route
+            path="/admin/register"
+            element={
+              <AuthRedirect>
+                <AdminRegister />
+              </AuthRedirect>
+            }
+          />
+          <Route
+            path="/admin/dashboard"
+            element={
+              <AdminProtectedRoute>
+                <AdminDashboard />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/categories"
+            element={
+              <AdminProtectedRoute>
+                <Categories />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/items"
+            element={
+              <AdminProtectedRoute>
+                <Items />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/orders"
+            element={
+              <AdminProtectedRoute>
+                <Orders />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/customers"
+            element={
+              <AdminProtectedRoute>
+                <Customers />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/carousel-management"
+            element={
+              <AdminProtectedRoute>
+                <CarouselManagement />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/order-history"
+            element={
+              <AdminProtectedRoute>
+                <AdminOrderHistory />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/analytics"
+            element={
+              <AdminProtectedRoute>
+                <Analytics />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/analytics-dashboard"
+            element={
+              <AdminProtectedRoute>
+                <AnalyticsDashboard />
+              </AdminProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/home"
+            element={
+              <AdminProtectedRoute>
+                <AdminHome />
+              </AdminProtectedRoute>
+            }
+          />
 
-        {/* Catch all - 404 page */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </AnimatePresence>
+          {/* Catch all - 404 page */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </AnimatePresence>
+    </Suspense>
   );
 };
 
@@ -481,6 +497,22 @@ const GlobalHeader = () => {
     return null;
   }
   return <CustomerHeader />;
+};
+
+const GlobalNavs = () => {
+  const location = useLocation();
+  const noNavRoutes = ['/login', '/register', '/admin/login', '/admin/register'];
+  
+  if (location.pathname.startsWith('/admin') || noNavRoutes.includes(location.pathname)) {
+    return null;
+  }
+  
+  return (
+    <>
+      <BottomNav />
+      <MobileBottomNav />
+    </>
+  );
 };
 
 const AppRoutes = () => {
@@ -538,7 +570,7 @@ const AppRoutes = () => {
       <GlobalHeader />
       <AnimatedRoutes />
       <BackToTop />
-      <BottomNav />
+      <GlobalNavs />
     </>
   );
 };
@@ -550,7 +582,9 @@ function App() {
       <Router>
         <ToastProvider>
           <AuthProvider>
-            <AppRoutes />
+            <GuestCartProvider>
+              <AppRoutes />
+            </GuestCartProvider>
           </AuthProvider>
         </ToastProvider>
       </Router>

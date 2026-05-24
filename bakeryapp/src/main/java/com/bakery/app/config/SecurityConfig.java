@@ -74,6 +74,7 @@ public class SecurityConfig {
                 // Public endpoints - browsing
                 .requestMatchers("/api/items/**", "/api/categories/**").permitAll()
                 .requestMatchers("/api/reviews/item/**").permitAll()
+                .requestMatchers("/api/carousel/**").permitAll()
                 
                 // Payment webhooks
                 .requestMatchers("/api/webhooks/**").permitAll()

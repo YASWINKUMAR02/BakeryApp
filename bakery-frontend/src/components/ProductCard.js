@@ -145,7 +145,7 @@ const ProductCard = ({ item, ratingData, index, compact = false }) => {
                 }}
             >
                 <Box sx={{
-                    height: compact ? { xs: '110px', sm: '150px' } : { xs: '140px', sm: '200px' },
+                    height: compact ? { xs: '130px', sm: '160px' } : { xs: '180px', sm: '220px' },
                     position: 'relative',
                     overflow: 'hidden',
                     background: gradients.softRose,
@@ -159,6 +159,7 @@ const ProductCard = ({ item, ratingData, index, compact = false }) => {
                                 width: '100%',
                                 height: '100%',
                                 objectFit: 'cover',
+                                objectPosition: 'center center',
                                 transition: 'transform 0.5s cubic-bezier(0.22, 1, 0.36, 1)',
                             }}
                         />
@@ -176,50 +177,54 @@ const ProductCard = ({ item, ratingData, index, compact = false }) => {
 
                     {item.stock === 0 && (
                         <Box sx={{
-                            position: 'absolute', top: 12, right: 12,
-                            background: 'rgba(0,0,0,0.7)', color: '#fff',
-                            padding: '4px 12px', borderRadius: 0,
-                            fontSize: '0.75rem', fontWeight: 600, backdropFilter: 'blur(4px)',
+                            position: 'absolute', bottom: 0, left: 0, right: 0,
+                            background: 'rgba(0,0,0,0.55)',
+                            backdropFilter: 'blur(3px)',
+                            color: '#fff',
+                            padding: '4px 10px',
+                            fontSize: '0.72rem', fontWeight: 700,
+                            textAlign: 'center',
+                            letterSpacing: '0.05em',
                             zIndex: 2
                         }}>
-                            Out of Stock
+                            OUT OF STOCK
                         </Box>
                     )}
 
                     {item.isBestSeller && (
                         <Box sx={{
-                            position: 'absolute', top: 12, left: 12,
+                            position: 'absolute', top: 8, left: 8,
                             background: 'linear-gradient(135deg, #FFD700 0%, #FFA000 100%)',
                             color: '#000',
-                            padding: '4px 12px',
+                            padding: '2px 8px',
                             borderRadius: 0,
-                            fontSize: '0.7rem',
+                            fontSize: '0.6rem',
                             fontWeight: 800,
                             textTransform: 'uppercase',
                             letterSpacing: '0.05em',
-                            boxShadow: '0 4px 12px rgba(255, 160, 0, 0.4)',
+                            boxShadow: '0 2px 8px rgba(255, 160, 0, 0.4)',
                             zIndex: 2,
                             display: 'flex',
                             alignItems: 'center',
                             gap: 0.5
                         }}>
-                            <Box component="span" sx={{ fontSize: '1rem' }}>🔥</Box>
-                            Best Seller
+                            <Box component="span" sx={{ fontSize: '0.8rem' }}>🔥</Box>
+                            Best
                         </Box>
                     )}
 
                     {item.isNew && !item.isBestSeller && (
                         <Box sx={{
-                            position: 'absolute', top: 12, left: 12,
+                            position: 'absolute', top: 8, left: 8,
                             background: 'linear-gradient(135deg, #00c853 0%, #64dd17 100%)',
                             color: '#fff',
-                            padding: '4px 12px',
+                            padding: '2px 8px',
                             borderRadius: 0,
-                            fontSize: '0.7rem',
+                            fontSize: '0.6rem',
                             fontWeight: 800,
                             textTransform: 'uppercase',
                             letterSpacing: '0.05em',
-                            boxShadow: '0 4px 12px rgba(100, 221, 23, 0.4)',
+                            boxShadow: '0 2px 8px rgba(100, 221, 23, 0.4)',
                             zIndex: 2,
                         }}>
                             New
@@ -228,7 +233,7 @@ const ProductCard = ({ item, ratingData, index, compact = false }) => {
                 </Box>
 
                 <CardContent sx={{
-                    p: compact ? { xs: spacing(2.5), sm: spacing(3) } : { xs: spacing(3), sm: spacing(3.5) },
+                    p: compact ? { xs: spacing(1.5), sm: spacing(3) } : { xs: spacing(2), sm: spacing(3.5) },
                     flex: 1,
                     display: 'flex',
                     flexDirection: 'column'
@@ -243,11 +248,11 @@ const ProductCard = ({ item, ratingData, index, compact = false }) => {
                     </Box>
 
                     <Typography variant="h3" sx={{
-                        fontWeight: 700, mb: 1, color: '#1a1a1a',
-                        fontSize: compact ? { xs: '0.95rem', sm: '1.1rem' } : { xs: '1rem', sm: '1.25rem' },
+                        fontWeight: 700, mb: 0.5, color: '#1a1a1a',
+                        fontSize: compact ? { xs: '0.8rem', sm: '1.1rem' } : { xs: '0.9rem', sm: '1.25rem' },
                         display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden', minHeight: compact ? '2.4rem' : '3rem',
-                        lineHeight: 1.3
+                        overflow: 'hidden', minHeight: compact ? '2rem' : '2.4rem',
+                        lineHeight: 1.2
                     }}>
                         {item.name}
                     </Typography>

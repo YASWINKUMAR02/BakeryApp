@@ -12,7 +12,7 @@ const Footer = () => {
     <Box sx={{
       background: '#1a1a1a',
       color: '#fff',
-      padding: { xs: '12px 0', sm: '16px 0', lg: '24px 0 16px' },
+      padding: { xs: '12px 0 72px', sm: '16px 0 64px', lg: '24px 0 16px' },
       position: 'relative',
       zIndex: 1000,
       marginTop: 'auto',

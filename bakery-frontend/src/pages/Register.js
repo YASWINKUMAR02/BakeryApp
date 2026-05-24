@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { useNavigate, Link as RouterLink, useSearchParams } from 'react-router-dom';
 import {
   Container,
   Box,
@@ -28,7 +28,11 @@ import { validateEmail, validatePasswordSimple, validateName, validatePhone, val
 
 const Register = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { login } = useAuth();
+  
+  // Get return URL from query params
+  const returnUrl = searchParams.get('returnUrl') || '/';
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -84,7 +88,8 @@ const Register = () => {
       if (response.data.success) {
         login(response.data.data);
         showSuccess('Registration successful! Welcome!');
-        navigate('/');
+        // Redirect to returnUrl if provided, otherwise go to home
+        navigate(returnUrl);
       } else {
         showError(response.data.message);
       }
@@ -104,24 +109,18 @@ const Register = () => {
       linear-gradient(rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.92)),
       url('https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=1920&q=80') center/cover no-repeat
     `,
-    padding: '12px',
+    padding: { xs: '24px 16px', sm: '40px 20px' },
     overflow: 'auto',
-    '@media (min-width: 600px)': {
-      padding: '40px 20px',
-    },
   };
 
   const paperStyle = {
-    padding: '20px 16px',
+    padding: { xs: '28px 24px', sm: '36px 32px' },
     borderRadius: '16px',
-    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
-    maxWidth: '700px',
+    boxShadow: '0 4px 24px rgba(0, 0, 0, 0.09)',
+    maxWidth: '550px',
     width: '100%',
     background: '#ffffff',
     border: '1px solid #f0f0f0',
-    '@media (min-width: 600px)': {
-      padding: '30px 30px',
-    },
   };
 
   const logoContainerStyle = {
@@ -129,22 +128,22 @@ const Register = () => {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: '16px',
+    marginBottom: '20px',
   };
 
   return (
-    <Box style={containerStyle}>
-      <Container maxWidth="sm" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
-        <Paper elevation={0} style={paperStyle}>
+    <Box sx={containerStyle}>
+      <Container maxWidth="sm" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+        <Paper elevation={0} sx={paperStyle}>
           <Box style={logoContainerStyle}>
             <img 
               src="/LOGOO.png" 
               alt="Frost and Crinkle Logo" 
               style={{
-                height: '80px',
+                height: '72px',
                 width: 'auto',
                 objectFit: 'contain',
-                marginBottom: '8px',
+                marginBottom: '12px',
               }}
             />
             <Button
@@ -156,8 +155,11 @@ const Register = () => {
                 color: '#666',
                 borderColor: '#ddd',
                 marginBottom: '8px',
+                fontSize: '0.85rem',
+                padding: '4px 16px',
               }}
               variant="outlined"
+              size="small"
             >
               Go back to Home
             </Button>
@@ -170,7 +172,7 @@ const Register = () => {
             style={{ 
               fontWeight: 700, 
               marginBottom: '6px',
-              fontSize: '1.5rem',
+              fontSize: '1.6rem',
               background: 'linear-gradient(135deg, #e91e63 0%, #ff6b9d 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
@@ -183,167 +185,78 @@ const Register = () => {
           <Typography 
             variant="body2" 
             align="center" 
-            style={{ color: '#64748b', marginBottom: '20px', fontSize: '13px' }}
+            style={{ color: '#64748b', marginBottom: '24px', fontSize: '14px' }}
           >
             Join Frost & Crinkle for delicious baked goods
           </Typography>
 
           <form onSubmit={handleSubmit}>
-            {/* Name and Email - Row 1 */}
-            <Box style={{ 
+            {/* Row 1: Full Name (Full Width) */}
+            <TextField
+              fullWidth label="Full Name" name="name" value={formData.name}
+              onChange={handleChange} required margin="normal"
+              error={!!fieldErrors.name} helperText={fieldErrors.name}
+              InputLabelProps={{ shrink: true }}
+              InputProps={{ startAdornment: <InputAdornment position="start"><Person style={{ color: '#ff69b4', fontSize: '20px' }} /></InputAdornment> }}
+              style={{ marginTop: 0, marginBottom: '16px' }}
+            />
+
+            {/* Row 2: Email (Left) + Phone (Right) */}
+            <Box sx={{ 
               display: 'grid', 
-              gridTemplateColumns: '1fr', 
-              gap: '12px', 
-              marginBottom: '12px',
-              '@media (min-width: 600px)': {
-                gridTemplateColumns: '1fr 1fr',
-              },
+              gridTemplateColumns: '1fr 1fr', 
+              gap: { xs: '10px', sm: '16px' }, 
+              marginBottom: '16px',
             }}>
               <TextField
-                fullWidth
-                label="Full Name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                margin="normal"
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Person style={{ color: '#ff69b4' }} />
-                    </InputAdornment>
-                  ),
-                }}
-                style={{ marginTop: 0 }}
+                fullWidth label="Email Address" name="email" type="email" value={formData.email}
+                onChange={handleChange} required margin="normal"
+                error={!!fieldErrors.email} helperText={fieldErrors.email}
+                InputLabelProps={{ shrink: true }}
+                InputProps={{ startAdornment: <InputAdornment position="start"><Email style={{ color: '#ff69b4', fontSize: '20px' }} /></InputAdornment> }}
+                style={{ marginTop: 0, marginBottom: 0 }}
               />
-
               <TextField
-                fullWidth
-                label="Email Address"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                margin="normal"
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Email style={{ color: '#ff69b4' }} />
-                    </InputAdornment>
-                  ),
-                }}
-                style={{ marginTop: 0 }}
+                fullWidth label="Phone Number" name="phone" value={formData.phone}
+                onChange={handleChange} required margin="normal"
+                error={!!fieldErrors.phone} helperText={fieldErrors.phone}
+                inputProps={{ maxLength: 10, pattern: '[6-9][0-9]{9}' }}
+                InputLabelProps={{ shrink: true }}
+                InputProps={{ startAdornment: <InputAdornment position="start"><Phone style={{ color: '#ff69b4', fontSize: '20px' }} /></InputAdornment> }}
+                style={{ marginTop: 0, marginBottom: 0 }}
               />
             </Box>
 
-            {/* Phone Number - Row 2 (Full Width) */}
-            <TextField
-              fullWidth
-              label="Phone Number"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              required
-              margin="normal"
-              inputProps={{
-                maxLength: 10,
-                pattern: '[6-9][0-9]{9}',
-              }}
-              helperText="Enter 10-digit Indian mobile number"
-              InputLabelProps={{
-                shrink: true,
-              }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Phone style={{ color: '#ff69b4' }} />
-                  </InputAdornment>
-                ),
-              }}
-              style={{ marginTop: 0, marginBottom: '12px' }}
-            />
-
-            {/* Password and Confirm Password - Row 3 */}
-            <Box style={{ 
+            {/* Row 3: Password + Confirm Password */}
+            <Box sx={{ 
               display: 'grid', 
-              gridTemplateColumns: '1fr', 
-              gap: '12px', 
-              marginBottom: '12px',
-              '@media (min-width: 600px)': {
-                gridTemplateColumns: '1fr 1fr',
-              },
+              gridTemplateColumns: '1fr 1fr', 
+              gap: { xs: '10px', sm: '16px' }, 
+              marginBottom: '20px',
             }}>
               <TextField
-                fullWidth
-                label="Password"
-                name="password"
-                type={showPassword ? 'text' : 'password'}
-                value={formData.password}
-                onChange={handleChange}
-                required
-                margin="normal"
-                InputLabelProps={{
-                  shrink: true,
-                }}
+                fullWidth label="Password" name="password"
+                type={showPassword ? 'text' : 'password'} value={formData.password}
+                onChange={handleChange} required margin="normal"
+                error={!!fieldErrors.password} helperText={fieldErrors.password}
+                InputLabelProps={{ shrink: true }}
                 InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Lock style={{ color: '#ff69b4' }} />
-                    </InputAdornment>
-                  ),
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => setShowPassword(!showPassword)}
-                        edge="end"
-                        style={{ color: '#666' }}
-                      >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
+                  startAdornment: <InputAdornment position="start"><Lock style={{ color: '#ff69b4', fontSize: '20px' }} /></InputAdornment>,
+                  endAdornment: <InputAdornment position="end"><IconButton onClick={() => setShowPassword(!showPassword)} edge="end" style={{ color: '#666' }}>{showPassword ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>,
                 }}
-                style={{ marginTop: 0 }}
+                style={{ marginTop: 0, marginBottom: 0 }}
               />
-
               <TextField
-                fullWidth
-                label="Confirm Password"
-                name="confirmPassword"
-                type={showConfirmPassword ? 'text' : 'password'}
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-                margin="normal"
-                InputLabelProps={{
-                  shrink: true,
-                }}
+                fullWidth label="Confirm Password" name="confirmPassword"
+                type={showConfirmPassword ? 'text' : 'password'} value={formData.confirmPassword}
+                onChange={handleChange} required margin="normal"
+                error={!!fieldErrors.confirmPassword} helperText={fieldErrors.confirmPassword}
+                InputLabelProps={{ shrink: true }}
                 InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Lock style={{ color: '#ff69b4' }} />
-                    </InputAdornment>
-                  ),
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        edge="end"
-                        style={{ color: '#666' }}
-                      >
-                        {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
+                  startAdornment: <InputAdornment position="start"><Lock style={{ color: '#ff69b4', fontSize: '20px' }} /></InputAdornment>,
+                  endAdornment: <InputAdornment position="end"><IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)} edge="end" style={{ color: '#666' }}>{showConfirmPassword ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>,
                 }}
-                style={{ marginTop: 0 }}
+                style={{ marginTop: 0, marginBottom: 0 }}
               />
             </Box>
 
@@ -355,23 +268,14 @@ const Register = () => {
               disabled={loading}
               style={{
                 padding: '12px',
-                fontSize: '15px',
+                fontSize: '16px',
                 fontWeight: 600,
                 textTransform: 'none',
-                borderRadius: '12px',
+                borderRadius: '10px',
                 marginTop: '4px',
-                marginBottom: '12px',
+                marginBottom: '16px',
                 background: 'linear-gradient(135deg, #e91e63 0%, #ff6b9d 100%)',
                 boxShadow: '0 4px 14px rgba(233, 30, 99, 0.4)',
-                transition: 'all 0.3s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 20px rgba(233, 30, 99, 0.5)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 14px rgba(233, 30, 99, 0.4)';
               }}
             >
               {loading ? 'Creating Account...' : 'Sign Up'}
@@ -382,7 +286,7 @@ const Register = () => {
                 Already have an account?{' '}
                 <Link
                   component={RouterLink}
-                  to="/login"
+                  to={returnUrl !== '/' ? `/login?returnUrl=${encodeURIComponent(returnUrl)}` : '/login'}
                   style={{
                     color: '#e91e63',
                     fontWeight: 700,

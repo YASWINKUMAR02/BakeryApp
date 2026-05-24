@@ -55,59 +55,54 @@ const Home = () => {
 
   const fetchData = async () => {
     setLoading(true);
+
+    // Fetch items and carousel INDEPENDENTLY so one failure doesn't block the other
+    // ── Items ──────────────────────────────────────────────────────────────────
     try {
-      const [itemsResponse, carouselResponse] = await Promise.all([
-        itemAPI.getAll(),
-        carouselAPI.getActive(),
-      ]);
+      const itemsResponse = await itemAPI.getAll();
+      console.log('Items API Success:', itemsResponse?.data?.success);
+      console.log('Items Data Length:', itemsResponse?.data?.data?.length);
 
-      // Determine what items to show
-      let itemsToShow = [];
-      const shouldShowSampleItems = isGuest && !itemsResponse?.data?.success;
-      
-      if (shouldShowSampleItems) {
-        // Show sample items for guest users when API fails or no real products
-        itemsToShow = getSampleItems();
-      } else if (itemsResponse.data.success) {
-        // Show real products for both guest and logged-in users when API works
+      if (itemsResponse?.data?.success && itemsResponse?.data?.data?.length > 0) {
         let itemsData = itemsResponse.data.data;
-        console.log('Items loaded:', itemsData.length);
 
-        // Enhance first 4 items as Best Sellers to show as "Top 4"
+        // Mirror shop-page enhancement flags
         itemsData = itemsData.map((item, index) => ({
           ...item,
-          isBestSeller: item.isBestSeller || index < 4,
-          isNew: item.isNew || (index >= 4 && index < 8)
+          isBestSeller: item.isBestSeller || index % 5 === 0,
+          isNew: item.isNew || index % 7 === 1,
         }));
 
-        itemsToShow = itemsData;
-
-        // Fetch reviews for items
+        // Fetch reviews only for the first 5 products we'll actually display
         const reviewsData = {};
         await Promise.all(
-          itemsData.slice(0, 10).map(async (item) => {
+          itemsData.slice(0, 5).map(async (item) => {
             try {
               const reviewResponse = await reviewAPI.getByItem(item.id);
               if (reviewResponse.data.success) {
                 reviewsData[item.id] = reviewResponse.data.data;
               }
-            } catch (err) {
+            } catch {
               reviewsData[item.id] = [];
             }
           })
         );
         setItemReviews(reviewsData);
+        setItems(itemsData);
+        console.log('Products loaded for home page:', itemsData.length, '(showing first 5)');
       } else {
-        console.log('Items API returned no success:', itemsResponse.data);
-        // Set sample items for guest users when API fails
-        itemsToShow = getSampleItems();
+        console.log('Items API returned no data');
+        setItems([]);
       }
+    } catch (itemErr) {
+      console.error('Error fetching items:', itemErr);
+      setItems([]);
+    }
 
-      setItems(itemsToShow);
-      console.log('Items set for display:', itemsToShow.length);
-      console.log('Is guest user:', isGuest);
-
-      if (carouselResponse.data.success && carouselResponse.data.data && carouselResponse.data.data.length > 0) {
+    // ── Carousel ───────────────────────────────────────────────────────────────
+    try {
+      const carouselResponse = await carouselAPI.getActive();
+      if (carouselResponse.data.success && carouselResponse.data.data?.length > 0) {
         const slides = carouselResponse.data.data.map(slide => ({
           title: slide.title,
           subtitle: slide.subtitle,
@@ -127,19 +122,14 @@ const Home = () => {
         setCarouselSlides(slides);
         console.log('Carousel slides loaded:', slides.length);
       } else {
-        console.log('Carousel API returned no slides:', carouselResponse.data);
-        // Set default slides if API fails or returns no data
         setCarouselSlides(getDefaultSlides());
       }
-    } catch (err) {
-      console.error('Error fetching data:', err);
-      // Set default slides if API fails
+    } catch (carouselErr) {
+      console.error('Carousel fetch failed (using defaults):', carouselErr);
       setCarouselSlides(getDefaultSlides());
-      // Set empty items array - API failed, let page handle gracefully
-      setItems([]);
-    } finally {
-      setLoading(false);
     }
+
+    setLoading(false);
   };
 
   const getDefaultSlides = () => {
@@ -286,7 +276,7 @@ const Home = () => {
     }
   };
 
-  const featuredProducts = items.length > 0 ? items.slice(0, 5) : (isGuest ? getSampleItems() : []);
+  const featuredProducts = items.slice(0, 5);
   console.log('Featured products calculated:', featuredProducts.length);
   const heroStatCards = [
     { label: 'Same-day deliveries', value: '320+', icon: '🚚' },
@@ -313,7 +303,7 @@ const Home = () => {
       variants={pageTransitions.home}
     >
       <PullToRefresh onRefresh={handleRefresh}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '100%' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '100%', pb: { xs: '64px', md: 0 } }}>
 
           {/* Hero Carousel Section */}
           <Box
@@ -322,10 +312,10 @@ const Home = () => {
             onTouchEnd={handleTouchEnd}
             sx={{
               position: 'relative',
-              height: { xs: '240px', sm: '300px', md: '500px' },
+              height: { xs: '420px', sm: '460px', md: '500px' },
               width: '100%',
               overflow: 'hidden',
-              background: '#000',
+              background: '#111',
               marginTop: '64px',
               touchAction: 'pan-y',
               boxShadow: '0 8px 32px rgba(0,0,0,0.3)'
@@ -343,13 +333,16 @@ const Home = () => {
                 >
                   <Box
                     component={motion.div}
-                    initial={{ scale: 1.15 }}
+                    initial={{ scale: 1.08 }}
                     animate={{ scale: 1 }}
                     transition={{ duration: 6, ease: [0.22, 1, 0.36, 1] }}
                     sx={{
                       width: '100%',
                       height: '100%',
-                      backgroundImage: `linear-gradient(135deg, rgba(7,7,7,0.75) 0%, rgba(7,7,7,0.45) 40%, rgba(7,7,7,0.8) 100%), url(${carouselSlides[currentSlide].image})`,
+                      backgroundImage: {
+                        xs: `linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.28) 45%, rgba(0,0,0,0.65) 100%), url(${carouselSlides[currentSlide].image})`,
+                        md: `linear-gradient(135deg, rgba(7,7,7,0.75) 0%, rgba(7,7,7,0.45) 40%, rgba(7,7,7,0.8) 100%), url(${carouselSlides[currentSlide].image})`,
+                      },
                       backgroundSize: 'cover',
                       backgroundPosition: 'center',
                       display: 'flex',
@@ -366,9 +359,9 @@ const Home = () => {
                         sx={{
                           display: 'flex',
                           flexDirection: { xs: 'column', md: 'row' },
-                          alignItems: { xs: 'flex-start', md: 'flex-end' },
-                          justifyContent: 'space-between',
-                          gap: { xs: 3, md: 6 },
+                          alignItems: { xs: 'center', md: 'flex-end' },
+                          justifyContent: { xs: 'center', md: 'space-between' },
+                          gap: { xs: 0, md: 3 },
                           width: '100%',
                         }}
                       >
@@ -376,37 +369,43 @@ const Home = () => {
                           sx={{
                             color: '#fff',
                             maxWidth: { xs: '100%', md: '620px' },
-                            padding: { xs: '24px 0', sm: 0 },
                             flex: '0 1 auto',
+                            textAlign: { xs: 'center', md: 'left' },
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: { xs: 'center', md: 'flex-start' },
                           }}
                         >
                           <motion.div
-                            initial={{ opacity: 0, y: 30 }}
+                            initial={{ opacity: 0, y: 24 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.8, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                            transition={{ duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
                           >
                             <Typography
                               variant="h1"
                               sx={{
                                 fontWeight: 800,
                                 mb: 1,
-                                fontSize: { xs: '2.1rem', md: '3.8rem', lg: '4.1rem' },
+                                fontSize: { xs: '2.5rem', sm: '3.2rem', md: '3.8rem', lg: '4.1rem' },
                                 color: '#fff',
                                 letterSpacing: '-0.02em',
-                                lineHeight: 1.05,
+                                lineHeight: { xs: 1.1, md: 1.05 },
+                                textShadow: '0 2px 16px rgba(0,0,0,0.4)',
                               }}
                             >
                               {carouselSlides[currentSlide].title}
                             </Typography>
+
                             <Typography
                               variant="h3"
                               sx={{
                                 fontWeight: 600,
-                                fontSize: { xs: '1.1rem', md: '1.8rem' },
+                                fontSize: { xs: '1.2rem', sm: '1.5rem', md: '1.8rem' },
                                 mb: 3,
                                 color: '#e91e63',
                                 fontStyle: 'italic',
-                                letterSpacing: { xs: '0.04em', md: '0.06em' },
+                                letterSpacing: '0.06em',
+                                textShadow: '0 1px 8px rgba(0,0,0,0.4)',
                               }}
                             >
                               {carouselSlides[currentSlide].subtitle}
@@ -414,9 +413,9 @@ const Home = () => {
                           </motion.div>
 
                           <motion.div
-                            initial={{ opacity: 0, y: 20 }}
+                            initial={{ opacity: 0, y: 16 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.8, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                            transition={{ duration: 0.7, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
                           >
                             <Button
                               variant="contained"
@@ -426,15 +425,15 @@ const Home = () => {
                               sx={{
                                 background: gradients.primary,
                                 color: '#fff',
-                                padding: { xs: '12px 28px', md: '14px 36px' },
+                                padding: { xs: '10px 22px', md: '14px 36px' },
                                 borderRadius: 0,
                                 fontWeight: 700,
                                 textTransform: 'none',
-                                fontSize: { xs: '0.95rem', md: '1rem' },
-                                boxShadow: '0 18px 32px rgba(233, 30, 99, 0.32)',
+                                fontSize: { xs: '0.88rem', md: '1rem' },
+                                boxShadow: '0 8px 24px rgba(233,30,99,0.4)',
                                 '&:hover': {
                                   transform: 'translateY(-2px)',
-                                  boxShadow: '0 24px 40px rgba(233, 30, 99, 0.42)',
+                                  boxShadow: '0 16px 32px rgba(233,30,99,0.45)',
                                 },
                               }}
                             >
@@ -447,16 +446,16 @@ const Home = () => {
                           <Box
                             key={activeHeroStat.label}
                             sx={{
+                              display: { xs: 'none', md: 'flex' },
                               flex: '0 0 auto',
-                              alignSelf: { xs: 'flex-start', md: 'stretch' },
-                              minWidth: { xs: '100%', md: '240px' },
-                              maxWidth: { xs: '280px', md: '260px' },
+                              alignSelf: 'stretch',
+                              minWidth: '240px',
+                              maxWidth: '260px',
                               border: '1px solid rgba(255,255,255,0.25)',
                               borderRadius: 0,
                               backdropFilter: 'blur(4px)',
                               background: 'rgba(0,0,0,0.25)',
                               padding: { xs: '14px 18px', md: '18px 22px' },
-                              display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               gap: 2,
@@ -527,8 +526,9 @@ const Home = () => {
                   onClick={() => setCurrentSlide(index)}
                   sx={{
                     width: currentSlide === index ? 24 : 8, height: 8, borderRadius: 4,
-                    background: currentSlide === index ? '#e91e63' : 'rgba(255,255,255,0.5)',
-                    cursor: 'pointer', transition: 'all 0.3s ease'
+                    background: currentSlide === index ? '#e91e63' : 'rgba(255,255,255,0.55)',
+                    cursor: 'pointer', transition: 'all 0.3s ease',
+                    boxShadow: '0 1px 4px rgba(0,0,0,0.3)'
                   }}
                 />
               ))}
@@ -553,19 +553,61 @@ const Home = () => {
             >
               <Container maxWidth="lg">
                 <ScrollReveal animation="slideUp">
+                  {/* ── Mobile header: tight & minimal ── */}
+                  <Box sx={{ display: { xs: 'flex', md: 'none' }, alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+                    <Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                        <Box sx={{ width: 3, height: 18, background: gradients.primary, borderRadius: 2, flexShrink: 0 }} />
+                        <Typography
+                          variant="overline"
+                          sx={{ color: colors.brandPink, fontWeight: 700, letterSpacing: '0.15em', fontSize: '0.7rem' }}
+                        >
+                          From Our Shop
+                        </Typography>
+                      </Box>
+                      <Typography
+                        variant="h5"
+                        sx={{ fontWeight: 800, color: colors.brandInk, letterSpacing: '-0.01em', lineHeight: 1.2 }}
+                      >
+                        Featured Products
+                      </Typography>
+                    </Box>
+                    <Button
+                      size="small"
+                      endIcon={<ArrowForward sx={{ fontSize: '16px !important' }} />}
+                      onClick={() => navigate('/shop')}
+                      sx={{
+                        textTransform: 'none',
+                        fontWeight: 700,
+                        borderRadius: 0,
+                        background: gradients.primary,
+                        color: '#fff',
+                        fontSize: '0.78rem',
+                        px: 2,
+                        py: 0.9,
+                        flexShrink: 0,
+                        '&:hover': { background: gradients.primary },
+                      }}
+                    >
+                      View All
+                    </Button>
+                  </Box>
+
+                  {/* ── Desktop header: full layout ── */}
                   <Box
                     sx={{
-                      display: 'flex',
+                      display: { xs: 'none', md: 'flex' },
+                      flexDirection: 'row',
                       alignItems: 'center',
-                      flexWrap: 'wrap',
-                      gap: { xs: 2, md: 3 },
+                      justifyContent: 'space-between',
+                      gap: 3,
                       mb: 4
                     }}
                   >
                     <SectionHeader
-                      eyebrow="Handpicked For You"
-                      title="Top 5 Chef's Specials"
-                      description="A rotating curation of pastries, cakes, and desserts that customers rave about this week."
+                      eyebrow="From Our Shop"
+                      title="Featured Products"
+                      description="Browse our top picks — real products from our shop. Add to cart and order with or without signing in."
                       maxWidth="620px"
                     />
                     <Box sx={{ marginLeft: 'auto' }}>
@@ -578,8 +620,8 @@ const Home = () => {
                           fontWeight: 700,
                           borderRadius: 0,
                           background: gradients.primary,
-                          px: { xs: 3, md: 4 },
-                          py: { xs: 1.4, md: 1.6 }
+                          px: 4,
+                          py: 1.6,
                         }}
                       >
                         Browse Full Menu
@@ -588,15 +630,36 @@ const Home = () => {
                   </Box>
                 </ScrollReveal>
 
+                {/* Mobile: horizontal scroll row */}
+                <Box
+                  sx={{ display: { xs: 'flex', md: 'none' }, overflowX: 'auto', gap: 2, pb: 1.5,
+                    scrollSnapType: 'x mandatory',
+                    WebkitOverflowScrolling: 'touch',
+                    '&::-webkit-scrollbar': { display: 'none' },
+                    mx: -2, px: 2,
+                  }}
+                >
+                  {featuredProducts.map((item, index) => (
+                    <Box key={item.id} sx={{ flex: '0 0 72vw', maxWidth: '280px', scrollSnapAlign: 'start' }}>
+                      <ProductCard
+                        item={item}
+                        ratingData={getItemRatingData(item.id)}
+                        index={index}
+                      />
+                    </Box>
+                  ))}
+                </Box>
+
+                {/* Desktop: multi-column grid */}
                 <Box
                   component={motion.div}
                   variants={containerVariants}
                   initial="hidden"
                   animate="visible"
                   sx={{
-                    display: 'grid',
-                    gridTemplateColumns: { xs: 'repeat(1, 1fr)', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)', lg: 'repeat(5, 1fr)' },
-                    gap: { xs: 2, md: 3 },
+                    display: { xs: 'none', md: 'grid' },
+                    gridTemplateColumns: { md: 'repeat(3, 1fr)', lg: 'repeat(5, 1fr)' },
+                    gap: 3,
                   }}
                 >
                   {featuredProducts.map((item, index) => (
@@ -612,7 +675,7 @@ const Home = () => {
               </Container>
             </Box>
           ) : (
-            /* Fallback section - always show sample products for guest users */
+            /* No items available */
             <Box
               sx={{
                 background: colors.paper,
@@ -621,118 +684,9 @@ const Home = () => {
               }}
             >
               <Container maxWidth="md">
-                <ScrollReveal animation="slideUp">
-                  {isGuest ? (
-                    /* Guest users - show Top 5 Chef's Specials */
-                    <>
-                      <SectionHeader
-                        eyebrow="Handpicked For You"
-                        title="Top 5 Chef's Specials"
-                        description="A rotating curation of pastries, cakes, and desserts that customers rave about this week."
-                        maxWidth="620px"
-                      />
-                      <Box sx={{ marginLeft: 'auto' }}>
-                        <Button
-                          variant="contained"
-                          endIcon={<ArrowForward />}
-                          onClick={() => navigate('/shop')}
-                          sx={{
-                            textTransform: 'none',
-                            fontWeight: 700,
-                            borderRadius: 0,
-                            background: gradients.primary,
-                            px: 4,
-                            py: 1.6
-                          }}
-                        >
-                          Browse Full Menu
-                        </Button>
-                      </Box>
-                      <Box
-                        component={motion.div}
-                        variants={containerVariants}
-                        initial="hidden"
-                        animate="visible"
-                        sx={{
-                          display: 'grid',
-                          gridTemplateColumns: { xs: 'repeat(1, 1fr)', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)', lg: 'repeat(5, 1fr)' },
-                          gap: { xs: 2, md: 3 },
-                        }}
-                      >
-                        {featuredProducts.map((item, index) => (
-                          <ProductCard
-                            key={item.id}
-                            item={item}
-                            ratingData={getItemRatingData(item.id)}
-                            index={index}
-                            compact
-                          />
-                        ))}
-                      </Box>
-                    </>
-                  ) : (
-                    /* Logged-in users or no products available */
-                    <>
-                      <Typography
-                        variant="h3"
-                        sx={{
-                          fontWeight: 700,
-                          mb: 2,
-                          background: gradients.primary,
-                          WebkitBackgroundClip: 'text',
-                          WebkitTextFillColor: 'transparent',
-                          backgroundClip: 'text',
-                        }}
-                      >
-                        Coming Soon!
-                      </Typography>
-                      <Typography
-                        variant="h6"
-                        sx={{
-                          color: colors.stone,
-                          mb: 4,
-                          maxWidth: '600px',
-                          mx: 'auto'
-                        }}
-                      >
-                        We're busy baking delicious treats for you! Our fresh assortment of cakes, pastries, and desserts will be available soon.
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
-                        <Button
-                          variant="contained"
-                          size="large"
-                          onClick={() => navigate('/contact')}
-                          sx={{
-                            textTransform: 'none',
-                            fontWeight: 700,
-                            borderRadius: 0,
-                            background: gradients.primary,
-                            px: 4,
-                            py: 1.5
-                          }}
-                        >
-                          Contact Us
-                        </Button>
-                        <Button
-                          variant="outlined"
-                          size="large"
-                          onClick={() => navigate('/about')}
-                          sx={{
-                            textTransform: 'none',
-                            fontWeight: 700,
-                            borderRadius: 0,
-                            borderColor: colors.brandPink,
-                            color: colors.brandPink,
-                            px: 4,
-                            py: 1.5
-                          }}
-                        >
-                          Learn More
-                        </Button>
-                      </Box>
-                    </>
-                  )}
-                </ScrollReveal>
+                <Typography variant="h6" sx={{ color: colors.stone }}>
+                  No products available at the moment.
+                </Typography>
               </Container>
             </Box>
           )}

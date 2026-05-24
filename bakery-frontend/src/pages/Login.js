@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { useNavigate, Link as RouterLink, useSearchParams, useLocation } from 'react-router-dom';
 import {
   Container,
   Box,
@@ -31,7 +31,13 @@ import { validateEmail, validatePasswordSimple } from '../utils/formValidation';
 
 const Login = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const location = useLocation();
   const { login } = useAuth();
+  
+  // Support ?returnUrl= query param AND location.state.from (from guest checkout redirect)
+  const returnUrl = location.state?.from || searchParams.get('returnUrl') || '/';
+  const redirectMessage = location.state?.message || null;
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -83,7 +89,8 @@ const Login = () => {
       if (response.data.success) {
         login(response.data.data);
         showSuccess('Login successful! Welcome back!');
-        navigate('/');
+        // Redirect to returnUrl if provided, otherwise go to home
+        navigate(returnUrl);
       } else {
         const errorMessage = response.data.message || 'Login failed. Please check your credentials.';
         setError(errorMessage);
@@ -144,23 +151,17 @@ const Login = () => {
       linear-gradient(rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.92)),
       url('https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=1920&q=80') center/cover no-repeat
     `,
-    padding: '12px',
-    '@media (min-width: 600px)': {
-      padding: '20px',
-    },
+    padding: { xs: '24px 16px', sm: '20px' },
   };
 
   const paperStyle = {
-    padding: '24px 20px',
-    borderRadius: '16px',
-    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
-    maxWidth: '480px',
+    padding: '28px 24px',
+    borderRadius: '12px',
+    boxShadow: '0 4px 24px rgba(0, 0, 0, 0.09)',
+    maxWidth: '400px',
     width: '100%',
     background: '#ffffff',
     border: '1px solid #f0f0f0',
-    '@media (min-width: 600px)': {
-      padding: '50px 40px',
-    },
   };
 
   const logoContainerStyle = {
@@ -168,22 +169,22 @@ const Login = () => {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: '30px',
+    marginBottom: '20px',
   };
 
   return (
-    <Box style={containerStyle}>
-      <Container maxWidth="sm" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        <Paper elevation={0} style={paperStyle}>
+    <Box sx={containerStyle}>
+      <Container maxWidth="sm" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <Paper elevation={0} sx={{ ...paperStyle, padding: { xs: '28px 24px', sm: '36px 32px' } }}>
           <Box style={logoContainerStyle}>
             <img 
               src="/LOGOO.png" 
               alt="Frost and Crinkle Logo" 
               style={{
-                height: '120px',
+                height: '64px',
                 width: 'auto',
                 objectFit: 'contain',
-                marginBottom: '16px',
+                marginBottom: '12px',
               }}
             />
             <Button
@@ -194,21 +195,24 @@ const Login = () => {
                 fontWeight: 500,
                 color: '#666',
                 borderColor: '#ddd',
-                marginBottom: '16px',
+                marginBottom: '4px',
+                fontSize: '0.8rem',
+                padding: '4px 12px',
               }}
               variant="outlined"
+              size="small"
             >
               Go back to Home
             </Button>
           </Box>
 
           <Typography 
-            variant="h4" 
+            variant="h5" 
             align="center" 
             gutterBottom
             style={{ 
               fontWeight: 700, 
-              marginBottom: '8px',
+              marginBottom: '4px',
               background: 'linear-gradient(135deg, #e91e63 0%, #ff6b9d 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
@@ -219,12 +223,18 @@ const Login = () => {
           </Typography>
           
           <Typography 
-            variant="body1" 
+            variant="body2" 
             align="center" 
-            style={{ color: '#64748b', marginBottom: '32px', fontSize: '15px' }}
+            style={{ color: '#64748b', marginBottom: '20px', fontSize: '13px' }}
           >
             Sign in to your Frost & Crinkle account
           </Typography>
+
+          {redirectMessage && (
+            <Alert severity="info" style={{ marginBottom: '16px', borderRadius: '8px' }}>
+              🛒 {redirectMessage}
+            </Alert>
+          )}
 
           {error && (
             <Alert severity="error" style={{ marginBottom: '20px' }}>
@@ -241,20 +251,18 @@ const Login = () => {
               value={formData.email}
               onChange={handleChange}
               required
-              margin="normal"
+              margin="dense"
               error={!!fieldErrors.email}
               helperText={fieldErrors.email}
-              InputLabelProps={{
-                shrink: true,
-              }}
+              InputLabelProps={{ shrink: true }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <Email style={{ color: '#ff69b4' }} />
+                    <Email style={{ color: '#ff69b4', fontSize: '18px' }} />
                   </InputAdornment>
                 ),
               }}
-              style={{ marginBottom: '16px' }}
+              style={{ marginBottom: '10px' }}
             />
 
             <TextField
@@ -265,16 +273,14 @@ const Login = () => {
               value={formData.password}
               onChange={handleChange}
               required
-              margin="normal"
+              margin="dense"
               error={!!fieldErrors.password}
               helperText={fieldErrors.password}
-              InputLabelProps={{
-                shrink: true,
-              }}
+              InputLabelProps={{ shrink: true }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <Lock style={{ color: '#ff69b4' }} />
+                    <Lock style={{ color: '#ff69b4', fontSize: '18px' }} />
                   </InputAdornment>
                 ),
                 endAdornment: (
@@ -283,13 +289,14 @@ const Login = () => {
                       onClick={() => setShowPassword(!showPassword)}
                       edge="end"
                       style={{ color: '#666' }}
+                      size="small"
                     >
                       {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                   </InputAdornment>
                 ),
               }}
-              style={{ marginBottom: '8px' }}
+              style={{ marginBottom: '4px' }}
             />
 
             <Box style={{ textAlign: 'right', marginBottom: '16px' }}>
@@ -313,26 +320,17 @@ const Login = () => {
               type="submit"
               fullWidth
               variant="contained"
-              size="large"
+              size="medium"
               disabled={loading}
               style={{
-                padding: '14px',
-                fontSize: '16px',
+                padding: '10px',
+                fontSize: '15px',
                 fontWeight: 600,
                 textTransform: 'none',
-                borderRadius: '12px',
-                marginBottom: '20px',
+                borderRadius: '8px',
+                marginBottom: '16px',
                 background: 'linear-gradient(135deg, #e91e63 0%, #ff6b9d 100%)',
-                boxShadow: '0 4px 14px rgba(233, 30, 99, 0.4)',
-                transition: 'all 0.3s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 20px rgba(233, 30, 99, 0.5)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 14px rgba(233, 30, 99, 0.4)';
+                boxShadow: '0 4px 12px rgba(233, 30, 99, 0.35)',
               }}
             >
               {loading ? 'Signing in...' : 'Sign In'}
@@ -343,7 +341,7 @@ const Login = () => {
                 Don't have an account?{' '}
                 <Link
                   component={RouterLink}
-                  to="/register"
+                  to={returnUrl !== '/' ? `/register?returnUrl=${encodeURIComponent(returnUrl)}` : '/register'}
                   style={{
                     color: '#e91e63',
                     fontWeight: 700,

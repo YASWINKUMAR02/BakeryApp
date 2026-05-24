@@ -827,11 +827,7 @@ const Shop = () => {
                         aria-label="Filtered products"
                         sx={{
                           display: 'grid',
-                          gridTemplateColumns: {
-                            xs: 'repeat(2, 1fr)',
-                            sm: 'repeat(2, 1fr)',
-                            md: 'repeat(3, 1fr)',
-                          },
+                          gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)', lg: 'repeat(5, 1fr)' },
                           gap: { xs: 1.5, sm: 2.5, md: 3 },
                           width: '100%',
                         }}
